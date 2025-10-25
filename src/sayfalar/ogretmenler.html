@@ -1,0 +1,1159 @@
+<!DOCTYPE html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Öğretmen Yönetimi</title>
+    <link rel="stylesheet" href="anasayfa.css" />
+    <link rel="stylesheet" href="okullar.css" />
+    <link rel="stylesheet" href="../bilesenler/bildirim-sistemi.css" />
+  </head>
+  <body>
+    <!-- Arka Plan Animasyonları -->
+    <div class="bg-animations">
+      <div class="gradient-orb orb-1"></div>
+      <div class="gradient-orb orb-2"></div>
+      <div class="gradient-orb orb-3"></div>
+    </div>
+
+    <!-- Üst Bar -->
+    <header class="top-bar">
+      <div class="top-bar-left">
+        <div
+          class="logo-container"
+          onclick="window.location.href='anasayfa.html'"
+        >
+          <svg class="logo-icon" viewBox="0 0 24 24" fill="none">
+            <path
+              d="M12 3L4 9V21H20V9L12 3Z"
+              stroke="url(#gradient1)"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+            <path
+              d="M9 21V12H15V21"
+              stroke="url(#gradient1)"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+            <defs>
+              <linearGradient
+                id="gradient1"
+                x1="0%"
+                y1="0%"
+                x2="100%"
+                y2="100%"
+              >
+                <stop
+                  offset="0%"
+                  style="stop-color: #00d9ff; stop-opacity: 1"
+                />
+                <stop
+                  offset="100%"
+                  style="stop-color: #7b2fff; stop-opacity: 1"
+                />
+              </linearGradient>
+            </defs>
+          </svg>
+          <div class="logo-text">
+            <span class="logo-title">Okul Yönetim</span>
+            <span class="logo-subtitle" id="okulAdi">Sistem</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="top-bar-center">
+        <h2 style="color: white; font-size: 20px; font-weight: 600">
+          👨‍🏫 Öğretmen Yönetimi
+        </h2>
+      </div>
+
+      <div class="top-bar-right">
+        <button
+          class="icon-btn"
+          onclick="window.location.href='anasayfa.html'"
+          title="Ana Sayfa"
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+            <path
+              d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"
+              stroke="currentColor"
+              stroke-width="2"
+            />
+          </svg>
+        </button>
+
+        <div class="user-menu" id="userMenu">
+          <div class="user-avatar"><span id="userInitials">SA</span></div>
+          <div class="user-info">
+            <span class="user-name" id="userName">Admin</span>
+            <span class="user-role" id="userRole">Okul Yöneticisi</span>
+          </div>
+        </div>
+
+        <button class="icon-btn logout-btn" id="logoutBtn" title="Çıkış">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+            <path
+              d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4m7 14l5-5-5-5m5 5H9"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+            />
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Ana İçerik -->
+    <main class="page-container">
+      <!-- Başlık ve Butonlar -->
+      <div class="page-header">
+        <div class="header-left">
+          <h1 class="page-title">
+            <span class="title-icon">👨‍🏫</span>
+            Öğretmen Yönetimi
+          </h1>
+          <p class="page-description">
+            Öğretmen ekleyin, düzenleyin ve takip edin
+          </p>
+        </div>
+        <div class="header-right">
+          <!-- RAPORLAR BUTONU - YENİ -->
+          <button
+            class="btn-primary"
+            onclick="ogretmenRaporlariAc()"
+            title="Öğretmen Raporları"
+            style="
+              background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            "
+          >
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path
+                d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
+              />
+              <polyline points="14 2 14 8 20 8" />
+              <line x1="16" y1="13" x2="8" y2="13" />
+              <line x1="16" y1="17" x2="8" y2="17" />
+              <polyline points="10 9 9 9 8 9" />
+            </svg>
+            <span>📊 Raporlar</span>
+          </button>
+
+          <!-- YENİ ÖĞRETMEN EKLE BUTONU -->
+          <button class="btn-primary" id="btnYeniOgretmen">
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path d="M12 5v14m-7-7h14" />
+            </svg>
+            <span>Yeni Öğretmen Ekle</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Özet Kartlar -->
+      <div class="stats-grid" id="statsGrid">
+        <div class="stat-card">
+          <div
+            class="stat-icon"
+            style="background: rgba(0, 217, 255, 0.2); color: #00d9ff"
+          >
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+              <circle cx="9" cy="7" r="4" />
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87m-4-12a4 4 0 0 1 0 7.75" />
+            </svg>
+          </div>
+          <div class="stat-content">
+            <div class="stat-label">Toplam Öğretmen</div>
+            <div class="stat-value" id="statToplam">0</div>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div
+            class="stat-icon"
+            style="background: rgba(0, 245, 160, 0.2); color: #00f5a0"
+          >
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+              <polyline points="22 4 12 14.01 9 11.01" />
+            </svg>
+          </div>
+          <div class="stat-content">
+            <div class="stat-label">Aktif</div>
+            <div class="stat-value" id="statAktif">0</div>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div
+            class="stat-icon"
+            style="background: rgba(255, 107, 107, 0.2); color: #ff6b6b"
+          >
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <circle cx="12" cy="12" r="10" />
+              <line x1="15" y1="9" x2="9" y2="15" />
+              <line x1="9" y1="9" x2="15" y2="15" />
+            </svg>
+          </div>
+          <div class="stat-content">
+            <div class="stat-label">Pasif</div>
+            <div class="stat-value" id="statPasif">0</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Arama ve Filtreler -->
+      <div class="filter-section">
+        <div class="search-box">
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <circle cx="11" cy="11" r="8" />
+            <path d="M21 21l-4.35-4.35" />
+          </svg>
+          <input
+            type="text"
+            id="searchInput"
+            placeholder="Ad, soyad veya TC No ile ara..."
+          />
+        </div>
+
+        <select class="filter-select" id="filterUnvan">
+          <option value="">Tüm Ünvanlar</option>
+        </select>
+
+        <select class="filter-select" id="filterDurum">
+          <option value="">Durum</option>
+          <option value="1">Aktif</option>
+          <option value="0">Pasif</option>
+        </select>
+
+        <select class="filter-select" id="filterSiralama">
+          <option value="ad_soyad">Ad Soyad (A-Z)</option>
+          <option value="tc_no">TC No</option>
+          <option value="unvan">Ünvan</option>
+        </select>
+
+        <button class="btn-filter" id="btnFiltrele">
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
+          </svg>
+          Filtrele
+        </button>
+      </div>
+
+      <!-- Öğretmen Tablosu -->
+      <div class="table-container">
+        <table class="modern-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>TC Kimlik No</th>
+              <th>Ad Soyad</th>
+              <th>Kısa Ad</th>
+              <th>Ünvan</th>
+              <th>Görev</th>
+              <th>Durum</th>
+              <th>İşlemler</th>
+            </tr>
+          </thead>
+          <tbody id="ogretmenlerTbody">
+            <tr>
+              <td colspan="8" style="text-align: center; padding: 60px">
+                <div style="font-size: 48px; margin-bottom: 16px">👨‍🏫</div>
+                <div
+                  style="
+                    font-size: 18px;
+                    font-weight: 600;
+                    color: var(--text-primary);
+                    margin-bottom: 8px;
+                  "
+                >
+                  Henüz öğretmen kaydı yok
+                </div>
+                <div style="font-size: 14px; color: var(--text-secondary)">
+                  "Yeni Öğretmen Ekle" butonuna tıklayarak ilk kaydı oluşturun
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Sayfalama -->
+      <div class="pagination" id="pagination" style="display: none">
+        <button class="pagination-btn" id="btnPrevPage">← Önceki</button>
+        <div class="pagination-info" id="paginationInfo">1-10 / 50</div>
+        <button class="pagination-btn" id="btnNextPage">Sonraki →</button>
+      </div>
+    </main>
+
+    <!-- YENİ ÖĞRETMEN MODAL - MULTI STEP -->
+    <div class="modal-overlay" id="modalYeniOgretmen" style="display: none">
+      <div class="modal-container large">
+        <div class="modal-header">
+          <h2>
+            <span style="font-size: 24px; margin-right: 8px">➕</span>
+            Yeni Öğretmen Kaydı
+          </h2>
+          <button class="modal-close" onclick="closeModal('modalYeniOgretmen')">
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path d="M18 6L6 18M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        <!-- Form Step İndikatörü -->
+        <div class="form-steps" id="formSteps">
+          <div class="form-step active" data-step="1">
+            <span class="step-number">1</span>
+            <span class="step-label">Kimlik</span>
+          </div>
+          <div class="form-step" data-step="2">
+            <span class="step-number">2</span>
+            <span class="step-label">Görev</span>
+          </div>
+          <div class="form-step" data-step="3">
+            <span class="step-number">3</span>
+            <span class="step-label">Akademik</span>
+          </div>
+          <div class="form-step" data-step="4">
+            <span class="step-number">4</span>
+            <span class="step-label">Mali</span>
+          </div>
+          <div class="form-step" data-step="5">
+            <span class="step-number">5</span>
+            <span class="step-label">İletişim</span>
+          </div>
+          <div class="form-step" data-step="6">
+            <span class="step-number">6</span>
+            <span class="step-label">Ayrılma</span>
+          </div>
+        </div>
+
+        <div class="modal-body">
+          <form id="formYeniOgretmen">
+            <!-- STEP 1: Kimlik Bilgileri -->
+            <div class="form-step-content active" data-step="1">
+              <div class="form-section">
+                <h3 class="section-title"><span>🆔</span> Kimlik Bilgileri</h3>
+                <div class="form-grid">
+                  <div class="form-group full-width">
+                    <label class="form-label required">T.C. Kimlik No</label>
+                    <input
+                      type="text"
+                      id="tcNo"
+                      class="form-input"
+                      placeholder="11 haneli TC No"
+                      maxlength="11"
+                      pattern="[0-9]{11}"
+                      required
+                    />
+                    <small class="form-hint">11 haneli, sadece rakam</small>
+                  </div>
+                  <div class="form-group full-width">
+                    <label class="form-label required">Ad Soyad</label>
+                    <input
+                      type="text"
+                      id="adSoyad"
+                      class="form-input"
+                      placeholder="Örn: Mehmet Yılmaz"
+                      required
+                    />
+                  </div>
+                  <div class="form-group full-width">
+                    <label class="form-label">Kısa Ad</label>
+                    <input
+                      type="text"
+                      id="kisaAd"
+                      class="form-input"
+                      placeholder="Otomatik oluşturulacak"
+                      readonly
+                      style="background: rgba(255, 255, 255, 0.02)"
+                    />
+                    <small class="form-hint"
+                      >Örnek: MEHMET YILMAZ → M.YIL</small
+                    >
+                  </div>
+
+                  <!-- ✅ Branş Alanı -->
+                  <div class="form-group full-width">
+                    <label for="brans" class="form-label required"
+                      >Branşı</label
+                    >
+                    <select
+                      id="brans"
+                      name="brans"
+                      class="form-select"
+                      required
+                    >
+                      <option value="">Seçiniz...</option>
+                      <option value="Almanca">Almanca</option>
+                      <option value="Beden Eğitimi">Beden Eğitimi</option>
+                      <option value="Bilgisayar ve Öğretim Teknolojileri">
+                        Bilgisayar ve Öğretim Teknolojileri
+                      </option>
+                      <option value="Biyoloji">Biyoloji</option>
+                      <option value="Coğrafya">Coğrafya</option>
+                      <option value="Din Kültürü ve Ahlak Bilgisi">
+                        Din Kültürü ve Ahlak Bilgisi
+                      </option>
+                      <option value="Felsefe">Felsefe</option>
+                      <option value="Fizik">Fizik</option>
+                      <option value="Görsel Sanatlar">Görsel Sanatlar</option>
+                      <option value="İngilizce">İngilizce</option>
+                      <option value="Matematik">Matematik</option>
+                      <option value="Kimya/Kimya Teknolojisi">
+                        Kimya/Kimya Teknolojisi
+                      </option>
+                      <option value="Müzik">Müzik</option>
+                      <option value="Rehberlik">Rehberlik</option>
+                      <option value="Sanat Tarihi">Sanat Tarihi</option>
+                      <option value="Sınıf Öğretmeni">Sınıf Öğretmeni</option>
+                      <option value="Tarih">Tarih</option>
+                      <option value="Türk Dili ve Edebiyatı">
+                        Türk Dili ve Edebiyatı
+                      </option>
+                    </select>
+                    <small class="form-hint">Öğretmenin branşını seçiniz</small>
+                  </div>
+
+                  <div class="form-group">
+                    <label class="form-label required">Cinsiyet</label>
+                    <select id="cinsiyet" class="form-select" required>
+                      <option value="">Seçiniz...</option>
+                      <option value="Erkek">Erkek</option>
+                      <option value="Kadın">Kadın</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Doğum Tarihi</label>
+                    <input type="date" id="dogumTarihi" class="form-input" />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Doğum Yeri</label>
+                    <input
+                      type="text"
+                      id="dogumYeri"
+                      class="form-input"
+                      placeholder="İl/İlçe"
+                    />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Baba Adı</label>
+                    <input type="text" id="babaAdi" class="form-input" />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- STEP 2: Görev Bilgileri -->
+            <div class="form-step-content" data-step="2">
+              <div class="form-section">
+                <h3 class="section-title"><span>💼</span> Görev Bilgileri</h3>
+                <div class="form-grid">
+                  <div class="form-group">
+                    <label class="form-label required">Ünvan</label>
+                    <select id="unvan" class="form-select" required>
+                      <option value="">Seçiniz...</option>
+                      <option value="Okul Müdürü">Okul Müdürü</option>
+                      <option value="Müdür">Müdür</option>
+                      <option value="Müdür Yetki Öğretmen">
+                        Müdür Yetki Öğretmen
+                      </option>
+                      <option value="Müdür Baş Yardımcısı">
+                        Müdür Baş Yardımcısı
+                      </option>
+                      <option value="Müdür Yardımcısı">Müdür Yardımcısı</option>
+                      <option value="Branş Öğretmeni">Branş Öğretmeni</option>
+                      <option value="Rehberlik Öğretmeni">
+                        Rehberlik Öğretmeni
+                      </option>
+                      <option value="Meslek Dersleri Öğretmeni">
+                        Meslek Dersleri Öğretmeni
+                      </option>
+                      <option value="Sınıf Öğretmeni">Sınıf Öğretmeni</option>
+                      <option value="Özel Eğitim Öğretmeni">
+                        Özel Eğitim Öğretmeni
+                      </option>
+                      <option value="Sözleşmeli Öğretmen">
+                        Sözleşmeli Öğretmen
+                      </option>
+                      <option value="Ücretli Öğretmen">Ücretli Öğretmen</option>
+                      <option value="MEB Kurum Dışı">MEB Kurum Dışı</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label required">Kariyer</label>
+                    <select id="kariyer" class="form-select" required>
+                      <option value="">Seçiniz...</option>
+                      <option value="Baş Öğretmen">Baş Öğretmen</option>
+                      <option value="Uzman Öğretmen">Uzman Öğretmen</option>
+                      <option value="Öğretmen">Öğretmen</option>
+                      <option value="Aday Öğretmen">Aday Öğretmen</option>
+                      <option value="Aday Sözleşmeli Öğretmen">
+                        Aday Sözleşmeli Öğretmen
+                      </option>
+                      <option value="Sözleşmeli Öğretmen">
+                        Sözleşmeli Öğretmen
+                      </option>
+                      <option value="Ücretli Öğretmen">Ücretli Öğretmen</option>
+                      <option value="MEB Kurum Dışı">MEB Kurum Dışı</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label required">Görev</label>
+                    <select id="gorev" class="form-select" required>
+                      <option value="">Seçiniz...</option>
+                      <option value="Okul Müdürü">Okul Müdürü</option>
+                      <option value="Müdür">Müdür</option>
+                      <option value="Müdür Yetkili Öğretmen">
+                        Müdür Yetkili Öğretmen
+                      </option>
+                      <option value="Müdür Baş Yardımcısı">
+                        Müdür Baş Yardımcısı
+                      </option>
+                      <option value="Müdür Yardımcısı">Müdür Yardımcısı</option>
+                      <option value="Öğretmen">Öğretmen</option>
+                      <option value="Sözleşmeli Öğretmen (657 S.K 4/B)">
+                        Sözleşmeli Öğretmen (657 S.K 4/B)
+                      </option>
+                      <option value="Ücretli Öğretmen">Ücretli Öğretmen</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label required">Durum</label>
+                    <select id="durum" class="form-select" required>
+                      <option value="1">Aktif</option>
+                      <option value="0">Pasif</option>
+                    </select>
+                  </div>
+                  <div class="form-group full-width">
+                    <label class="form-label">Görev Yeri</label>
+                    <input
+                      type="text"
+                      id="gorevYeri"
+                      class="form-input"
+                      readonly
+                      style="background: rgba(255, 255, 255, 0.02)"
+                    />
+                    <small class="form-hint">Otomatik doldurulacak</small>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Göreve Başlama Tarihi</label>
+                    <input type="date" id="goreveBaslama" class="form-input" />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Kurumda Başlama Tarihi</label>
+                    <input type="date" id="kurumdaBaslama" class="form-input" />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- STEP 3: Akademik Bilgiler -->
+            <div class="form-step-content" data-step="3">
+              <div class="form-section">
+                <h3 class="section-title"><span>🎓</span> Akademik Bilgiler</h3>
+                <div class="form-grid">
+                  <div class="form-group">
+                    <label class="form-label">Öğrenim Durumu</label>
+                    <select id="ogrenimDurumu" class="form-select">
+                      <option value="">Seçiniz...</option>
+                      <option value="Lisans">Lisans</option>
+                      <option value="Yüksek Lisans (Tezli)">
+                        Yüksek Lisans (Tezli)
+                      </option>
+                      <option value="Yüksek Lisans (Tezsiz)">
+                        Yüksek Lisans (Tezsiz)
+                      </option>
+                      <option value="Doktora">Doktora</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Mezun Üniversite</label>
+                    <input
+                      type="text"
+                      id="mezunUniversite"
+                      class="form-input"
+                    />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Derece</label>
+                    <select id="derece" class="form-select">
+                      <option value="">Seçiniz...</option>
+                      <option value="1">1</option>
+                      <option value="2">2</option>
+                      <option value="3">3</option>
+                      <option value="4">4</option>
+                      <option value="5">5</option>
+                      <option value="6">6</option>
+                      <option value="7">7</option>
+                      <option value="8">8</option>
+                      <option value="9">9</option>
+                      <option value="10">10</option>
+                      <option value="11">11</option>
+                      <option value="12">12</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Kademe</label>
+                    <select id="kademe" class="form-select">
+                      <option value="">Seçiniz...</option>
+                      <option value="1">1</option>
+                      <option value="2">2</option>
+                      <option value="3">3</option>
+                      <option value="4">4</option>
+                      <option value="5">5</option>
+                      <option value="6">6</option>
+                      <option value="7">7</option>
+                      <option value="8">8</option>
+                      <option value="9">9</option>
+                      <option value="10">10</option>
+                      <option value="11">11</option>
+                      <option value="12">12</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Emekli Sicil No</label>
+                    <input
+                      type="text"
+                      id="emekliSicilNo"
+                      class="form-input"
+                      placeholder="Sadece rakam"
+                    />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">KBS Personel No</label>
+                    <input
+                      type="text"
+                      id="kbsPersonelNo"
+                      class="form-input"
+                      placeholder="Sadece rakam"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- STEP 4: Mali Bilgiler -->
+            <div class="form-step-content" data-step="4">
+              <div class="form-section">
+                <h3 class="section-title"><span>💰</span> Mali Bilgiler</h3>
+                <div class="form-grid">
+                  <div class="form-group full-width">
+                    <label class="form-label">IBAN</label>
+                    <input
+                      type="text"
+                      id="iban"
+                      class="form-input"
+                      placeholder="TR00 0000 0000 0000 0000 0000 00"
+                      maxlength="32"
+                    />
+                    <small class="form-hint"
+                      >TR ile başlayan 26 haneli numara</small
+                    >
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Banka Şubesi</label>
+                    <input type="text" id="bankaSubesi" class="form-input" />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Yabancı Dil Tazminatı</label>
+                    <select id="yabanciDilTazminati" class="form-select">
+                      <option value="">Yok</option>
+                      <option value="(A) 1500">(A) 1500</option>
+                      <option value="(A) 1200">(A) 1200</option>
+                      <option value="(A) 900">(A) 900</option>
+                      <option value="(B) 600">(B) 600</option>
+                      <option value="(C) 300">(C) 300</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Ek Gösterge</label>
+                    <input type="text" id="ekGosterge" class="form-input" />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- STEP 5: İletişim ve Aile -->
+            <div class="form-step-content" data-step="5">
+              <div class="form-section">
+                <h3 class="section-title">
+                  <span>👨‍👩‍👧</span> Aile ve İletişim Bilgileri
+                </h3>
+                <div class="form-grid">
+                  <div class="form-group">
+                    <label class="form-label">Aile Durumu</label>
+                    <select id="aileDurumu" class="form-select">
+                      <option value="">Seçiniz...</option>
+                      <option value="Bekar">Bekar</option>
+                      <option value="Evli">Evli</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">BES</label>
+                    <select id="bes" class="form-select">
+                      <option value="">Seçiniz...</option>
+                      <option value="Var">Var</option>
+                      <option value="Yok">Yok</option>
+                    </select>
+                  </div>
+                  <div
+                    class="form-group"
+                    id="cocuk0_6Group"
+                    style="display: none"
+                  >
+                    <label class="form-label">0-6 Yaş Çocuk Sayısı</label>
+                    <input
+                      type="number"
+                      id="cocuk0_6"
+                      class="form-input"
+                      min="0"
+                      value="0"
+                    />
+                  </div>
+                  <div
+                    class="form-group"
+                    id="cocuk6UstuGroup"
+                    style="display: none"
+                  >
+                    <label class="form-label">6-Üstü Çocuk Sayısı</label>
+                    <input
+                      type="number"
+                      id="cocuk6Ustu"
+                      class="form-input"
+                      min="0"
+                      value="0"
+                    />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Telefon</label>
+                    <input
+                      type="tel"
+                      id="telefon"
+                      class="form-input"
+                      placeholder="0 (___) ___ __ __"
+                    />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">E-posta</label>
+                    <input
+                      type="email"
+                      id="email"
+                      class="form-input"
+                      placeholder="ornek@email.com"
+                    />
+                  </div>
+                  <div class="form-group full-width">
+                    <label class="form-label">Adres</label>
+                    <textarea
+                      id="adres"
+                      class="form-textarea"
+                      rows="3"
+                      placeholder="Açık adres"
+                    ></textarea>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- STEP 6: Ayrılma Bilgileri -->
+            <div class="form-step-content" data-step="6">
+              <div class="form-section">
+                <h3 class="section-title" style="color: #ff6b6b">
+                  <span>⚠️</span> Görevden Ayrılma Bilgileri
+                </h3>
+                <div
+                  class="info-box"
+                  style="
+                    background: rgba(255, 107, 107, 0.1);
+                    border-left: 4px solid #ff6b6b;
+                  "
+                >
+                  <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <path
+                      d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"
+                    />
+                    <line x1="12" y1="9" x2="12" y2="13" />
+                    <line x1="12" y1="17" x2="12.01" y2="17" />
+                  </svg>
+                  <div>
+                    <strong>Dikkat!</strong> Ayrılma tarihi girilirse öğretmen
+                    otomatik olarak pasif duruma alınacaktır.
+                  </div>
+                </div>
+                <div class="form-grid">
+                  <div class="form-group">
+                    <label class="form-label" style="color: #ff6b6b"
+                      >Görevden Ayrılma Tarihi</label
+                    >
+                    <input type="date" id="ayrilmaTarihi" class="form-input" />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Ayrılış Nedeni</label>
+                    <select id="ayrilisNedeni" class="form-select" disabled>
+                      <option value="">Seçiniz...</option>
+                      <option value="İl İçi Tayin">İl İçi Tayin</option>
+                      <option value="İl Dışı Tayin">İl Dışı Tayin</option>
+                      <option value="Eş Durumu Tayini">Eş Durumu Tayini</option>
+                      <option value="Reesen Atama">Reesen Atama</option>
+                      <option value="Norm Fazlası Atama">
+                        Norm Fazlası Atama
+                      </option>
+                      <option value="Emeklilik">Emeklilik</option>
+                      <option value="İstifa">İstifa</option>
+                      <option value="Açığa Alınma">Açığa Alınma</option>
+                      <option value="Görevine Son Verilmesi">
+                        Görevine Son Verilmesi
+                      </option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Form Navigasyon Butonları -->
+            <div class="modal-footer">
+              <button
+                type="button"
+                class="btn-secondary"
+                id="btnPrevStep"
+                style="display: none"
+              >
+                ← Önceki
+              </button>
+              <button
+                type="button"
+                class="btn-secondary"
+                onclick="closeModal('modalYeniOgretmen')"
+              >
+                İptal
+              </button>
+              <button type="button" class="btn-primary" id="btnNextStep">
+                Sonraki →
+              </button>
+              <button
+                type="submit"
+                class="btn-primary"
+                id="btnKaydet"
+                style="display: none"
+              >
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path
+                    d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"
+                  />
+                  <polyline points="17 21 17 13 7 13 7 21" />
+                  <polyline points="7 3 7 8 15 8" />
+                </svg>
+                Öğretmeni Kaydet
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- ÖĞRETMEN DÜZENLEME MODAL -->
+    <div class="modal-overlay" id="modalDuzenleOgretmen" style="display: none">
+      <div class="modal-container large">
+        <div class="modal-header">
+          <h2>
+            <span style="font-size: 24px; margin-right: 8px">✏️</span>
+            Öğretmen Bilgilerini Düzenle
+          </h2>
+          <button
+            class="modal-close"
+            onclick="closeModal('modalDuzenleOgretmen')"
+          >
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path d="M18 6L6 18M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        <div class="modal-body">
+          <form id="formDuzenleOgretmen">
+            <input type="hidden" id="editOgretmenId" />
+
+            <div class="info-box">
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <circle cx="12" cy="12" r="10" />
+                <line x1="12" y1="16" x2="12" y2="12" />
+                <line x1="12" y1="8" x2="12.01" y2="8" />
+              </svg>
+              <div><strong>Not:</strong> TC Kimlik No değiştirilemez.</div>
+            </div>
+
+            <div class="form-section">
+              <h3 class="section-title"><span>📝</span> Genel Bilgiler</h3>
+              <div class="form-grid">
+                <div class="form-group">
+                  <label class="form-label">T.C. Kimlik No</label>
+                  <input
+                    type="text"
+                    id="editTcNo"
+                    class="form-input"
+                    readonly
+                    style="
+                      background: rgba(255, 255, 255, 0.02);
+                      cursor: not-allowed;
+                    "
+                  />
+                </div>
+                <div class="form-group">
+                  <label class="form-label required">Ad Soyad</label>
+                  <input
+                    type="text"
+                    id="editAdSoyad"
+                    class="form-input"
+                    required
+                  />
+                </div>
+                <div class="form-group">
+                  <label class="form-label required">Ünvan</label>
+                  <select id="editUnvan" class="form-select" required>
+                    <option value="">Seçiniz...</option>
+                    <option value="Okul Müdürü">Okul Müdürü</option>
+                    <option value="Müdür">Müdür</option>
+                    <option value="Müdür Baş Yardımcısı">
+                      Müdür Baş Yardımcısı
+                    </option>
+                    <option value="Müdür Yardımcısı">Müdür Yardımcısı</option>
+                    <option value="Branş Öğretmeni">Branş Öğretmeni</option>
+                    <option value="Sınıf Öğretmeni">Sınıf Öğretmeni</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label required">Durum</label>
+                  <select id="editDurum" class="form-select" required>
+                    <option value="1">Aktif</option>
+                    <option value="0">Pasif</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Telefon</label>
+                  <input type="tel" id="editTelefon" class="form-input" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">E-posta</label>
+                  <input type="email" id="editEmail" class="form-input" />
+                </div>
+              </div>
+            </div>
+
+            <div class="modal-footer">
+              <button
+                type="button"
+                class="btn-secondary"
+                onclick="closeModal('modalDuzenleOgretmen')"
+              >
+                İptal
+              </button>
+              <button type="submit" class="btn-primary" id="btnGuncelle">
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path
+                    d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"
+                  />
+                  <polyline points="17 21 17 13 7 13 7 21" />
+                  <polyline points="7 3 7 8 15 8" />
+                </svg>
+                Değişiklikleri Kaydet
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- ŞİFRE GÖSTERİM MODAL -->
+    <div class="modal-overlay" id="modalSifreGoster" style="display: none">
+      <div class="modal-container" style="max-width: 500px">
+        <div class="modal-header">
+          <h2>
+            <span style="font-size: 24px; margin-right: 8px">🔑</span>
+            Öğretmen Giriş Bilgileri
+          </h2>
+          <button class="modal-close" onclick="closeModal('modalSifreGoster')">
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path d="M18 6L6 18M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        <div class="modal-body">
+          <div style="padding: 20px; text-align: center">
+            <div style="margin-bottom: 20px">
+              <div
+                style="
+                  font-size: 14px;
+                  color: var(--text-secondary);
+                  margin-bottom: 8px;
+                "
+              >
+                Kullanıcı Adı (TC No)
+              </div>
+              <div
+                id="sifreModalTcNo"
+                style="
+                  font-size: 24px;
+                  font-weight: 600;
+                  color: var(--primary);
+                  font-family: monospace;
+                  letter-spacing: 2px;
+                "
+              ></div>
+            </div>
+            <div style="margin-bottom: 20px">
+              <div
+                style="
+                  font-size: 14px;
+                  color: var(--text-secondary);
+                  margin-bottom: 8px;
+                "
+              >
+                Şifre
+              </div>
+              <div
+                id="sifreModalSifre"
+                style="
+                  font-size: 32px;
+                  font-weight: 700;
+                  color: #00f5a0;
+                  font-family: monospace;
+                  letter-spacing: 4px;
+                "
+              ></div>
+            </div>
+            <div class="info-box">
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <circle cx="12" cy="12" r="10" />
+                <line x1="12" y1="16" x2="12" y2="12" />
+                <line x1="12" y1="8" x2="12.01" y2="8" />
+              </svg>
+              <div>
+                Bu bilgileri öğretmene iletin. Öğretmen bu bilgilerle sisteme
+                giriş yapabilir.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button class="btn-primary" onclick="closeModal('modalSifreGoster')">
+            Tamam
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script src="../bilesenler/bildirim-sistemi.js"></script>
+    <script src="ogretmenler.js"></script>
+  </body>
+</html>

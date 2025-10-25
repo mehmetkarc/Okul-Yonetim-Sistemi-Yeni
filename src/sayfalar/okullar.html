@@ -1,0 +1,851 @@
+<!DOCTYPE html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Okul Yönetimi</title>
+    <link rel="stylesheet" href="anasayfa.css" />
+    <link rel="stylesheet" href="okullar.css" />
+    <link rel="stylesheet" href="../bilesenler/bildirim-sistemi.css" />
+  </head>
+  <body>
+    <!-- Arka Plan Animasyonları -->
+    <div class="bg-animations">
+      <div class="gradient-orb orb-1"></div>
+      <div class="gradient-orb orb-2"></div>
+      <div class="gradient-orb orb-3"></div>
+    </div>
+
+    <!-- Üst Bar -->
+    <header class="top-bar">
+      <div class="top-bar-left">
+        <div
+          class="logo-container"
+          onclick="window.location.href='anasayfa.html'"
+        >
+          <svg class="logo-icon" viewBox="0 0 24 24" fill="none">
+            <path
+              d="M12 3L4 9V21H20V9L12 3Z"
+              stroke="url(#gradient1)"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+            <path
+              d="M9 21V12H15V21"
+              stroke="url(#gradient1)"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+            <defs>
+              <linearGradient
+                id="gradient1"
+                x1="0%"
+                y1="0%"
+                x2="100%"
+                y2="100%"
+              >
+                <stop
+                  offset="0%"
+                  style="stop-color: #00d9ff; stop-opacity: 1"
+                />
+                <stop
+                  offset="100%"
+                  style="stop-color: #7b2fff; stop-opacity: 1"
+                />
+              </linearGradient>
+            </defs>
+          </svg>
+          <div class="logo-text">
+            <span class="logo-title">Okul Yönetim</span>
+            <span class="logo-subtitle" id="okulAdi">Sistem</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="top-bar-center">
+        <h2 style="color: white; font-size: 20px; font-weight: 600">
+          🏫 Okul Yönetimi
+        </h2>
+      </div>
+
+      <div class="top-bar-right">
+        <button
+          class="icon-btn"
+          onclick="window.location.href='anasayfa.html'"
+          title="Ana Sayfa"
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+            <path
+              d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"
+              stroke="currentColor"
+              stroke-width="2"
+            />
+          </svg>
+        </button>
+
+        <div class="user-menu" id="userMenu">
+          <div class="user-avatar">
+            <span id="userInitials">SA</span>
+          </div>
+          <div class="user-info">
+            <span class="user-name" id="userName">Super Admin</span>
+            <span class="user-role" id="userRole">Sistem Yöneticisi</span>
+          </div>
+        </div>
+
+        <button class="icon-btn logout-btn" id="logoutBtn" title="Çıkış">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+            <path
+              d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4m7 14l5-5-5-5m5 5H9"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+            />
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Ana İçerik -->
+    <main class="page-container">
+      <!-- Başlık ve Butonlar -->
+      <div class="page-header">
+        <div class="header-left">
+          <h1 class="page-title">
+            <span class="title-icon">🏫</span>
+            Okul Yönetimi
+          </h1>
+          <p class="page-description">
+            Kayıtlı okulları yönetin, yeni okul ekleyin ve lisans durumlarını
+            takip edin
+          </p>
+        </div>
+        <div class="header-right">
+          <button class="btn-primary" id="btnYeniOkul">
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path d="M12 5v14m-7-7h14" />
+            </svg>
+            <span>Yeni Okul Ekle</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Özet Kartlar -->
+      <div class="stats-grid" id="statsGrid">
+        <div class="stat-card">
+          <div
+            class="stat-icon"
+            style="background: rgba(0, 217, 255, 0.2); color: #00d9ff"
+          >
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path d="M12 3L4 9v12h16V9l-8-6z" />
+            </svg>
+          </div>
+          <div class="stat-content">
+            <div class="stat-label">Toplam Okul</div>
+            <div class="stat-value" id="statToplamOkul">0</div>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div
+            class="stat-icon"
+            style="background: rgba(0, 245, 160, 0.2); color: #00f5a0"
+          >
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+              <polyline points="22 4 12 14.01 9 11.01" />
+            </svg>
+          </div>
+          <div class="stat-content">
+            <div class="stat-label">Aktif Lisans</div>
+            <div class="stat-value" id="statAktifLisans">0</div>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div
+            class="stat-icon"
+            style="background: rgba(255, 217, 61, 0.2); color: #ffd93d"
+          >
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path
+                d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"
+              />
+              <line x1="12" y1="9" x2="12" y2="13" />
+              <line x1="12" y1="17" x2="12.01" y2="17" />
+            </svg>
+          </div>
+          <div class="stat-content">
+            <div class="stat-label">Yakında Bitenler</div>
+            <div class="stat-value" id="statYakindaBiten">0</div>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div
+            class="stat-icon"
+            style="background: rgba(255, 107, 107, 0.2); color: #ff6b6b"
+          >
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <circle cx="12" cy="12" r="10" />
+              <line x1="12" y1="8" x2="12" y2="12" />
+              <line x1="12" y1="16" x2="12.01" y2="16" />
+            </svg>
+          </div>
+          <div class="stat-content">
+            <div class="stat-label">Süresi Dolmuş</div>
+            <div class="stat-value" id="statSuresiDolmus">0</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Arama ve Filtreler -->
+      <div class="filter-section">
+        <div class="search-box">
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <circle cx="11" cy="11" r="8" />
+            <path d="M21 21l-4.35-4.35" />
+          </svg>
+          <input
+            type="text"
+            id="searchInput"
+            placeholder="Okul adı veya kodu ile ara..."
+          />
+        </div>
+
+        <select class="filter-select" id="filterIl">
+          <option value="">Tüm İller</option>
+        </select>
+
+        <select class="filter-select" id="filterLisans">
+          <option value="">Lisans Durumu</option>
+          <option value="aktif">Aktif</option>
+          <option value="uyari">Yakında Bitenler (30 gün)</option>
+          <option value="bitmis">Süresi Dolmuş</option>
+        </select>
+
+        <button class="btn-filter" id="btnFiltrele">
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
+          </svg>
+          Filtrele
+        </button>
+      </div>
+
+      <!-- Okul Tablosu -->
+      <div class="table-container">
+        <table class="modern-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Okul Kodu</th>
+              <th>Okul Adı</th>
+              <th>İl / İlçe</th>
+              <th>Yetkili Kişi</th>
+              <th>Yetkili Ünvanı</th>
+              <th>Lisans Durumu</th>
+              <th>İşlemler</th>
+            </tr>
+          </thead>
+          <tbody id="okullarTbody">
+            <tr>
+              <td colspan="8" style="text-align: center; padding: 60px">
+                <div style="font-size: 48px; margin-bottom: 16px">🏫</div>
+                <div
+                  style="
+                    font-size: 18px;
+                    font-weight: 600;
+                    color: var(--text-primary);
+                    margin-bottom: 8px;
+                  "
+                >
+                  Henüz okul kaydı yok
+                </div>
+                <div style="font-size: 14px; color: var(--text-secondary)">
+                  "Yeni Okul Ekle" butonuna tıklayarak ilk kaydı oluşturun
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </main>
+
+    <!-- YENİ OKUL MODAL -->
+    <div class="modal-overlay" id="modalYeniOkul" style="display: none">
+      <div class="modal-container large">
+        <div class="modal-header">
+          <h2>
+            <span style="font-size: 24px; margin-right: 8px">➕</span>
+            Yeni Okul Kaydı
+          </h2>
+          <button class="modal-close" onclick="closeModal('modalYeniOkul')">
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path d="M18 6L6 18M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        <div class="modal-body">
+          <form id="formYeniOkul">
+            <!-- Okul Bilgileri -->
+            <div class="form-section">
+              <h3 class="section-title">
+                <span>🏫</span>
+                Okul Bilgileri
+              </h3>
+
+              <div class="form-grid">
+                <div class="form-group">
+                  <label class="form-label required">Okul Kodu</label>
+                  <input
+                    type="text"
+                    id="okulKodu"
+                    class="form-input"
+                    placeholder="Örn: 123456"
+                    pattern="[0-9]+"
+                    maxlength="10"
+                    required
+                  />
+                  <small class="form-hint"
+                    >Sadece rakam giriniz (4-10 hane)</small
+                  >
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label required">Okul Adı</label>
+                  <input
+                    type="text"
+                    id="okulAdi"
+                    class="form-input"
+                    placeholder="Örn: Atatürk İlkokulu"
+                    required
+                  />
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label required">İl</label>
+                  <input
+                    type="text"
+                    id="il"
+                    class="form-input"
+                    placeholder="Örn: İstanbul"
+                    required
+                  />
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label required">İlçe</label>
+                  <input
+                    type="text"
+                    id="ilce"
+                    class="form-input"
+                    placeholder="Örn: Kadıköy"
+                    required
+                  />
+                </div>
+
+                <div class="form-group full-width">
+                  <label class="form-label">Adres</label>
+                  <textarea
+                    id="adres"
+                    class="form-textarea"
+                    placeholder="Okul adresi (opsiyonel)"
+                    rows="2"
+                  ></textarea>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label">Telefon</label>
+                  <input
+                    type="tel"
+                    id="telefon"
+                    class="form-input"
+                    placeholder="0 (___) ___ __ __"
+                  />
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label">E-posta</label>
+                  <input
+                    type="email"
+                    id="email"
+                    class="form-input"
+                    placeholder="okul@example.com"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <!-- Yetkili Kişi Bilgileri -->
+            <div class="form-section">
+              <h3 class="section-title">
+                <span>👤</span>
+                Yetkili Kişi Bilgileri
+              </h3>
+
+              <div class="form-grid">
+                <div class="form-group">
+                  <label class="form-label required">Yetkili Adı Soyadı</label>
+                  <input
+                    type="text"
+                    id="yetkiliAd"
+                    class="form-input"
+                    placeholder="Örn: Ahmet Yılmaz"
+                    required
+                  />
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label required">Yetkili Ünvanı</label>
+                  <select id="yetkiliUnvan" class="form-select" required>
+                    <option value="">Seçiniz...</option>
+                    <option value="Okul Müdürü">Okul Müdürü</option>
+                    <option value="Müdür">Müdür</option>
+                    <option value="Kurum Müdürü">Kurum Müdürü</option>
+                    <option value="Müdür Yetkili Öğretmen">
+                      Müdür Yetkili Öğretmen
+                    </option>
+                    <option value="Müdür Baş Yardımcısı">
+                      Müdür Baş Yardımcısı
+                    </option>
+                    <option value="Müdür Yardımcısı">Müdür Yardımcısı</option>
+                    <option value="Öğretmen">Öğretmen</option>
+                    <option value="Memur">Memur</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <!-- Admin Şifre -->
+            <div class="form-section">
+              <h3 class="section-title">
+                <span>🔒</span>
+                Giriş Bilgileri
+              </h3>
+
+              <div class="info-box">
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <circle cx="12" cy="12" r="10" />
+                  <line x1="12" y1="16" x2="12" y2="12" />
+                  <line x1="12" y1="8" x2="12.01" y2="8" />
+                </svg>
+                <div>
+                  <strong>Kullanıcı Adı:</strong> admin<br />
+                  <strong>Şifre:</strong> Otomatik oluşturulacak (güçlü şifre)
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Otomatik Oluşturulan Şifre</label>
+                <div class="password-generator">
+                  <input
+                    type="text"
+                    id="adminSifre"
+                    class="form-input"
+                    readonly
+                    style="
+                      font-family: monospace;
+                      font-weight: 600;
+                      letter-spacing: 2px;
+                    "
+                  />
+                  <button
+                    type="button"
+                    class="btn-generate-password"
+                    onclick="generatePassword()"
+                  >
+                    <svg
+                      width="18"
+                      height="18"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                    >
+                      <path
+                        d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"
+                      />
+                    </svg>
+                    Yeni Şifre Oluştur
+                  </button>
+                </div>
+                <small class="form-hint success" id="passwordStrength"></small>
+              </div>
+            </div>
+
+            <!-- Modül Yetkileri -->
+            <div class="form-section">
+              <h3 class="section-title">
+                <span>🔐</span>
+                Modül Yetkileri
+                <small
+                  style="
+                    font-weight: 400;
+                    font-size: 13px;
+                    color: var(--text-secondary);
+                  "
+                >
+                  (Okul hangi modüllere erişebilir?)
+                </small>
+              </h3>
+
+              <div class="permissions-grid" id="permissionsGrid">
+                <label class="permission-item">
+                  <input
+                    type="checkbox"
+                    name="modul"
+                    value="ogretmenler"
+                    checked
+                  />
+                  <span class="permission-icon">👨‍🏫</span>
+                  <span class="permission-name">Öğretmenler</span>
+                </label>
+
+                <label class="permission-item">
+                  <input
+                    type="checkbox"
+                    name="modul"
+                    value="ogrenciler"
+                    checked
+                  />
+                  <span class="permission-icon">👨‍🎓</span>
+                  <span class="permission-name">Öğrenciler</span>
+                </label>
+
+                <label class="permission-item">
+                  <input
+                    type="checkbox"
+                    name="modul"
+                    value="siniflar"
+                    checked
+                  />
+                  <span class="permission-icon">🏛️</span>
+                  <span class="permission-name">Sınıflar</span>
+                </label>
+
+                <label class="permission-item">
+                  <input type="checkbox" name="modul" value="dersler" checked />
+                  <span class="permission-icon">📚</span>
+                  <span class="permission-name">Dersler</span>
+                </label>
+
+                <label class="permission-item">
+                  <input type="checkbox" name="modul" value="notlar" checked />
+                  <span class="permission-icon">📝</span>
+                  <span class="permission-name">Notlar</span>
+                </label>
+
+                <label class="permission-item">
+                  <input
+                    type="checkbox"
+                    name="modul"
+                    value="devamsizlik"
+                    checked
+                  />
+                  <span class="permission-icon">📋</span>
+                  <span class="permission-name">Devamsızlık</span>
+                </label>
+
+                <label class="permission-item">
+                  <input
+                    type="checkbox"
+                    name="modul"
+                    value="raporlar"
+                    checked
+                  />
+                  <span class="permission-icon">📊</span>
+                  <span class="permission-name">Raporlar</span>
+                </label>
+
+                <label class="permission-item">
+                  <input type="checkbox" name="modul" value="ayarlar" />
+                  <span class="permission-icon">⚙️</span>
+                  <span class="permission-name">Ayarlar</span>
+                </label>
+              </div>
+            </div>
+
+            <!-- Form Butonları -->
+            <div class="modal-footer">
+              <button
+                type="button"
+                class="btn-secondary"
+                onclick="closeModal('modalYeniOkul')"
+              >
+                İptal
+              </button>
+              <button type="submit" class="btn-primary" id="btnKaydet">
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path
+                    d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"
+                  />
+                  <polyline points="17 21 17 13 7 13 7 21" />
+                  <polyline points="7 3 7 8 15 8" />
+                </svg>
+                Okulu Kaydet
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- OKUL DÜZENLEME MODAL -->
+    <div class="modal-overlay" id="modalDuzenleOkul" style="display: none">
+      <div class="modal-container large">
+        <div class="modal-header">
+          <h2>
+            <span style="font-size: 24px; margin-right: 8px">✏️</span>
+            Okul Bilgilerini Düzenle
+          </h2>
+          <button class="modal-close" onclick="closeModal('modalDuzenleOkul')">
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path d="M18 6L6 18M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        <div class="modal-body">
+          <form id="formDuzenleOkul">
+            <input type="hidden" id="editOkulId" />
+
+            <!-- Okul Bilgileri -->
+            <div class="form-section">
+              <h3 class="section-title">
+                <span>🏫</span>
+                Okul Bilgileri
+              </h3>
+
+              <div class="info-box">
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <circle cx="12" cy="12" r="10" />
+                  <line x1="12" y1="16" x2="12" y2="12" />
+                  <line x1="12" y1="8" x2="12.01" y2="8" />
+                </svg>
+                <div><strong>Not:</strong> Okul kodu değiştirilemez.</div>
+              </div>
+
+              <div class="form-grid">
+                <div class="form-group">
+                  <label class="form-label">Okul Kodu</label>
+                  <input
+                    type="text"
+                    id="editOkulKodu"
+                    class="form-input"
+                    readonly
+                    style="
+                      background: rgba(255, 255, 255, 0.02);
+                      cursor: not-allowed;
+                    "
+                  />
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label required">Okul Adı</label>
+                  <input
+                    type="text"
+                    id="editOkulAdi"
+                    class="form-input"
+                    required
+                  />
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label required">İl</label>
+                  <input type="text" id="editIl" class="form-input" required />
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label required">İlçe</label>
+                  <input
+                    type="text"
+                    id="editIlce"
+                    class="form-input"
+                    required
+                  />
+                </div>
+
+                <div class="form-group full-width">
+                  <label class="form-label">Adres</label>
+                  <textarea
+                    id="editAdres"
+                    class="form-textarea"
+                    rows="2"
+                  ></textarea>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label">Telefon</label>
+                  <input type="tel" id="editTelefon" class="form-input" />
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label">E-posta</label>
+                  <input type="email" id="editEmail" class="form-input" />
+                </div>
+              </div>
+            </div>
+
+            <!-- Yetkili Kişi Bilgileri -->
+            <div class="form-section">
+              <h3 class="section-title">
+                <span>👤</span>
+                Yetkili Kişi Bilgileri
+              </h3>
+
+              <div class="form-grid">
+                <div class="form-group">
+                  <label class="form-label required">Yetkili Adı Soyadı</label>
+                  <input
+                    type="text"
+                    id="editYetkiliAd"
+                    class="form-input"
+                    required
+                  />
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label required">Yetkili Ünvanı</label>
+                  <select id="editYetkiliUnvan" class="form-select" required>
+                    <option value="">Seçiniz...</option>
+                    <option value="Okul Müdürü">Okul Müdürü</option>
+                    <option value="Müdür">Müdür</option>
+                    <option value="Kurum Müdürü">Kurum Müdürü</option>
+                    <option value="Müdür Yetkili Öğretmen">
+                      Müdür Yetkili Öğretmen
+                    </option>
+                    <option value="Müdür Baş Yardımcısı">
+                      Müdür Baş Yardımcısı
+                    </option>
+                    <option value="Müdür Yardımcısı">Müdür Yardımcısı</option>
+                    <option value="Öğretmen">Öğretmen</option>
+                    <option value="Memur">Memur</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <!-- Form Butonları -->
+            <div class="modal-footer">
+              <button
+                type="button"
+                class="btn-secondary"
+                onclick="closeModal('modalDuzenleOkul')"
+              >
+                İptal
+              </button>
+              <button type="submit" class="btn-primary" id="btnGuncelle">
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path
+                    d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"
+                  />
+                  <polyline points="17 21 17 13 7 13 7 21" />
+                  <polyline points="7 3 7 8 15 8" />
+                </svg>
+                Değişiklikleri Kaydet
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <script src="../bilesenler/bildirim-sistemi.js"></script>
+    <script src="okullar.js"></script>
+  </body>
+</html>

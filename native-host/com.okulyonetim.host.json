@@ -1,0 +1,7 @@
+{
+  "name": "com.okulyonetim.host",
+  "description": "Okul Yönetim Sistemi Native Host",
+  "path": "C:\\Users\\LENOVO\\Desktop\\OkulYonetimSistemi\\native-host\\host.exe",
+  "type": "stdio",
+  "allowed_origins": ["chrome-extension://EXTENSION_ID_BURAYA/"]
+}

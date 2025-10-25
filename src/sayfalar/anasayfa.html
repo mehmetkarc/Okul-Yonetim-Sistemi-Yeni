@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Okul Yönetim Sistemi - Ana Sayfa</title>
+    <link rel="stylesheet" href="anasayfa.css" />
+    <link rel="stylesheet" href="../bilesenler/bildirim-sistemi.css" />
+  </head>
+  <body>
+    <!-- Arka Plan Animasyonları -->
+    <div class="bg-animations">
+      <div class="gradient-orb orb-1"></div>
+      <div class="gradient-orb orb-2"></div>
+      <div class="gradient-orb orb-3"></div>
+    </div>
+
+    <!-- Üst Bar (Glassmorphism) -->
+    <header class="top-bar">
+      <div class="top-bar-left">
+        <div class="logo-container">
+          <svg class="logo-icon" viewBox="0 0 24 24" fill="none">
+            <path
+              d="M12 3L4 9V21H20V9L12 3Z"
+              stroke="url(#gradient1)"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+            <path
+              d="M9 21V12H15V21"
+              stroke="url(#gradient1)"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+            <defs>
+              <linearGradient
+                id="gradient1"
+                x1="0%"
+                y1="0%"
+                x2="100%"
+                y2="100%"
+              >
+                <stop
+                  offset="0%"
+                  style="stop-color: #00d9ff; stop-opacity: 1"
+                />
+                <stop
+                  offset="100%"
+                  style="stop-color: #7b2fff; stop-opacity: 1"
+                />
+              </linearGradient>
+            </defs>
+          </svg>
+          <div class="logo-text">
+            <span class="logo-title">Okul Yönetim</span>
+            <span class="logo-subtitle" id="okulAdi">Sistem</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="top-bar-center">
+        <div class="search-bar">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+            <circle
+              cx="11"
+              cy="11"
+              r="8"
+              stroke="currentColor"
+              stroke-width="2"
+            />
+            <path
+              d="M21 21L16.65 16.65"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+            />
+          </svg>
+          <input type="text" placeholder="Ara... (Ctrl+K)" id="searchInput" />
+        </div>
+      </div>
+
+      <div class="top-bar-right">
+        <!-- Lisans Durumu -->
+        <div class="license-badge" id="licenseBadge">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+            <rect
+              x="3"
+              y="6"
+              width="18"
+              height="15"
+              rx="2"
+              stroke="currentColor"
+              stroke-width="2"
+            />
+            <path d="M3 10H21" stroke="currentColor" stroke-width="2" />
+            <circle cx="7" cy="15" r="1" fill="currentColor" />
+          </svg>
+          <span id="licenseText">∞</span>
+        </div>
+
+        <!-- Bildirimler -->
+        <button class="icon-btn" id="notificationBtn">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+            <path
+              d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+            />
+            <path
+              d="M13.73 21a2 2 0 0 1-3.46 0"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+            />
+          </svg>
+          <span class="badge" id="notificationCount">0</span>
+        </button>
+
+        <!-- Güncelleme -->
+        <button class="icon-btn" id="updateBtn" style="display: none">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+            <path
+              d="M21 12a9 9 0 0 1-9 9m9-9a9 9 0 0 0-9-9m9 9H3m9 9a9 9 0 0 1-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 0 1 9-9"
+              stroke="currentColor"
+              stroke-width="2"
+            />
+          </svg>
+        </button>
+
+        <!-- Ayarlar -->
+        <button class="icon-btn" id="settingsBtn">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+            <circle
+              cx="12"
+              cy="12"
+              r="3"
+              stroke="currentColor"
+              stroke-width="2"
+            />
+            <path
+              d="M12 1v6m0 6v6M6 12H1m11 0h6m-4.8 5.2L15.5 19m-7-7L6.7 9.8m10.6 0L15.5 12M8.5 12L6.7 14.2"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+            />
+          </svg>
+        </button>
+
+        <!-- Kullanıcı -->
+        <div class="user-menu" id="userMenu">
+          <div class="user-avatar">
+            <span id="userInitials">SA</span>
+          </div>
+          <div class="user-info">
+            <span class="user-name" id="userName">Super Admin</span>
+            <span class="user-role" id="userRole">Sistem Yöneticisi</span>
+          </div>
+          <svg
+            class="dropdown-arrow"
+            width="12"
+            height="12"
+            viewBox="0 0 24 24"
+            fill="none"
+          >
+            <path
+              d="M6 9L12 15L18 9"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+            />
+          </svg>
+        </div>
+
+        <!-- Çıkış -->
+        <button class="icon-btn logout-btn" id="logoutBtn">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+            <path
+              d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4m7 14l5-5-5-5m5 5H9"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+            />
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Ana Container -->
+    <div class="main-container">
+      <!-- Sol Menü -->
+      <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+          <h3>Modüller</h3>
+          <button class="sidebar-toggle" id="sidebarToggle">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+              <path
+                d="M3 12h18M3 6h18M3 18h18"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+              />
+            </svg>
+          </button>
+        </div>
+
+        <nav class="sidebar-menu" id="sidebarMenu">
+          <!-- Menü JavaScript ile doldurulacak -->
+        </nav>
+      </aside>
+
+      <!-- Ana İçerik -->
+      <main class="main-content">
+        <div class="content-header">
+          <h1 class="page-title" id="pageTitle">Hoş Geldiniz</h1>
+          <div class="breadcrumb" id="breadcrumb">
+            <span class="breadcrumb-item active">Ana Sayfa</span>
+          </div>
+        </div>
+
+        <!-- Modül Kartları -->
+        <div class="module-grid" id="moduleGrid">
+          <!-- Kartlar JavaScript ile doldurulacak -->
+        </div>
+      </main>
+    </div>
+
+    <!-- Bildirim Paneli -->
+    <div class="notification-panel" id="notificationPanel">
+      <div class="notification-header">
+        <h3>Bildirimler</h3>
+        <button class="close-btn" id="closeNotifications">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+            <path
+              d="M18 6L6 18M6 6l12 12"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+            />
+          </svg>
+        </button>
+      </div>
+      <div class="notification-list" id="notificationList">
+        <!-- Bildirimler JavaScript ile doldurulacak -->
+      </div>
+    </div>
+
+    <!-- Kullanıcı Dropdown -->
+    <div class="user-dropdown" id="userDropdown">
+      <div class="dropdown-item" id="profileBtn">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+          <circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="2" />
+          <path
+            d="M6 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+          />
+        </svg>
+        <span>Profilim</span>
+      </div>
+      <div class="dropdown-item" id="settingsDropdownBtn">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+          <circle
+            cx="12"
+            cy="12"
+            r="3"
+            stroke="currentColor"
+            stroke-width="2"
+          />
+          <path d="M12 1v6m0 6v6" stroke="currentColor" stroke-width="2" />
+        </svg>
+        <span>Ayarlar</span>
+      </div>
+      <div class="dropdown-divider"></div>
+      <div class="dropdown-item danger" id="logoutDropdownBtn">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+          <path
+            d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4m7 14l5-5-5-5m5 5H9"
+            stroke="currentColor"
+            stroke-width="2"
+          />
+        </svg>
+        <span>Çıkış Yap</span>
+      </div>
+    </div>
+
+    <script src="../bilesenler/bildirim-sistemi.js"></script>
+    <script src="anasayfa.js"></script>
+  </body>
+</html>
