@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Okul Yönetim Sistemi - Giriş</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        padding: 0;
+        margin: 0;
+      }
+
+      .container {
+        width: 100%;
+        max-width: 400px;
+        padding: 20px;
+        margin: auto;
+      }
+
+      .login-box {
+        background: white;
+        border-radius: 14px;
+        padding: 25px 25px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        animation: slideUp 0.5s ease;
+      }
+
+      @keyframes slideUp {
+        from {
+          opacity: 0;
+          transform: translateY(30px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .logo {
+        text-align: center;
+        margin-bottom: 20px;
+      }
+
+      .logo svg {
+        width: 60px;
+        height: 60px;
+        filter: drop-shadow(0 4px 8px rgba(102, 126, 234, 0.4));
+      }
+
+      h1 {
+        text-align: center;
+        color: #333;
+        font-size: 24px;
+        margin-bottom: 8px;
+      }
+
+      .subtitle {
+        text-align: center;
+        color: #666;
+        font-size: 14px;
+        margin-bottom: 30px;
+      }
+
+      .input-group {
+        margin-bottom: 18px;
+      }
+
+      .input-group label {
+        display: block;
+        color: #555;
+        font-size: 14px;
+        font-weight: 600;
+        margin-bottom: 8px;
+      }
+
+      .input-group input {
+        width: 100%;
+        padding: 14px 16px;
+        border: 2px solid #e0e0e0;
+        border-radius: 10px;
+        font-size: 15px;
+        transition: all 0.3s;
+      }
+
+      .input-group input:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+      }
+
+      .checkbox-group {
+        display: flex;
+        align-items: center;
+        margin-bottom: 25px;
+      }
+
+      .checkbox-group input {
+        margin-right: 8px;
+        width: 18px;
+        height: 18px;
+        cursor: pointer;
+      }
+
+      .checkbox-group label {
+        font-size: 14px;
+        color: #666;
+        cursor: pointer;
+      }
+
+      .btn-login {
+        width: 100%;
+        padding: 14px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        border-radius: 10px;
+        color: white;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+      }
+
+      .btn-login:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+      }
+
+      .btn-login:active {
+        transform: translateY(0);
+      }
+
+      .btn-login:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
+      }
+
+      .footer {
+        text-align: center;
+        margin-top: 30px;
+        padding-top: 20px;
+        border-top: 1px solid #e0e0e0;
+      }
+
+      .footer p {
+        color: #999;
+        font-size: 12px;
+        margin: 5px 0;
+      }
+
+      .test-info {
+        color: #667eea !important;
+        font-weight: 600;
+      }
+
+      .alert {
+        padding: 12px 16px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        font-size: 14px;
+        display: none;
+      }
+
+      .alert-error {
+        background: #fee;
+        color: #c33;
+        border-left: 4px solid #c33;
+      }
+
+      .alert-success {
+        background: #efe;
+        color: #3c3;
+        border-left: 4px solid #3c3;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="login-box">
+        <div class="logo">
+          <svg viewBox="0 0 24 24" fill="none">
+            <path
+              d="M12 3L4 9V21H20V9L12 3Z"
+              stroke="#667eea"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+            <path
+              d="M9 21V12H15V21"
+              stroke="#667eea"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+        </div>
+
+        <h1>Okul Yönetim Sistemi</h1>
+        <p class="subtitle">Hoş Geldiniz</p>
+
+        <div id="alertBox" class="alert"></div>
+
+        <form id="girisForm">
+          <div class="input-group">
+            <label for="okulKodu">Okul Kodu</label>
+            <input
+              type="text"
+              id="okulKodu"
+              name="okulKodu"
+              required
+              autofocus
+              placeholder="Okul kodunuzu girin (sadece rakam)"
+              pattern="[0-9]+"
+              title="Sadece rakam girebilirsiniz"
+            />
+          </div>
+
+          <div class="input-group">
+            <label for="kullaniciAdi">Kullanıcı Adı</label>
+            <input
+              type="text"
+              id="kullaniciAdi"
+              name="kullaniciAdi"
+              required
+              placeholder="Kullanıcı adınızı girin"
+            />
+          </div>
+
+          <div class="input-group">
+            <label for="sifre">Şifre</label>
+            <input
+              type="password"
+              id="sifre"
+              name="sifre"
+              required
+              placeholder="Şifrenizi girin"
+            />
+          </div>
+
+          <div class="checkbox-group">
+            <input type="checkbox" id="beniHatirla" name="beniHatirla" />
+            <label for="beniHatirla">Beni Hatırla</label>
+          </div>
+
+          <button type="submit" class="btn-login" id="btnGiris">
+            Giriş Yap
+          </button>
+        </form>
+
+        <div class="footer">
+          <p id="versionText">v1.0.0 - 2025</p>
+          <p class="test-info">SİMRE / MK</p>
+        </div>
+      </div>
+    </div>
+
+    <script src="giris.js"></script>
+  </body>
+</html>

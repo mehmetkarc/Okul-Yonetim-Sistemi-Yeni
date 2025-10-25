@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Kullanım Kılavuzu</title>
+    <link rel="stylesheet" href="assets/css/style.css" />
+    <style>
+      .help-container {
+        max-width: 800px;
+        margin: 40px auto;
+        padding: 30px;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+      }
+      .help-step {
+        margin-bottom: 30px;
+        padding: 20px;
+        background: #f8f9fa;
+        border-left: 4px solid #667eea;
+        border-radius: 8px;
+      }
+      .help-step h3 {
+        color: #667eea;
+        margin-bottom: 10px;
+      }
+      .help-step p {
+        line-height: 1.8;
+        color: #333;
+      }
+      .help-step ol {
+        margin-left: 20px;
+        line-height: 2;
+      }
+      .important {
+        background: #fff3cd;
+        border-left-color: #ffc107;
+        padding: 15px;
+        margin: 20px 0;
+        border-radius: 8px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="help-container">
+      <h1>📚 Öğrenci Ekleme Kılavuzu</h1>
+
+      <div class="help-step">
+        <h3>1️⃣ MEBBİS'e Giriş Yapın</h3>
+        <p>
+          <a href="https://mebbis.meb.gov.tr/" target="_blank"
+            >https://mebbis.meb.gov.tr/</a
+          >
+          adresinden kullanıcı adı ve şifrenizle giriş yapın.
+        </p>
+      </div>
+
+      <div class="help-step">
+        <h3>2️⃣ E-Okul'a Bağlanın</h3>
+        <p>
+          MEBBİS ana sayfasında <strong>"E-Okul"</strong> bağlantısına tıklayın.
+        </p>
+      </div>
+
+      <div class="help-step">
+        <h3>3️⃣ Öğrenci İşlemleri Sayfasına Gidin</h3>
+        <ol>
+          <li><strong>Ortaöğretim</strong> menüsüne tıklayın</li>
+          <li><strong>Öğrenci</strong> alt menüsünü açın</li>
+          <li><strong>Ortaöğretim Öğrenci</strong> sayfasına girin</li>
+        </ol>
+      </div>
+
+      <div class="help-step">
+        <h3>4️⃣ Excel Raporunu İndirin</h3>
+        <ol>
+          <li><strong>"Yazdır"</strong> butonuna tıklayın</li>
+          <li>Açılan pencerede <strong>"Raporlar"</strong> sekmesine geçin</li>
+          <li><strong>"HTML5 (Word, Excel)"</strong> seçeneğini seçin</li>
+          <li>
+            Liste'den
+            <strong
+              >"OOG01001R090 - Fotoğraflı-Kimlik Bilgili Öğrenci
+              Listesi"</strong
+            >
+            seçin
+          </li>
+          <li>
+            <strong>Sınıf ve Şube</strong> seçin (örn: 9. Sınıf, A Şubesi)
+          </li>
+          <li><strong>"Excel İçin İndir"</strong> butonuna basın</li>
+        </ol>
+      </div>
+
+      <div class="important">
+        <h3>⚠️ ÖNEMLİ!</h3>
+        <p>
+          <strong>Her sınıfı ayrı ayrı indirin!</strong> Tüm 9. sınıfları birden
+          seçerseniz sınıf bilgileri karışabilir.
+        </p>
+        <p>
+          Örnek: Önce 9-A, sonra 9-B, sonra 9-C... şeklinde tek tek indirin.
+        </p>
+      </div>
+
+      <div class="help-step">
+        <h3>5️⃣ Otomatik İçe Aktarma</h3>
+        <p>
+          Dosyayı <strong>İndirilenler</strong> klasörüne indirdiğinizde,
+          program <strong>otomatik olarak</strong> algılayacak ve öğrencileri
+          sisteme ekleyecektir!
+        </p>
+        <p>
+          Sağ alt köşede bildirim göreceksiniz:
+          <strong>"✅ 42 öğrenci otomatik eklendi!"</strong>
+        </p>
+      </div>
+
+      <div class="help-step">
+        <h3>6️⃣ Kontrol Edin</h3>
+        <p>
+          Öğrenci listesi sayfasında yeni eklenen öğrencileri görebilirsiniz.
+          Sınıf filtresinden kontrol edebilirsiniz.
+        </p>
+      </div>
+
+      <button
+        onclick="window.close()"
+        style="
+          margin-top: 30px;
+          padding: 12px 30px;
+          background: #667eea;
+          color: white;
+          border: none;
+          border-radius: 8px;
+          cursor: pointer;
+          font-size: 16px;
+        "
+      >
+        Kapat
+      </button>
+    </div>
+  </body>
+</html>

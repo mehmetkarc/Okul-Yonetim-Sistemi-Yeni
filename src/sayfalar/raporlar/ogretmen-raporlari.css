@@ -1,0 +1,108 @@
+/* ==========================================
+   ÖĞRETMEN RAPORLARI ÖZELLEŞTİRMELERİ
+   ========================================== */
+
+/* Önizleme Alanı Tablosu */
+.preview-area table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 20px 0;
+  background: white;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.preview-area table thead {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.preview-area table th {
+  padding: 12px;
+  text-align: center;
+  font-weight: 600;
+  font-size: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.preview-area table tbody tr {
+  transition: background 0.2s ease;
+}
+
+.preview-area table tbody tr:nth-child(even) {
+  background: #f8f9fa;
+}
+
+.preview-area table tbody tr:hover {
+  background: #e3f2fd;
+}
+
+.preview-area table td {
+  padding: 10px 12px;
+  border: 1px solid #ddd;
+  font-size: 13px;
+  color: #333;
+}
+
+.preview-area p {
+  margin-top: 15px;
+  font-style: italic;
+  color: #666;
+  text-align: left;
+}
+
+/* GENEL TOPLAM satırı için özel stil */
+.preview-area table tbody tr[style*="background: #667eea"] {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+  color: white !important;
+  font-weight: bold;
+}
+
+.preview-area table tbody tr[style*="background: #667eea"] td {
+  color: white !important;
+  border-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+/* Responsive Tablo */
+@media (max-width: 768px) {
+  .preview-area table {
+    font-size: 12px;
+  }
+
+  .preview-area table th,
+  .preview-area table td {
+    padding: 8px;
+  }
+}
+
+/* Özel Buton Stilleri */
+#onizleBtn {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+}
+
+#pdfIndir {
+  background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%) !important;
+}
+
+#excelIndir {
+  background: linear-gradient(135deg, #27ae60 0%, #229954 100%) !important;
+}
+
+/* Filtre Kartı Animasyonu */
+#filtrelerKart,
+#butonlar,
+#onizlemeKart {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

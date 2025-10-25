@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MEBBİS Panel</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial,
+          sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 15px;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .header {
+        text-align: center;
+        color: white;
+        font-size: 18px;
+        font-weight: bold;
+        padding: 15px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 10px;
+        backdrop-filter: blur(10px);
+      }
+
+      .button {
+        width: 100%;
+        padding: 15px 20px;
+        background: rgba(255, 255, 255, 0.25);
+        border: 2px solid rgba(255, 255, 255, 0.4);
+        border-radius: 10px;
+        color: white;
+        font-weight: 600;
+        font-size: 15px;
+        cursor: pointer;
+        transition: all 0.3s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+      }
+
+      .button:hover {
+        background: rgba(255, 255, 255, 0.4);
+        transform: scale(1.02);
+      }
+
+      .button:active {
+        transform: scale(0.98);
+      }
+
+      .status {
+        padding: 10px;
+        background: rgba(255, 255, 255, 0.15);
+        border-radius: 8px;
+        color: white;
+        font-size: 12px;
+        text-align: center;
+        margin-top: auto;
+      }
+
+      .info {
+        padding: 12px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 8px;
+        color: rgba(255, 255, 255, 0.9);
+        font-size: 11px;
+        text-align: center;
+        line-height: 1.5;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="header">🏫 OKUL YÖNETİM SİSTEMİ</div>
+
+    <button class="button" id="btnOgrenci">
+      <span style="font-size: 24px">👥</span>
+      <span>ÖĞRENCİLERİ ÇEK</span>
+    </button>
+
+    <button class="button" id="btnFotograf">
+      <span style="font-size: 24px">📸</span>
+      <span>FOTOĞRAFLARI ÇEK</span>
+    </button>
+
+    <div class="info">
+      <strong>KULLANIM:</strong><br />
+      1. MEBBİS'e giriş yapın<br />
+      2. E-Okul → Öğrenci İşlemleri<br />
+      3. Listeyi görüntüleyin<br />
+      4. Butona basın
+    </div>
+
+    <div class="status" id="status">Hazır</div>
+
+    <script>
+      const { ipcRenderer } = require("electron");
+
+      document.getElementById("btnOgrenci").addEventListener("click", () => {
+        document.getElementById("status").textContent =
+          "Öğrenciler çekiliyor...";
+        ipcRenderer.send("cek-ogrenci");
+      });
+
+      document.getElementById("btnFotograf").addEventListener("click", () => {
+        document.getElementById("status").textContent =
+          "Fotoğraflar çekiliyor...";
+        ipcRenderer.send("cek-fotograf");
+      });
+
+      ipcRenderer.on("sonuc", (event, data) => {
+        if (data.success) {
+          document.getElementById(
+            "status"
+          ).textContent = `✅ ${data.count} ${data.type} bulundu!`;
+        } else {
+          document.getElementById("status").textContent = `❌ ${data.message}`;
+        }
+      });
+
+      // Klavye kısayolları
+      document.addEventListener("keydown", (e) => {
+        if (e.ctrlKey && e.key === "m") {
+          e.preventDefault();
+          document.getElementById("btnOgrenci").click();
+        }
+        if (e.ctrlKey && e.key === "f") {
+          e.preventDefault();
+          document.getElementById("btnFotograf").click();
+        }
+      });
+    </script>
+  </body>
+</html>

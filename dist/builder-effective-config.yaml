@@ -1,0 +1,23 @@
+directories:
+  output: dist
+  buildResources: build
+appId: com.okulys.app
+productName: Okul Yönetim Sistemi
+win:
+  target:
+    - nsis
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: Okul Yönetim Sistemi
+files:
+  - filter:
+      - '**/*'
+      - '!dist'
+      - '!.git'
+publish:
+  provider: generic
+  url: https://your-update-server.com/updates
+electronVersion: 28.0.0

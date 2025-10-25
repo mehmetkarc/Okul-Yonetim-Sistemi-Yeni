@@ -1,0 +1,16 @@
+{
+  "manifest_version": 3,
+  "name": "E-Okul Cekici",
+  "version": "1.0",
+  "permissions": ["activeTab", "storage", "nativeMessaging"],
+  "host_permissions": ["https://e-okul.meb.gov.tr/*"],
+  "content_scripts": [
+    {
+      "matches": ["https://e-okul.meb.gov.tr/OrtaOgretim/OGR/OOG01001.aspx*"],
+      "js": ["content.js"]
+    }
+  ],
+  "background": {
+    "service_worker": "background.js"
+  }
+}
