@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Gezi Planı (Ek-2)</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+
+      body {
+        font-family: Arial, sans-serif;
+        padding: 8mm;
+        background: white;
+        color: #000;
+        font-size: 9pt;
+        line-height: 1.2;
+      }
+
+      @page {
+        size: A4 portrait;
+        margin: 8mm;
+      }
+
+      @media print {
+        body {
+          padding: 0;
+        }
+        .no-print {
+          display: none !important;
+        }
+      }
+
+      .header {
+        text-align: center;
+        margin-bottom: 8px;
+        border-bottom: 2px solid #000;
+        padding-bottom: 5px;
+      }
+
+      .header h1 {
+        font-size: 14pt;
+        font-weight: bold;
+        margin-bottom: 3px;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 6px;
+        font-size: 9pt;
+      }
+
+      th,
+      td {
+        border: 1px solid #000;
+        padding: 4px 5px;
+        text-align: left;
+        line-height: 1.25;
+      }
+
+      th {
+        background-color: #f0f0f0 !important;
+        background: #f0f0f0 !important;
+        font-weight: bold;
+        text-align: center;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+
+      #sinifListesi td:nth-child(1),
+      #sinifListesi td:nth-child(3),
+      #sinifListesi td:nth-child(4),
+      #sinifListesi td:nth-child(5) {
+        text-align: center;
+      }
+
+      #ogretmenListesi td:nth-child(1) {
+        text-align: center;
+      }
+
+      #aracListesi td,
+      #ucusListesi td {
+        text-align: center;
+      }
+
+      .info-table td:first-child {
+        width: 34%;
+        font-weight: bold;
+        background-color: #f9f9f9 !important;
+        background: #f9f9f9 !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+
+      .footer-text {
+        margin-top: 8px;
+        font-size: 9pt;
+        text-align: justify;
+        line-height: 1.3;
+      }
+
+      .button-container {
+        position: fixed;
+        top: 10px;
+        right: 10px;
+        display: flex;
+        gap: 10px;
+        z-index: 1000;
+      }
+
+      .btn-action {
+        padding: 10px 20px;
+        font-size: 13px;
+        font-weight: bold;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        transition: all 0.3s;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+      }
+
+      .btn-print {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        color: white;
+      }
+
+      .btn-close {
+        background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        color: white;
+      }
+
+      .imza-container {
+        margin-top: 15px;
+        font-size: 9pt;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="button-container no-print">
+      <button class="btn-action btn-print" onclick="yazdirPDF()">
+        <span>📄</span>
+        <span>YAZDIR / PDF</span>
+      </button>
+      <button class="btn-action btn-close" onclick="window.close()">
+        <span>✖</span>
+        <span>KAPAT</span>
+      </button>
+    </div>
+
+    <div class="header">
+      <h1>GEZİ PLANI</h1>
+    </div>
+
+    <table class="info-table">
+      <tr>
+        <td>Eğitim Kurumunun Adı</td>
+        <td id="okulAdi"></td>
+      </tr>
+      <tr>
+        <td>Gezi Tarihi</td>
+        <td id="geziTarihi"></td>
+      </tr>
+      <tr>
+        <td>Geziye Çıkış Saati</td>
+        <td id="cikisSaati"></td>
+      </tr>
+      <tr>
+        <td>Dönüş Tarihi ve Saati</td>
+        <td id="donusTarihSaat"></td>
+      </tr>
+      <tr>
+        <td>Gezi Kafile Başkanı</td>
+        <td id="kafileBaskan"></td>
+      </tr>
+      <tr>
+        <td>Takip Edilecek Yol</td>
+        <td id="guzergah"></td>
+      </tr>
+      <tr>
+        <td>Gezinin Amacı</td>
+        <td id="amac"></td>
+      </tr>
+      <tr>
+        <td>Gezinin Konusu</td>
+        <td id="konu"></td>
+      </tr>
+      <tr>
+        <td>Gezi İçin Öğrencilere Verilecek İnceleme-Araştırma Görevi</td>
+        <td id="arastirmaGorev"></td>
+      </tr>
+      <tr>
+        <td>Değerlendirme</td>
+        <td>İlgili Faaliyet Sonucunda Değerlendirme Yapılacaktır.</td>
+      </tr>
+    </table>
+
+    <table>
+      <thead>
+        <tr>
+          <th colspan="5" style="font-size: 10pt">
+            GEZİYE KATILACAK SINIFLAR VE ÖĞRENCİ SAYILARI
+          </th>
+        </tr>
+        <tr>
+          <th style="width: 10%">Sıra No</th>
+          <th style="width: 40%">Sınıf</th>
+          <th style="width: 15%">Kız</th>
+          <th style="width: 15%">Erkek</th>
+          <th style="width: 20%">Toplam</th>
+        </tr>
+      </thead>
+      <tbody id="sinifListesi"></tbody>
+    </table>
+
+    <table>
+      <thead>
+        <tr>
+          <th colspan="3" style="font-size: 10pt">
+            GEZİYE KATILACAK SORUMLU VE REHBER ÖĞRETMENLER
+          </th>
+        </tr>
+        <tr>
+          <th style="width: 10%">Sıra No</th>
+          <th style="width: 60%">Adı Soyadı</th>
+          <th style="width: 30%">İmzası</th>
+        </tr>
+      </thead>
+      <tbody id="ogretmenListesi"></tbody>
+    </table>
+
+    <div id="ulasimBolumu">
+      <table>
+        <thead>
+          <tr>
+            <th colspan="6" style="font-size: 10pt">
+              GEZİYE KATILACAK ARAÇLAR
+            </th>
+          </tr>
+        </thead>
+        <tbody id="firmaBilgileri"></tbody>
+      </table>
+
+      <table id="karaYoluTablosu" style="display: none">
+        <thead>
+          <tr>
+            <th style="width: 10%">Sıra No</th>
+            <th style="width: 35%">Şoförün Adı ve Soyadı</th>
+            <th style="width: 25%">Araç Plakası</th>
+            <th style="width: 30%">Model Yılı</th>
+          </tr>
+        </thead>
+        <tbody id="aracListesi"></tbody>
+      </table>
+
+      <table id="havaYoluTablosu" style="display: none">
+        <thead>
+          <tr>
+            <th style="width: 10%">Sıra No</th>
+            <th style="width: 40%">Havayolu Şirketi</th>
+            <th style="width: 25%">Uçuş No</th>
+            <th style="width: 25%">PNR</th>
+          </tr>
+        </thead>
+        <tbody id="ucusListesi"></tbody>
+      </table>
+    </div>
+
+    <div class="footer-text">
+      Ayrıntıları yukarıda belirtilen bir gezi düzenlemek istiyoruz.<br />
+      Gereğini bilgilerinize.
+    </div>
+
+    <div class="imza-container">
+      <div
+        style="
+          display: flex;
+          justify-content: space-between;
+          margin-bottom: 6px;
+        "
+      >
+        <div style="text-align: left">
+          <strong>Arz ederiz.</strong><br />
+          <span id="arzTarihi"></span>
+        </div>
+        <div style="text-align: right">
+          <strong>OLUR</strong><br />
+          <span id="olurTarihi"></span>
+        </div>
+      </div>
+
+      <div
+        style="display: flex; justify-content: space-between; margin-top: 20px"
+      >
+        <div id="ogretmen1" style="text-align: center; flex: 1"></div>
+        <div id="ogretmen2" style="text-align: center; flex: 1"></div>
+        <div id="mudur" style="text-align: center; flex: 1"></div>
+      </div>
+    </div>
+
+    <script>
+      let printInProgress = false;
+
+      function yazdirPDF() {
+        if (printInProgress) {
+          console.log("⚠️ Yazdırma zaten devam ediyor");
+          return;
+        }
+
+        printInProgress = true;
+        console.log("📄 PDF oluşturuluyor...");
+
+        setTimeout(() => {
+          window.print();
+
+          setTimeout(() => {
+            printInProgress = false;
+            console.log("✅ PDF işlemi tamamlandı");
+          }, 1000);
+        }, 100);
+      }
+
+      window.addEventListener("load", function () {
+        console.log("✅ Gezi Planı Ek-2 HTML yüklendi");
+      });
+    </script>
+  </body>
+</html>

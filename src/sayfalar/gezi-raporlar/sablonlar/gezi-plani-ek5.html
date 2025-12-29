@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Günlük Gezi Programı</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Times New Roman", serif;
+        font-size: 11pt;
+        line-height: 1.3;
+        margin: 0;
+        padding: 20mm;
+        color: #000;
+        background: white;
+      }
+
+      .header {
+        text-align: center;
+        margin-bottom: 20px;
+      }
+
+      .header h2 {
+        margin: 10px 0;
+        color: #000;
+        font-size: 18pt;
+        font-weight: bold;
+      }
+
+      .header p {
+        margin: 5px 0;
+        font-size: 12pt;
+        color: #333;
+      }
+
+      /* Gezi Bilgileri Tablosu */
+      .gezi-bilgi-tablo {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 20px 0;
+      }
+
+      .gezi-bilgi-tablo td {
+        border: 1px solid #000;
+        padding: 8px;
+        color: #000;
+        font-size: 11pt;
+      }
+
+      .gezi-bilgi-tablo .label {
+        font-weight: bold;
+        width: 200px;
+        background: #b3d9ff; /* AÇIK MAVİ */
+      }
+
+      /* Gün Sayısı Seçimi */
+      .gun-secim {
+        margin: 20px 0;
+        text-align: center;
+      }
+
+      .gun-secim label {
+        font-weight: bold;
+        margin-right: 10px;
+        font-size: 12pt;
+      }
+
+      .gun-secim select {
+        padding: 8px 12px;
+        font-size: 11pt;
+        border: 2px solid #000;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+
+      /* Program Tablosu */
+      table.program-tablo {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 20px 0;
+      }
+
+      .program-tablo th,
+      .program-tablo td {
+        border: 1px solid #000;
+        padding: 10px;
+        color: #000;
+        font-size: 10pt;
+        vertical-align: top;
+      }
+
+      .program-tablo th {
+        background: #d9d9d9; /* GRİ */
+        font-weight: bold;
+        text-align: center;
+        color: #000;
+      }
+
+      .program-tablo .gun-cell {
+        background: #b3d9ff; /* AÇIK MAVİ */
+        font-weight: bold;
+        text-align: center;
+        width: 15%;
+      }
+
+      .program-tablo .saat-cell {
+        width: 20%;
+        text-align: center;
+      }
+
+      /* Düzenlenebilir hücreler */
+      .editable {
+        background: #ffffcc !important; /* AÇIK SARI */
+        cursor: text !important;
+        min-height: 60px;
+        position: relative;
+      }
+
+      .editable:hover {
+        background: #ffff99 !important;
+        outline: 2px solid #ffd700;
+      }
+
+      .editable:focus {
+        background: #ffeb3b !important;
+        outline: 2px solid #ff9800;
+      }
+
+      .editable:empty:before {
+        content: "Tıklayarak düzenleyin...";
+        color: #999;
+        font-style: italic;
+      }
+
+      .footer-text {
+        margin-top: 30px;
+        font-size: 11pt;
+        color: #000;
+        line-height: 1.5;
+        text-align: center;
+      }
+
+      /* Print Ayarları */
+      @media print {
+        @page {
+          size: A4 portrait;
+          margin: 15mm;
+        }
+
+        body {
+          margin: 0;
+          padding: 0;
+        }
+
+        .editable {
+          background: white !important;
+          outline: none !important;
+          cursor: default !important;
+        }
+
+        .editable:empty:before {
+          content: "";
+        }
+
+        .no-print {
+          display: none !important;
+        }
+
+        .gezi-bilgi-tablo .label {
+          background: #e0e0e0 !important;
+          -webkit-print-color-adjust: exact;
+          print-color-adjust: exact;
+        }
+
+        .program-tablo th {
+          background: #e0e0e0 !important;
+          -webkit-print-color-adjust: exact;
+          print-color-adjust: exact;
+        }
+
+        .program-tablo .gun-cell {
+          background: #d9d9d9 !important;
+          -webkit-print-color-adjust: exact;
+          print-color-adjust: exact;
+        }
+      }
+
+      /* Üst Butonlar */
+      .top-buttons {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 15px;
+        text-align: center;
+        margin: -20mm -20mm 20px -20mm;
+        position: sticky;
+        top: 0;
+        z-index: 1000;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      }
+
+      .top-buttons button {
+        padding: 12px 24px;
+        border: none;
+        cursor: pointer;
+        font-size: 15px;
+        font-weight: 700;
+        border-radius: 8px;
+        margin: 0 8px;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      }
+
+      .btn-pdf {
+        background: linear-gradient(135deg, #27ae60 0%, #229954 100%);
+        color: white;
+      }
+
+      .btn-pdf:hover {
+        background: linear-gradient(135deg, #229954 0%, #1e8449 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(39, 174, 96, 0.4);
+      }
+
+      .btn-close {
+        background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+        color: white;
+      }
+
+      .btn-close:hover {
+        background: linear-gradient(135deg, #c0392b 0%, #a93226 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(231, 76, 60, 0.4);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="top-buttons no-print">
+      <button class="btn-pdf" onclick="window.print()">
+        📄 PDF Olarak Kaydet / Yazdır
+      </button>
+      <button class="btn-close" onclick="window.close()">✖ Kapat</button>
+    </div>
+
+    <div class="header">
+      <h2>GÜNLÜK GEZİ PROGRAMI</h2>
+      <p id="geziBaslik">-</p>
+    </div>
+
+    <!-- Gezi Bilgileri Tablosu -->
+    <table class="gezi-bilgi-tablo">
+      <tr>
+        <td class="label">Gezi Adı</td>
+        <td id="geziAdi">-</td>
+      </tr>
+      <tr>
+        <td class="label">Gezi Tarihi</td>
+        <td id="geziTarihi">-</td>
+      </tr>
+      <tr>
+        <td class="label">Dönüş Tarihi</td>
+        <td id="donusTarihi">-</td>
+      </tr>
+    </table>
+
+    <!-- Gün Sayısı Seçimi -->
+    <div class="gun-secim no-print">
+      <label>📆 Gezi Süresi:</label>
+      <select id="gunSayisi" onchange="updateTable()">
+        <option value="1">1 Gün</option>
+        <option value="2">2 Gün</option>
+        <option value="3" selected>3 Gün</option>
+        <option value="4">4 Gün</option>
+        <option value="5">5 Gün</option>
+        <option value="6">6 Gün</option>
+        <option value="7">7 Gün</option>
+      </select>
+    </div>
+
+    <!-- Program Tablosu -->
+    <table class="program-tablo">
+      <thead>
+        <tr>
+          <th style="width: 15%">Gün</th>
+          <th style="width: 20%">Saat</th>
+          <th>Etkinlik / Ziyaret Yeri</th>
+        </tr>
+      </thead>
+      <tbody id="programBody">
+        <!-- JavaScript ile doldurulacak -->
+      </tbody>
+    </table>
+
+    <div class="footer-text">
+      <p>
+        <strong>Not:</strong> Bu program tahmini bir plandır, hava şartları ve
+        trafik durumuna göre değişiklik gösterebilir.
+      </p>
+    </div>
+
+    <script>
+      // Düzenlenebilir hücre yap
+      function makeEditable(cell, defaultValue) {
+        cell.contentEditable = true;
+        cell.className = "editable";
+
+        if (defaultValue && defaultValue.trim() !== "") {
+          cell.textContent = defaultValue;
+        }
+
+        // Enter tuşu ile bir sonraki hücreye geç
+        cell.addEventListener("keydown", function (e) {
+          if (e.key === "Enter") {
+            e.preventDefault();
+            this.blur();
+
+            const editables = Array.from(
+              document.querySelectorAll(".editable")
+            );
+            const currentIndex = editables.indexOf(this);
+            if (currentIndex < editables.length - 1) {
+              editables[currentIndex + 1].focus();
+            }
+          }
+        });
+
+        // Focus olduğunda seç
+        cell.addEventListener("focus", function () {
+          const range = document.createRange();
+          range.selectNodeContents(this);
+          const sel = window.getSelection();
+          sel.removeAllRanges();
+          sel.addRange(range);
+        });
+      }
+
+      function updateTable() {
+        const gunSayisi = parseInt(document.getElementById("gunSayisi").value);
+        const tbody = document.getElementById("programBody");
+
+        let html = "";
+
+        for (let gun = 1; gun <= gunSayisi; gun++) {
+          const etkinlikler = [
+            {
+              saat: "08:00 - 10:00",
+              placeholder: "Örn: Otelden hareket, kahvaltı",
+            },
+            {
+              saat: "10:00 - 13:00",
+              placeholder: "Örn: Anıtkabir ziyareti",
+            },
+            {
+              saat: "13:00 - 15:00",
+              placeholder: "Örn: Öğle yemeği, dinlenme",
+            },
+            { saat: "15:00 - 18:00", placeholder: "Örn: Müze ziyareti" },
+          ];
+
+          etkinlikler.forEach((etk, index) => {
+            html += `
+        <tr>
+          ${
+            index === 0
+              ? `<td rowspan="4" class="gun-cell">${gun}. Gün</td>`
+              : ""
+          }
+          <td class="saat-cell" id="saat_${gun}_${index}">${etk.saat}</td>
+          <td id="etkinlik_${gun}_${index}"></td>
+        </tr>
+      `;
+          });
+        }
+
+        tbody.innerHTML = html;
+
+        // Hücreleri düzenlenebilir yap
+        for (let gun = 1; gun <= gunSayisi; gun++) {
+          const etkinlikler = [
+            {
+              saat: "08:00 - 10:00",
+              placeholder: "Örn: Otelden hareket, kahvaltı",
+            },
+            {
+              saat: "10:00 - 13:00",
+              placeholder: "Örn: Anıtkabir ziyareti",
+            },
+            {
+              saat: "13:00 - 15:00",
+              placeholder: "Örn: Öğle yemeği, dinlenme",
+            },
+            { saat: "15:00 - 18:00", placeholder: "Örn: Müze ziyareti" },
+          ];
+
+          etkinlikler.forEach((etk, index) => {
+            const saatCell = document.getElementById(`saat_${gun}_${index}`);
+            const etkinlikCell = document.getElementById(
+              `etkinlik_${gun}_${index}`
+            );
+
+            makeEditable(saatCell, etk.saat);
+            makeEditable(etkinlikCell, "");
+          });
+        }
+      }
+
+      // Sayfa yüklendiğinde tabloyu oluştur
+      window.addEventListener("DOMContentLoaded", () => {
+        updateTable();
+      });
+
+      console.log("✅ Günlük Program Şablonu Yüklendi");
+    </script>
+  </body>
+</html>

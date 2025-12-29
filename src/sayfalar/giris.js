@@ -111,17 +111,16 @@ girisForm.addEventListener("submit", async (e) => {
         localStorage.removeItem("giris_bilgileri");
       }
 
-      // Kullanıcı bilgilerini kaydet
-      sessionStorage.setItem(
-        "currentUser",
-        JSON.stringify({
-          userType: result.userType,
-          school: result.school || null,
-          user: result.user,
-        })
-      );
+      // ✅ DÜZELTME: localStorage kullan (sessionStorage yerine)
+      localStorage.setItem("currentUser", JSON.stringify(result.user));
+
+      if (result.school) {
+        localStorage.setItem("currentSchool", JSON.stringify(result.school));
+      }
 
       console.log("✅ Giriş başarılı:", result.userType);
+      console.log("✅ Kullanıcı bilgileri kaydedildi:", result.user);
+      console.log("✅ Okul bilgileri kaydedildi:", result.school);
 
       // Yönlendirme
       setTimeout(() => {

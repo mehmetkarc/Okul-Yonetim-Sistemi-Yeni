@@ -418,6 +418,7 @@ body {
   background: linear-gradient(135deg, var(--primary), var(--secondary));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+  background-clip: text; /* EKLENDİ */
 }
 
 .sidebar-toggle {
@@ -538,6 +539,7 @@ body {
   );
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+  background-clip: text; /* EKLENDİ */
   margin-bottom: var(--spacing-sm);
   animation: slideInDown 0.5s ease;
 }
@@ -866,4 +868,300 @@ body {
     width: 100%;
     right: -100%;
   }
+}
+
+/* ========================================== */
+/* DERS KARTLARI - BUTONLAR VE FOOTER */
+/* ========================================== */
+
+.ders-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 20px;
+  margin-bottom: 24px;
+}
+
+.ders-card {
+  background: var(--glass-bg);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  transition: all var(--transition-normal);
+  position: relative;
+  box-shadow: var(--shadow-sm);
+}
+
+.ders-card:hover {
+  transform: translateY(-6px);
+  border-color: var(--primary);
+  box-shadow: 0 12px 32px rgba(0, 217, 255, 0.25);
+}
+
+.ders-card-header {
+  padding: 20px;
+  color: white;
+  position: relative;
+  background: var(--primary);
+  min-height: 80px;
+}
+
+.ders-card-code {
+  font-family: "Courier New", monospace;
+  font-size: 12px;
+  font-weight: 700;
+  opacity: 0.9;
+  margin-bottom: 8px;
+}
+
+.ders-card-badges {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  display: flex;
+  gap: 6px;
+}
+
+.badge {
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  backdrop-filter: blur(10px);
+  background: rgba(255, 255, 255, 0.3);
+  color: white;
+}
+
+.ders-card-body {
+  padding: 20px;
+}
+
+.ders-card-title {
+  margin: 0 0 16px 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.ders-card-info {
+  display: grid;
+  gap: 10px;
+}
+
+.info-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.info-item svg {
+  flex-shrink: 0;
+  opacity: 0.7;
+  width: 16px;
+  height: 16px;
+}
+
+/* FOOTER VE BUTONLAR */
+.ders-card-footer {
+  padding: 14px 18px;
+  border-top: 1px solid var(--glass-border);
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  background: rgba(255, 255, 255, 0.02);
+  transition: var(--transition-normal);
+}
+
+.ders-card:hover .ders-card-footer {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.btn-icon {
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  font-size: 16px;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15);
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-icon::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  transition: width 0.4s, height 0.4s;
+  z-index: 0;
+}
+
+.btn-icon:active::before {
+  width: 300px;
+  height: 300px;
+}
+
+.btn-icon svg {
+  width: 18px;
+  height: 18px;
+  position: relative;
+  z-index: 1;
+  transition: transform 0.2s ease;
+}
+
+/* DETAY - MAVİ */
+.btn-info {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.btn-info:hover {
+  background: linear-gradient(135deg, #5a6fd8 0%, #6a42c7 100%);
+  transform: translateY(-3px) scale(1.05);
+  box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+}
+
+.btn-info:hover svg {
+  transform: scale(1.1);
+}
+
+/* DÜZENLE - YEŞİL */
+.btn-primary {
+  background: linear-gradient(135deg, #00f5a0 0%, #00d9ff 100%);
+  color: white;
+}
+
+.btn-primary:hover {
+  background: linear-gradient(135deg, #00e091 0%, #00c7ed 100%);
+  transform: translateY(-3px) scale(1.05);
+  box-shadow: 0 8px 20px rgba(0, 245, 160, 0.4);
+}
+
+.btn-primary:hover svg {
+  transform: rotate(5deg) scale(1.1);
+}
+
+/* SİL - KIRMIZI */
+.btn-danger {
+  background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
+  color: white;
+}
+
+.btn-danger:hover {
+  background: linear-gradient(135deg, #ff5252 0%, #e04848 100%);
+  transform: translateY(-3px) scale(1.05);
+  box-shadow: 0 8px 20px rgba(255, 107, 107, 0.4);
+}
+
+.btn-danger:hover svg {
+  transform: scale(1.1) rotate(-5deg);
+}
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+  .ders-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .ders-card-footer {
+    padding: 12px 16px;
+    gap: 8px;
+  }
+
+  .btn-icon {
+    width: 36px;
+    height: 36px;
+  }
+}
+
+/* ========================================== */
+/* MODAL ANIMASYONLARI (SİL MODALI İÇİN) */
+/* ========================================== */
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(50px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* ========================================== */
+/* YENİ MODERN BUTON RENKLERİ */
+/* ========================================== */
+
+.btn-info {
+  background: linear-gradient(135deg, #4361ee, #3f37c9) !important;
+  color: white !important;
+  box-shadow: 0 4px 15px rgba(67, 97, 238, 0.3);
+}
+
+.btn-info:hover {
+  background: linear-gradient(135deg, #3a56d4, #342fb3) !important;
+  transform: translateY(-3px) scale(1.05);
+  box-shadow: 0 10px 25px rgba(67, 97, 238, 0.5);
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #06ffa5, #00d4ff) !important;
+  color: white !important;
+  box-shadow: 0 4px 15px rgba(6, 255, 165, 0.3);
+}
+
+.btn-primary:hover {
+  background: linear-gradient(135deg, #00e695, #00c3ee) !important;
+  transform: translateY(-3px) scale(1.05);
+  box-shadow: 0 10px 25px rgba(6, 255, 165, 0.5);
+}
+
+.btn-danger {
+  background: linear-gradient(135deg, #ff3b30, #ff6b6b) !important;
+  color: white !important;
+  box-shadow: 0 4px 15px rgba(255, 59, 48, 0.3);
+}
+
+.btn-danger:hover {
+  background: linear-gradient(135deg, #ff2d26, #ff5252) !important;
+  transform: translateY(-3px) scale(1.05);
+  box-shadow: 0 10px 25px rgba(255, 59, 48, 0.5);
+}
+
+/* İkonlar için daha keskin */
+.btn-icon svg {
+  stroke: white;
+  fill: none;
 }

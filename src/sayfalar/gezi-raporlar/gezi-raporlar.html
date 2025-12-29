@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Gezi Raporları</title>
+    <link rel="stylesheet" href="../anasayfa.css" />
+    <link rel="stylesheet" href="../../bilesenler/bildirim-sistemi.css" />
+    <link rel="stylesheet" href="gezi-raporlar.css" />
+  </head>
+  <body>
+    <!-- Arka Plan Animasyonları -->
+    <div class="bg-animations">
+      <div class="gradient-orb orb-1"></div>
+      <div class="gradient-orb orb-2"></div>
+      <div class="gradient-orb orb-3"></div>
+    </div>
+
+    <!-- Üst Bar -->
+    <header class="top-bar">
+      <div class="top-bar-left">
+        <div
+          class="logo-container"
+          onclick="window.location.href='../anasayfa.html'"
+        >
+          <svg class="logo-icon" viewBox="0 0 24 24" fill="none">
+            <path
+              d="M12 3L4 9V21H20V9L12 3Z"
+              stroke="url(#gradient1)"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+            <path
+              d="M9 21V12H15V21"
+              stroke="url(#gradient1)"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+            <defs>
+              <linearGradient
+                id="gradient1"
+                x1="0%"
+                y1="0%"
+                x2="100%"
+                y2="100%"
+              >
+                <stop
+                  offset="0%"
+                  style="stop-color: #00d9ff; stop-opacity: 1"
+                />
+                <stop
+                  offset="100%"
+                  style="stop-color: #7b2fff; stop-opacity: 1"
+                />
+              </linearGradient>
+            </defs>
+          </svg>
+          <div class="logo-text">
+            <span class="logo-title">Okul Yönetim</span>
+            <span class="logo-subtitle">Sistem</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="top-bar-center">
+        <h2 style="color: white; font-size: 20px; font-weight: 600">
+          📊 Gezi Raporları
+        </h2>
+      </div>
+
+      <div class="top-bar-right">
+        <button
+          class="icon-btn"
+          onclick="window.location.href='../gezi-planla.html'"
+          title="Geri Dön"
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+            <path
+              d="M19 12H5M12 19l-7-7 7-7"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+        </button>
+
+        <button
+          class="icon-btn"
+          onclick="window.location.href='../anasayfa.html'"
+          title="Ana Sayfa"
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+            <path
+              d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"
+              stroke="currentColor"
+              stroke-width="2"
+            />
+          </svg>
+        </button>
+
+        <button class="icon-btn logout-btn" id="logoutBtn" title="Çıkış">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+            <path
+              d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4m7 14l5-5-5-5m5 5H9"
+              stroke="currentColor"
+              stroke-width="2"
+            />
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Ana İçerik -->
+    <main class="page-container">
+      <!-- Gezi Bilgi Kartı -->
+      <div class="gezi-bilgi-kart">
+        <div class="gezi-bilgi-ikon">✈️</div>
+        <div class="gezi-bilgi-detay">
+          <h1 id="geziAdi">Gezi Yükleniyor...</h1>
+          <div class="gezi-bilgi-meta">
+            <span id="geziYer">📍 -</span>
+            <span id="geziTarih">📅 -</span>
+            <span id="geziKatilimci">👥 -</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Raporlar Grid -->
+      <div class="raporlar-container">
+        <!-- RESMİ MEB BELGELERİ -->
+        <div class="rapor-kategori">
+          <h2 class="kategori-baslik">
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path
+                d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
+              />
+              <polyline points="14 2 14 8 20 8" />
+            </svg>
+            Resmi MEB Belgeleri
+          </h2>
+          <div class="rapor-grid">
+            <div class="rapor-kart" data-rapor="gezi-plani-ek1">
+              <div
+                class="rapor-ikon"
+                style="
+                  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                "
+              >
+                📄
+              </div>
+              <h3>Gezi Planı (Ek-1)</h3>
+              <p>MEB Resmi Format</p>
+              <div class="rapor-butonlar">
+                <button
+                  class="btn-onizle"
+                  onclick="raporOnizle('gezi-plani-ek1')"
+                >
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                    <circle cx="12" cy="12" r="3" />
+                  </svg>
+                  Önizle
+                </button>
+                <button
+                  class="btn-pdf"
+                  onclick="raporPDFIndir('gezi-plani-ek1')"
+                >
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                    <polyline points="7 10 12 15 17 10" />
+                    <line x1="12" y1="15" x2="12" y2="3" />
+                  </svg>
+                  PDF
+                </button>
+              </div>
+            </div>
+
+            <div class="rapor-kart" data-rapor="gezi-plani-ek2">
+              <div
+                class="rapor-ikon"
+                style="
+                  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+                "
+              >
+                📋
+              </div>
+              <h3>Gezi Planı (Ek-2)</h3>
+              <p>Alternatif Format</p>
+              <div class="rapor-butonlar">
+                <button
+                  class="btn-onizle"
+                  onclick="raporOnizle('gezi-plani-ek2')"
+                >
+                  👁️ Önizle
+                </button>
+                <button
+                  class="btn-pdf"
+                  onclick="raporPDFIndir('gezi-plani-ek2')"
+                >
+                  📄 PDF
+                </button>
+              </div>
+            </div>
+
+            <div class="rapor-kart" data-rapor="mudurluk-onay">
+              <div
+                class="rapor-ikon"
+                style="
+                  background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+                "
+              >
+                ✅
+              </div>
+              <h3>Müdürlük Onay</h3>
+              <p>Onay Yazısı</p>
+              <div class="rapor-butonlar">
+                <button
+                  class="btn-onizle"
+                  onclick="raporOnizle('mudurluk-onay')"
+                >
+                  👁️ Önizle
+                </button>
+                <button
+                  class="btn-pdf"
+                  onclick="raporPDFIndir('mudurluk-onay')"
+                >
+                  📄 PDF
+                </button>
+              </div>
+            </div>
+
+            <div class="rapor-kart" data-rapor="veli-izin">
+              <div
+                class="rapor-ikon"
+                style="
+                  background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+                "
+              >
+                ✍️
+              </div>
+              <h3>Veli İzin Belgesi</h3>
+              <p>İmza Listesi</p>
+              <div class="rapor-butonlar">
+                <button class="btn-onizle" onclick="raporOnizle('veli-izin')">
+                  👁️ Önizle
+                </button>
+                <button class="btn-pdf" onclick="raporPDFIndir('veli-izin')">
+                  📄 PDF
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- KATILIMCI LİSTELERİ -->
+        <div class="rapor-kategori">
+          <h2 class="kategori-baslik">
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+              <circle cx="9" cy="7" r="4" />
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+              <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+            </svg>
+            Katılımcı Listeleri
+          </h2>
+          <div class="rapor-grid">
+            <div class="rapor-kart" data-rapor="ogretmen-listesi">
+              <div
+                class="rapor-ikon"
+                style="
+                  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+                "
+              >
+                👨‍🏫
+              </div>
+              <h3>Öğretmen Listesi</h3>
+              <p>Sorumlu Öğretmenler</p>
+              <div class="rapor-butonlar">
+                <button
+                  class="btn-onizle"
+                  onclick="raporOnizle('ogretmen-listesi')"
+                >
+                  👁️ Önizle
+                </button>
+                <button
+                  class="btn-pdf"
+                  onclick="raporPDFIndir('ogretmen-listesi')"
+                >
+                  📄 PDF
+                </button>
+              </div>
+            </div>
+
+            <div class="rapor-kart" data-rapor="ogrenci-listesi">
+              <div
+                class="rapor-ikon"
+                style="
+                  background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+                "
+              >
+                👨‍🎓
+              </div>
+              <h3>Öğrenci Listesi</h3>
+              <p>Katılımcı Öğrenciler</p>
+              <div class="rapor-butonlar">
+                <button
+                  class="btn-onizle"
+                  onclick="raporOnizle('ogrenci-listesi')"
+                >
+                  👁️ Önizle
+                </button>
+                <button
+                  class="btn-pdf"
+                  onclick="raporOnizle('ogrenci-listesi')"
+                >
+                  📄 Önizle & PDF
+                </button>
+              </div>
+            </div>
+
+            <div class="rapor-kart" data-rapor="misafir-listesi">
+              <div
+                class="rapor-ikon"
+                style="
+                  background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+                "
+              >
+                👥
+              </div>
+              <h3>Misafir Listesi</h3>
+              <p>Misafir Katılımcılar</p>
+              <div class="rapor-butonlar">
+                <button
+                  class="btn-onizle"
+                  onclick="raporOnizle('misafir-listesi')"
+                >
+                  👁️ Önizle
+                </button>
+                <button
+                  class="btn-pdf"
+                  onclick="raporPDFIndir('misafir-listesi')"
+                >
+                  📄 PDF
+                </button>
+              </div>
+            </div>
+
+            <div class="rapor-kart" data-rapor="pasaport-listesi">
+              <div
+                class="rapor-ikon"
+                style="
+                  background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+                "
+              >
+                🛂
+              </div>
+              <h3>Pasaport Listesi</h3>
+              <p>Yurt Dışı Geziler</p>
+              <div class="rapor-butonlar">
+                <button
+                  class="btn-onizle"
+                  onclick="raporOnizle('pasaport-listesi')"
+                >
+                  👁️ Önizle
+                </button>
+                <button
+                  class="btn-pdf"
+                  onclick="raporPDFIndir('pasaport-listesi')"
+                >
+                  📄 PDF
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- OPERASYONEL RAPORLAR -->
+        <div class="rapor-kategori">
+          <h2 class="kategori-baslik">
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <rect x="1" y="3" width="15" height="13" />
+              <polygon points="16 8 20 8 23 11 23 16 16 16 16 8" />
+              <circle cx="5.5" cy="18.5" r="2.5" />
+              <circle cx="18.5" cy="18.5" r="2.5" />
+            </svg>
+            Operasyonel Raporlar
+          </h2>
+          <div class="rapor-grid">
+            <div class="rapor-kart" data-rapor="arac-dagilim">
+              <div
+                class="rapor-ikon"
+                style="
+                  background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+                "
+              >
+                🚌
+              </div>
+              <h3>Araç Dağılımı</h3>
+              <p>Araç-Koltuk Atamaları</p>
+              <div class="rapor-butonlar">
+                <button
+                  class="btn-onizle"
+                  onclick="raporOnizle('arac-dagilim')"
+                >
+                  👁️ Önizle
+                </button>
+                <button class="btn-pdf" onclick="raporPDFIndir('arac-dagilim')">
+                  📄 PDF
+                </button>
+              </div>
+            </div>
+
+            <div class="rapor-kart" data-rapor="konaklama-raporu">
+              <div
+                class="rapor-ikon"
+                style="
+                  background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
+                "
+              >
+                🏨
+              </div>
+              <h3>Konaklama Raporu</h3>
+              <p>Oda Atamaları</p>
+              <div class="rapor-butonlar">
+                <button
+                  class="btn-onizle"
+                  onclick="raporOnizle('konaklama-raporu')"
+                >
+                  👁️ Önizle
+                </button>
+                <button
+                  class="btn-pdf"
+                  onclick="raporPDFIndir('konaklama-raporu')"
+                >
+                  📄 PDF
+                </button>
+              </div>
+            </div>
+
+            <div class="rapor-kart" data-rapor="ucus-manifesto">
+              <div
+                class="rapor-ikon"
+                style="
+                  background: linear-gradient(135deg, #a1c4fd 0%, #c2e9fb 100%);
+                "
+              >
+                ✈️
+              </div>
+              <h3>Uçuş Manifestosu</h3>
+              <p>Uçak/Gemi Yolcu Listesi</p>
+              <div class="rapor-butonlar">
+                <button
+                  class="btn-onizle"
+                  onclick="raporOnizle('ucus-manifesto')"
+                >
+                  👁️ Önizle
+                </button>
+                <button
+                  class="btn-pdf"
+                  onclick="raporPDFIndir('ucus-manifesto')"
+                >
+                  📄 PDF
+                </button>
+              </div>
+            </div>
+
+            <div class="rapor-kart" data-rapor="gunluk-program">
+              <div
+                class="rapor-ikon"
+                style="
+                  background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%);
+                "
+              >
+                📅
+              </div>
+              <h3>Günlük Program</h3>
+              <p>Saat-Saat Gezi Planı</p>
+              <div class="rapor-butonlar">
+                <button
+                  class="btn-onizle"
+                  onclick="raporOnizle('gunluk-program')"
+                >
+                  👁️ Önizle
+                </button>
+                <button
+                  class="btn-pdf"
+                  onclick="raporPDFIndir('gunluk-program')"
+                >
+                  📄 PDF
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- MALİ RAPORLAR -->
+        <div class="rapor-kategori">
+          <h2 class="kategori-baslik">
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <line x1="12" y1="1" x2="12" y2="23" />
+              <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+            </svg>
+            Mali Raporlar
+          </h2>
+          <div class="rapor-grid">
+            <div class="rapor-kart" data-rapor="odeme-raporu">
+              <div
+                class="rapor-ikon"
+                style="
+                  background: linear-gradient(135deg, #96fbc4 0%, #f9f586 100%);
+                "
+              >
+                💰
+              </div>
+              <h3>Ödeme Raporu</h3>
+              <p>Tahsilat Durumu</p>
+              <div class="rapor-butonlar">
+                <button
+                  class="btn-onizle"
+                  onclick="raporOnizle('odeme-raporu')"
+                >
+                  👁️ Önizle
+                </button>
+                <button class="btn-pdf" onclick="raporPDFIndir('odeme-raporu')">
+                  📄 PDF
+                </button>
+              </div>
+            </div>
+
+            <div class="rapor-kart" data-rapor="maliyet-analizi">
+              <div
+                class="rapor-ikon"
+                style="
+                  background: linear-gradient(135deg, #fbc2eb 0%, #a6c1ee 100%);
+                "
+              >
+                📊
+              </div>
+              <h3>Maliyet Analizi</h3>
+              <p>Gelir-Gider Raporu</p>
+              <div class="rapor-butonlar">
+                <button
+                  class="btn-onizle"
+                  onclick="raporOnizle('maliyet-analizi')"
+                >
+                  👁️ Önizle
+                </button>
+                <button
+                  class="btn-pdf"
+                  onclick="raporPDFIndir('maliyet-analizi')"
+                >
+                  📄 PDF
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Bildirim Sistemi -->
+    <div id="bildirimAlani"></div>
+
+    <script src="../../bilesenler/bildirim-sistemi.js"></script>
+    <script src="gezi-raporlar.js"></script>
+  </body>
+</html>

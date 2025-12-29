@@ -47,46 +47,54 @@ window.addEventListener("DOMContentLoaded", async () => {
 // ==========================================
 
 function loadUserInfo() {
-  const userDataStr = sessionStorage.getItem("currentUser");
+  const currentUserStr = localStorage.getItem("currentUser");
+  const currentSchoolStr = localStorage.getItem("currentSchool");
 
-  if (!userDataStr) {
+  if (!currentUserStr) {
     console.error("❌ Kullanıcı bilgisi bulunamadı!");
+    localStorage.clear();
     window.location.href = "giris.html";
     return;
   }
 
-  const userData = JSON.parse(userDataStr);
-  currentUser = userData.user;
-  userType = userData.userType;
-  schoolInfo = userData.school;
+  try {
+    currentUser = JSON.parse(currentUserStr);
+    schoolInfo = currentSchoolStr ? JSON.parse(currentSchoolStr) : null;
+    userType =
+      currentUser.rol === "super_admin" ? "super_admin" : "school_user";
 
-  // Kullanıcı bilgilerini güncelle
-  document.getElementById("userName").textContent = currentUser.ad_soyad;
-  document.getElementById("userRole").textContent = getRoleName(
-    currentUser.rol
-  );
+    // Kullanıcı bilgilerini güncelle
+    document.getElementById("userName").textContent = currentUser.ad_soyad;
+    document.getElementById("userRole").textContent = getRoleName(
+      currentUser.rol
+    );
 
-  const initials = currentUser.ad_soyad
-    .split(" ")
-    .map((word) => word[0])
-    .join("")
-    .toUpperCase()
-    .substring(0, 2);
-  document.getElementById("userInitials").textContent = initials;
+    const initials = currentUser.ad_soyad
+      .split(" ")
+      .map((word) => word[0])
+      .join("")
+      .toUpperCase()
+      .substring(0, 2);
+    document.getElementById("userInitials").textContent = initials;
 
-  // Okul adı
-  if (schoolInfo) {
-    document.getElementById("okulAdi").textContent = schoolInfo.okul_adi;
-  } else {
-    document.getElementById("okulAdi").textContent = "Super Admin";
-  }
+    // Okul adı
+    if (schoolInfo) {
+      document.getElementById("okulAdi").textContent = schoolInfo.okul_adi;
+    } else {
+      document.getElementById("okulAdi").textContent = "Super Admin";
+    }
 
-  // Yetki kontrolü
-  if (userType !== "super_admin") {
-    Bildirim.error("Bu sayfaya erişim yetkiniz yok!");
-    setTimeout(() => {
-      window.location.href = "anasayfa.html";
-    }, 2000);
+    // Yetki kontrolü - Sadece super admin okullar sayfasına erişebilir
+    if (userType !== "super_admin") {
+      Bildirim.error("Bu sayfaya erişim yetkiniz yok!");
+      setTimeout(() => {
+        window.location.href = "anasayfa.html";
+      }, 2000);
+    }
+  } catch (error) {
+    console.error("❌ Kullanıcı bilgisi parse hatası:", error);
+    localStorage.clear();
+    window.location.href = "giris.html";
   }
 }
 

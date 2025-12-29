@@ -1,6 +1,6 @@
 /* ==========================================
-   MODERN BİLDİRİM SİSTEMİ
-   iOS Style Toast Notifications
+   MODERN BİLDİRİM SİSTEMİ V2.0
+   iOS Style Toast Notifications + GÜNCELLEME
 ========================================== */
 
 :root {
@@ -8,6 +8,7 @@
   --toast-error: #ff6b6b;
   --toast-warning: #ffd93d;
   --toast-info: #00d9ff;
+  --toast-update: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 }
 
 /* Bildirim Container */
@@ -76,7 +77,7 @@
   left: 0;
   height: 3px;
   background: currentColor;
-  animation: progress linear forwards;
+  animation: progress var(--duration, 5000ms) linear forwards;
 }
 
 @keyframes progress {
@@ -212,6 +213,154 @@
 /* Glow Efekti */
 .toast:hover {
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), 0 0 20px currentColor;
+}
+
+/* ==========================================
+   🎉 GÜNCELLEME BİLDİRİMİ (ÖZEL TASARIM)
+========================================== */
+
+.toast-update {
+  background: var(--toast-update);
+  color: white;
+  border: none;
+  min-width: 380px;
+  max-width: 420px;
+  padding: 20px 24px;
+  box-shadow: 0 12px 40px rgba(102, 126, 234, 0.5);
+  border-left: none;
+}
+
+.toast-update::before {
+  display: none; /* Progress bar yok */
+}
+
+.toast-update .toast-icon,
+.toast-update .update-icon {
+  width: 48px;
+  height: 48px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: pulse 2s infinite;
+  flex-shrink: 0;
+}
+
+.toast-update .toast-icon svg,
+.toast-update .update-icon svg {
+  color: white;
+}
+
+.update-icon-success {
+  background: rgba(76, 175, 80, 0.3) !important;
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.7);
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 0 0 10px rgba(255, 255, 255, 0);
+  }
+}
+
+.toast-update .toast-content,
+.update-content {
+  flex: 1;
+}
+
+.update-title {
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 6px;
+  color: white;
+}
+
+.update-version {
+  font-size: 12px;
+  opacity: 0.95;
+  font-weight: 600;
+  margin-bottom: 10px;
+  padding: 3px 10px;
+  background: rgba(255, 255, 255, 0.25);
+  display: inline-block;
+  border-radius: 6px;
+}
+
+.update-message {
+  font-size: 13px;
+  opacity: 0.95;
+  line-height: 1.7;
+  margin-bottom: 14px;
+  color: white;
+}
+
+.update-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.btn-update-primary {
+  background: white;
+  color: #667eea;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.3s;
+  font-size: 13px;
+  flex: 1;
+  justify-content: center;
+}
+
+.btn-update-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+  background: #f0f0f0;
+}
+
+.btn-update-primary:active {
+  transform: translateY(0);
+}
+
+.btn-update-secondary {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  padding: 10px 18px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-size: 13px;
+  flex: 1;
+}
+
+.btn-update-secondary:hover {
+  background: rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.btn-update-secondary:active {
+  transform: scale(0.98);
+}
+
+/* İndirme Progress Göstergesi */
+#downloadProgress {
+  font-size: 12px;
+  font-weight: 600;
+  opacity: 0.9;
+  margin-top: 8px;
 }
 
 /* ==========================================
@@ -370,6 +519,7 @@
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   z-index: 10001;
@@ -393,11 +543,18 @@
 }
 
 .loading-text {
-  position: absolute;
-  margin-top: 100px;
+  margin-top: 20px;
   color: rgba(255, 255, 255, 0.7);
   font-size: 14px;
   font-weight: 600;
+}
+
+/* ==========================================
+   SPINNING ICON (GÜNCELLEME İNDİRME)
+========================================== */
+
+.spinning {
+  animation: spin 1s linear infinite;
 }
 
 /* ==========================================
@@ -411,13 +568,45 @@
     top: 80px;
   }
 
-  .toast {
+  .toast,
+  .toast-update {
     min-width: auto;
     width: 100%;
+    max-width: 100%;
   }
 
   .modal-content {
     width: 90%;
     padding: 24px;
+  }
+
+  .update-actions {
+    flex-direction: column;
+  }
+
+  .btn-update-primary,
+  .btn-update-secondary {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .toast-container {
+    top: 70px;
+    right: 8px;
+    left: 8px;
+  }
+
+  .toast,
+  .toast-update {
+    padding: 14px 16px;
+  }
+
+  .update-title {
+    font-size: 15px;
+  }
+
+  .update-message {
+    font-size: 12px;
   }
 }

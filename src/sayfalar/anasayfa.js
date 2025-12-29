@@ -1,5 +1,6 @@
 // ==========================================
-// OKUL YÖNETİM SİSTEMİ - ANASAYFA
+// OKUL YÖNETİM SİSTEMİ - ANASAYFA V2.0
+// + GÜNCELLEME SİSTEMİ ENTEGRE
 // ==========================================
 
 const { ipcRenderer } = require("electron");
@@ -436,6 +437,41 @@ const MODULES = {
           color: "#7B2FFF",
         },
         {
+          id: "ogretmen-nobet",
+          title: "Öğretmen Nöbet",
+          icon: "🛡️",
+          desc: "Nöbet çizelgesi",
+          color: "#9c27b0",
+        },
+        {
+          id: "gezi-planla",
+          title: "Gezi Planla",
+          icon: "✈️",
+          desc: "Okul gezisi",
+          color: "#00D9FF",
+        },
+        {
+          id: "ortak-sinav",
+          title: "Ortak Sınav",
+          icon: "📝",
+          desc: "Genel sınavlar",
+          color: "#7B2FFF",
+        },
+        {
+          id: "sorumluluk-sinav",
+          title: "Sorumluluk Sınavı",
+          icon: "⚡",
+          desc: "Ek sınav",
+          color: "#FF6B9D",
+        },
+        {
+          id: "rehberlik",
+          title: "Rehberlik",
+          icon: "🎯",
+          desc: "Öğrenci desteği",
+          color: "#00F5A0",
+        },
+        {
           id: "aidat-takip",
           title: "Aidat Takibi",
           icon: "💳",
@@ -572,8 +608,11 @@ window.addEventListener("DOMContentLoaded", async () => {
   // Bildirim kontrolü
   loadNotifications();
 
-  // Güncelleme kontrolü
-  checkForUpdates();
+  // 🆕 Cache boyutunu güncelle
+  updateCacheSize();
+
+  // 🆕 GÜNCELLEME SİSTEMİ BAŞLAT
+  initUpdateSystem();
 
   // Animasyonları başlat
   startAnimations();
@@ -584,42 +623,50 @@ window.addEventListener("DOMContentLoaded", async () => {
 // ==========================================
 
 function loadUserInfo() {
-  const userDataStr = sessionStorage.getItem("currentUser");
+  const currentUserStr = localStorage.getItem("currentUser");
+  const currentSchoolStr = localStorage.getItem("currentSchool");
 
-  if (!userDataStr) {
+  if (!currentUserStr) {
     console.error("❌ Kullanıcı bilgisi bulunamadı!");
+    localStorage.clear();
     window.location.href = "giris.html";
     return;
   }
 
-  const userData = JSON.parse(userDataStr);
-  currentUser = userData.user;
-  userType = userData.userType;
-  schoolInfo = userData.school;
+  try {
+    currentUser = JSON.parse(currentUserStr);
+    schoolInfo = currentSchoolStr ? JSON.parse(currentSchoolStr) : null;
+    userType =
+      currentUser.rol === "super_admin" ? "super_admin" : "school_user";
 
-  console.log("👤 Kullanıcı:", currentUser);
-  console.log("🏫 Tip:", userType);
+    console.log("👤 Kullanıcı:", currentUser);
+    console.log("🏫 Tip:", userType);
 
-  // Kullanıcı bilgilerini göster
-  userName.textContent = currentUser.ad_soyad;
-  userRole.textContent = getRoleName(currentUser.rol);
+    // Kullanıcı bilgilerini göster
+    userName.textContent = currentUser.ad_soyad;
+    userRole.textContent = getRoleName(currentUser.rol);
 
-  // İnisiyaller
-  const initials = currentUser.ad_soyad
-    .split(" ")
-    .map((word) => word[0])
-    .join("")
-    .toUpperCase()
-    .substring(0, 2);
-  userInitials.textContent = initials;
+    // İnisiyaller
+    const initials = currentUser.ad_soyad
+      .split(" ")
+      .map((word) => word[0])
+      .join("")
+      .toUpperCase()
+      .substring(0, 2);
+    userInitials.textContent = initials;
 
-  // Okul adı
-  if (schoolInfo) {
-    okulAdi.textContent = schoolInfo.okul_adi;
-    pageTitle.textContent = `Hoş Geldiniz, ${currentUser.ad_soyad}`;
-  } else {
-    okulAdi.textContent = "Super Admin";
-    pageTitle.textContent = "Sistem Yönetimi";
+    // Okul adı
+    if (schoolInfo) {
+      okulAdi.textContent = schoolInfo.okul_adi;
+      pageTitle.textContent = `Hoş Geldiniz, ${currentUser.ad_soyad}`;
+    } else {
+      okulAdi.textContent = "Super Admin";
+      pageTitle.textContent = "Sistem Yönetimi";
+    }
+  } catch (error) {
+    console.error("❌ Kullanıcı bilgisi parse hatası:", error);
+    localStorage.clear();
+    window.location.href = "giris.html";
   }
 }
 
@@ -670,11 +717,11 @@ function renderSidebarMenu(modules) {
     menuItem.dataset.moduleId = module.id;
     menuItem.style.animationDelay = `${index * 0.05}s`;
     menuItem.innerHTML = `
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" style="color: ${module.color}">
-                <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-size="16">${module.icon}</text>
-            </svg>
-            <span>${module.title}</span>
-        `;
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" style="color: ${module.color}">
+        <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-size="16">${module.icon}</text>
+      </svg>
+      <span>${module.title}</span>
+    `;
 
     menuItem.addEventListener("click", (e) => {
       e.preventDefault();
@@ -694,12 +741,12 @@ function renderMainModules(modules) {
     card.dataset.moduleId = module.id;
     card.style.animation = `fadeIn 0.5s ease ${index * 0.05}s both`;
     card.innerHTML = `
-            <div class="module-icon" style="border-color: ${module.color}">
-                ${module.icon}
-            </div>
-            <div class="module-title">${module.title}</div>
-            <div class="module-description">${module.desc}</div>
-        `;
+      <div class="module-icon" style="border-color: ${module.color}">
+        ${module.icon}
+      </div>
+      <div class="module-title">${module.title}</div>
+      <div class="module-description">${module.desc}</div>
+    `;
 
     card.addEventListener("click", () => {
       handleModuleClick(module);
@@ -731,6 +778,31 @@ function handleModuleClick(module) {
     ogrenciler: "ogrenciler.html",
     "ogrenci-ekle": "ogrenciler.html",
 
+    // Okul Admin - Sınıf Modülleri
+    siniflar: "siniflar.html",
+    "sinif-olustur": "siniflar.html",
+    "sinif-ekle": "siniflar.html",
+
+    // Okul Admin - Dersler Modülleri
+    dersler: "dersler.html",
+    "ders-ekle": "dersler.html",
+    "ders-tanimlama": "dersler.html",
+
+    // Okul Admin - Program Oluştur
+    "program-olustur": "program-olustur.html",
+
+    // ✅ GEZİ MODÜLÜ
+    "gezi-planla": "gezi-planla.html",
+
+    // ✅ NÖBET MODÜLÜ
+    "ogretmen-nobet": "nobet.html",
+    "nobet-planla": "nobet.html",
+
+    // ✅ ORTAK SINAV (KELEBEK) MODÜLÜ
+    "ortak-sinav": "ortak-sinav.html",
+    "sinav-olustur": "ortak-sinav.html",
+    "kelebek-sistemi": "ortak-sinav.html",
+
     // Diğer modüller için (henüz yok)
     dashboard: "anasayfa.html",
   };
@@ -759,12 +831,35 @@ async function checkLicense() {
   }
 
   try {
+    // Lisans bilgisi yoksa gizle
+    if (!schoolInfo.lisans_bitis) {
+      console.warn("⚠️ Lisans bilgisi bulunamadı");
+      licenseBadge.style.display = "none";
+      return;
+    }
+
     const bitisTarihi = new Date(schoolInfo.lisans_bitis);
     const bugun = new Date();
+
+    // Tarih geçerli mi kontrol et
+    if (isNaN(bitisTarihi.getTime())) {
+      console.error("❌ Geçersiz lisans tarihi:", schoolInfo.lisans_bitis);
+      licenseText.textContent = "Hata!";
+      licenseBadge.classList.add("danger");
+      licenseBadge.style.display = "flex";
+      return;
+    }
+
     const kalanGun = Math.ceil((bitisTarihi - bugun) / (1000 * 60 * 60 * 24));
+
+    console.log(`📅 Lisans kontrolü: ${kalanGun} gün kaldı`);
+
+    // Badge'i göster
+    licenseBadge.style.display = "flex";
 
     if (kalanGun <= 0) {
       licenseText.textContent = "Bitti!";
+      licenseBadge.classList.remove("warning");
       licenseBadge.classList.add("danger");
       showNotification(
         "error",
@@ -772,6 +867,7 @@ async function checkLicense() {
       );
     } else if (kalanGun <= 30) {
       licenseText.textContent = `${kalanGun} gün`;
+      licenseBadge.classList.remove("danger");
       licenseBadge.classList.add("warning");
       showNotification(
         "warning",
@@ -779,9 +875,13 @@ async function checkLicense() {
       );
     } else {
       licenseText.textContent = `${kalanGun} gün`;
+      licenseBadge.classList.remove("danger", "warning");
     }
   } catch (error) {
     console.error("❌ Lisans kontrolü hatası:", error);
+    licenseText.textContent = "Hata!";
+    licenseBadge.classList.add("danger");
+    licenseBadge.style.display = "flex";
   }
 }
 
@@ -807,7 +907,6 @@ function loadNotifications() {
   ];
 
   updateNotificationCount(notifications.length);
-  renderNotifications(notifications);
 }
 
 function updateNotificationCount(count) {
@@ -815,48 +914,234 @@ function updateNotificationCount(count) {
   notificationCount.style.display = count > 0 ? "flex" : "none";
 }
 
-function renderNotifications(notifications) {
-  const notificationList = document.getElementById("notificationList");
-  notificationList.innerHTML = "";
+// ==========================================
+// 🧹 CACHE YÖNETİMİ
+// ==========================================
 
-  if (notifications.length === 0) {
-    notificationList.innerHTML =
-      '<div style="text-align: center; padding: 40px; color: var(--text-secondary);">Bildirim yok</div>';
+async function clearCacheManual() {
+  try {
+    console.log("🧹 Manuel cache temizleme başlatılıyor...");
+
+    if (!window.electronAPI || !window.electronAPI.clearCache) {
+      showNotification("error", "❌ Cache temizleme özelliği bulunamadı!");
+      return;
+    }
+
+    // Butonu devre dışı bırak
+    const btn = document.getElementById("clearCacheBtn");
+    if (btn) {
+      btn.disabled = true;
+      btn.innerHTML = `
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" class="spinning">
+          <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none" opacity="0.25"/>
+          <path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" stroke-width="4" fill="none"/>
+        </svg>
+      `;
+    }
+
+    // Cache'i temizle
+    const result = await window.electronAPI.clearCache();
+
+    if (result.success) {
+      showNotification("success", "✅ " + result.message);
+
+      // 2 saniye sonra sayfa yenilenecek
+      setTimeout(() => {
+        location.reload();
+      }, 2000);
+    } else {
+      showNotification("error", "❌ " + result.message);
+
+      // Butonu tekrar aktif et
+      if (btn) {
+        btn.disabled = false;
+        btn.innerHTML = `
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+            <path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6h14z" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            <path d="M10 11v6m4-6v6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        `;
+      }
+    }
+  } catch (error) {
+    console.error("❌ Cache temizleme hatası:", error);
+    showNotification("error", "❌ Cache temizlenirken hata oluştu!");
+
+    // Butonu tekrar aktif et
+    const btn = document.getElementById("clearCacheBtn");
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = `
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+          <path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6h14z" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          <path d="M10 11v6m4-6v6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      `;
+    }
+  }
+}
+
+// Cache boyutunu göster
+async function updateCacheSize() {
+  try {
+    if (!window.electronAPI || !window.electronAPI.getCacheSize) {
+      return;
+    }
+
+    const result = await window.electronAPI.getCacheSize();
+
+    if (result.success) {
+      const sizeElement = document.getElementById("cacheSize");
+      if (sizeElement) {
+        sizeElement.textContent = `📊 Cache: ${result.size} MB`;
+      }
+    }
+  } catch (error) {
+    console.error("❌ Cache boyutu alma hatası:", error);
+  }
+}
+
+// ==========================================
+// 🔄 GÜNCELLEME SİSTEMİ
+// ==========================================
+
+/**
+ * Güncelleme sistemini başlat
+ */
+function initUpdateSystem() {
+  console.log("🔄 Güncelleme sistemi başlatılıyor...");
+
+  if (!window.electronAPI) {
+    console.warn("⚠️ electronAPI bulunamadı, güncelleme sistemi devre dışı");
     return;
   }
 
-  notifications.forEach((notif) => {
-    // Bildirim-sistemi.js'den fonksiyon çağrılacak
-  });
+  // Güncelleme kontrol et
+  checkForUpdates();
+
+  // Event listener'lar
+  setupUpdateListeners();
 }
 
-// ==========================================
-// GÜNCELLEME KONTROLÜ
-// ==========================================
-
+/**
+ * Güncelleme kontrol et
+ */
 async function checkForUpdates() {
-  // Electron updater ile güncelleme kontrolü
-  console.log("🔍 Güncelleme kontrol ediliyor...");
+  try {
+    console.log("🔍 Güncelleme kontrol ediliyor...");
 
-  // Güncelleme event listener'ları
-  if (window.electronAPI) {
+    if (!window.electronAPI.checkForUpdates) {
+      console.warn("⚠️ checkForUpdates fonksiyonu bulunamadı");
+      return;
+    }
+
+    await window.electronAPI.checkForUpdates();
+    console.log("✅ Güncelleme kontrolü başlatıldı");
+  } catch (error) {
+    console.error("❌ Güncelleme kontrol hatası:", error);
+  }
+}
+
+/**
+ * Güncelleme event listener'larını ayarla
+ */
+function setupUpdateListeners() {
+  // Yeni versiyon mevcut
+  if (window.electronAPI.onUpdateAvailable) {
     window.electronAPI.onUpdateAvailable((data) => {
-      document.getElementById("updateBtn").style.display = "flex";
-      showNotification("info", `🎉 Yeni sürüm mevcut: v${data.version}`);
-    });
+      console.log("🎉 Yeni versiyon mevcut:", data.version);
 
+      if (typeof Bildirim !== "undefined") {
+        Bildirim.gosterGuncelleme(data.version, false);
+      }
+    });
+  }
+
+  // İndirme ilerlemesi
+  if (window.electronAPI.onUpdateProgress) {
     window.electronAPI.onUpdateProgress((data) => {
-      showNotification("info", `📥 İndiriliyor: %${data.percent}`);
-    });
+      console.log(`📥 İndirme: ${data.percent.toFixed(0)}%`);
 
+      const progressEl = document.getElementById("downloadProgress");
+      if (progressEl) {
+        const downloaded = (data.transferred / 1024 / 1024).toFixed(1);
+        const total = (data.total / 1024 / 1024).toFixed(1);
+        progressEl.textContent = `${data.percent.toFixed(
+          0
+        )}% indirildi (${downloaded} MB / ${total} MB)`;
+      }
+    });
+  }
+
+  // İndirme tamamlandı
+  if (window.electronAPI.onUpdateDownloaded) {
     window.electronAPI.onUpdateDownloaded(() => {
-      showNotification(
-        "success",
-        "✅ Güncelleme indirildi! Yeniden başlatılıyor..."
-      );
+      console.log("✅ Güncelleme indirildi!");
+
+      if (typeof Bildirim !== "undefined") {
+        Bildirim.gosterGuncelleme("", true);
+      }
+    });
+  }
+
+  // Güncelleme hatası
+  if (window.electronAPI.onUpdateError) {
+    window.electronAPI.onUpdateError((message) => {
+      console.error("❌ Güncelleme hatası:", message);
+      showNotification("error", "❌ Güncelleme hatası: " + message);
     });
   }
 }
+
+/**
+ * Güncelleme indirmeyi başlat
+ */
+window.startUpdateDownload = async function () {
+  try {
+    console.log("📥 Güncelleme indiriliyor...");
+
+    // Bildirimi güncelle
+    const bildirim = document.getElementById("guncellemeBildirimi");
+    if (bildirim) {
+      bildirim.innerHTML = `
+        <div class="update-icon">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="spinning">
+            <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
+          </svg>
+        </div>
+        <div class="update-content">
+          <div class="update-title">📥 İndiriliyor...</div>
+          <div class="update-message" id="downloadProgress">
+            Lütfen bekleyin
+          </div>
+        </div>
+      `;
+    }
+
+    // İndirmeyi başlat
+    if (window.electronAPI.startUpdateDownload) {
+      await window.electronAPI.startUpdateDownload();
+    } else {
+      console.warn("⚠️ startUpdateDownload fonksiyonu bulunamadı");
+    }
+  } catch (error) {
+    console.error("❌ İndirme hatası:", error);
+    showNotification("error", "❌ Güncelleme indirilemedi!");
+  }
+};
+
+/**
+ * Uygulamayı yeniden başlat ve güncelle
+ */
+window.quitAndInstall = function () {
+  console.log("🔄 Uygulama yeniden başlatılıyor...");
+
+  if (window.electronAPI.quitAndInstall) {
+    window.electronAPI.quitAndInstall();
+  } else {
+    console.warn("⚠️ quitAndInstall fonksiyonu bulunamadı");
+  }
+};
 
 // ==========================================
 // EVENT LISTENERS
@@ -871,6 +1156,24 @@ function initEventListeners() {
   closeNotifications.addEventListener("click", () => {
     notificationPanel.classList.remove("active");
   });
+
+  // 🆕 Cache Temizleme Butonu
+  const clearCacheBtn = document.getElementById("clearCacheBtn");
+  if (clearCacheBtn) {
+    clearCacheBtn.addEventListener("click", clearCacheManual);
+  }
+
+  // 🆕 Cache Temizleme Dropdown
+  const clearCacheDropdownBtn = document.getElementById(
+    "clearCacheDropdownBtn"
+  );
+  if (clearCacheDropdownBtn) {
+    clearCacheDropdownBtn.addEventListener("click", () => {
+      userDropdown.classList.remove("active");
+      userMenu.classList.remove("active");
+      clearCacheManual();
+    });
+  }
 
   // Kullanıcı menüsü
   userMenu.addEventListener("click", () => {
@@ -901,7 +1204,8 @@ function initEventListeners() {
   document.addEventListener("keydown", (e) => {
     if ((e.ctrlKey || e.metaKey) && e.key === "k") {
       e.preventDefault();
-      document.getElementById("searchInput").focus();
+      const searchInput = document.getElementById("searchInput");
+      if (searchInput) searchInput.focus();
     }
   });
 }
@@ -944,12 +1248,12 @@ function startAnimations() {
       const rotateY = (centerX - x) / 10;
 
       card.style.transform = `
-                perspective(1000px)
-                rotateX(${rotateX}deg)
-                rotateY(${rotateY}deg)
-                translateZ(10px)
-                scale(1.05)
-            `;
+        perspective(1000px)
+        rotateX(${rotateX}deg)
+        rotateY(${rotateY}deg)
+        translateZ(10px)
+        scale(1.05)
+      `;
     });
 
     card.addEventListener("mouseleave", () => {
@@ -985,46 +1289,6 @@ function showNotification(type, message) {
   }
 }
 
-// Tarih formatlama
-function formatDate(dateString) {
-  const date = new Date(dateString);
-  return date.toLocaleDateString("tr-TR", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}
-
-// Sayı formatlama
-function formatNumber(number) {
-  return new Intl.NumberFormat("tr-TR").format(number);
-}
-
-// Para formatı
-function formatCurrency(amount) {
-  return new Intl.NumberFormat("tr-TR", {
-    style: "currency",
-    currency: "TRY",
-  }).format(amount);
-}
-
-// Scroll yumuşak kaydırma
-function smoothScrollTo(element) {
-  element.scrollIntoView({
-    behavior: "smooth",
-    block: "start",
-  });
-}
-
-// Loading durumu göster
-function showLoading(show = true) {
-  // Loading overlay'i göster/gizle
-  // Bu fonksiyon loading componenti eklendiğinde kullanılacak
-  console.log(show ? "Loading..." : "Loaded");
-}
-
 // ==========================================
 // KEYBOARD SHORTCUTS
 // ==========================================
@@ -1051,15 +1315,6 @@ document.addEventListener("keydown", (e) => {
 });
 
 // ==========================================
-// SAYFA ÇIKIŞINDA
-// ==========================================
-
-window.addEventListener("beforeunload", (e) => {
-  // Kaydedilmemiş değişiklikler varsa uyar
-  // Bu fonksiyon form sayfalarında kullanılacak
-});
-
-// ==========================================
 // HATA YAKALAMA
 // ==========================================
 
@@ -1074,16 +1329,38 @@ window.addEventListener("unhandledrejection", (e) => {
 });
 
 // ==========================================
-// DEBUG MOD
+// 🎨 CSS ANIMATIONS (SPIN)
 // ==========================================
 
-if (localStorage.getItem("debug_mode") === "true") {
-  console.log("🐛 Debug modu aktif");
-  console.log("👤 Kullanıcı:", currentUser);
-  console.log("🏫 Okul:", schoolInfo);
-  console.log("📊 Tip:", userType);
-}
+const style = document.createElement("style");
+style.textContent = `
+  @keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+  
+  .spinning {
+    animation: spin 1s linear infinite;
+  }
+  
+  #clearCacheBtn:hover {
+    transform: scale(1.1);
+    transition: transform 0.2s ease;
+  }
+  
+  #clearCacheBtn:active {
+    transform: scale(0.95);
+  }
+  
+  #clearCacheBtn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+`;
+document.head.appendChild(style);
 
 console.log("✅ Anasayfa scripti yüklendi");
 console.log("🎨 Modüller render edildi");
 console.log("🎯 Event listener'lar eklendi");
+console.log("🧹 Cache yönetimi aktif");
+console.log("🔄 Güncelleme sistemi entegre");

@@ -1,0 +1,2632 @@
+<!DOCTYPE html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Program Oluştur - Akıllı Ders Dağıtım Sistemi</title>
+    <link rel="stylesheet" href="anasayfa.css" />
+    <link rel="stylesheet" href="okullar.css" />
+    <link rel="stylesheet" href="program-olustur.css" />
+    <link rel="stylesheet" href="../bilesenler/bildirim-sistemi.css" />
+  </head>
+  <body>
+    <!-- Arka Plan Animasyonları -->
+    <div class="bg-animations">
+      <div class="gradient-orb orb-1"></div>
+      <div class="gradient-orb orb-2"></div>
+      <div class="gradient-orb orb-3"></div>
+    </div>
+
+    <!-- Üst Bar -->
+    <header class="top-bar">
+      <div class="top-bar-left">
+        <div
+          class="logo-container"
+          onclick="window.location.href='anasayfa.html'"
+        >
+          <svg class="logo-icon" viewBox="0 0 24 24" fill="none">
+            <path
+              d="M12 3L4 9V21H20V9L12 3Z"
+              stroke="url(#gradient1)"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+            <path
+              d="M9 21V12H15V21"
+              stroke="url(#gradient1)"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+            <defs>
+              <linearGradient
+                id="gradient1"
+                x1="0%"
+                y1="0%"
+                x2="100%"
+                y2="100%"
+              >
+                <stop
+                  offset="0%"
+                  style="stop-color: #00d9ff; stop-opacity: 1"
+                />
+                <stop
+                  offset="100%"
+                  style="stop-color: #7b2fff; stop-opacity: 1"
+                />
+              </linearGradient>
+            </defs>
+          </svg>
+          <div class="logo-text">
+            <span class="logo-title">Okul Yönetim</span>
+            <span class="logo-subtitle" id="okulAdi">Sistem</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="top-bar-center">
+        <h2 style="color: white; font-size: 20px; font-weight: 600">
+          🤖 Akıllı Program Oluşturucu
+        </h2>
+      </div>
+
+      <div class="top-bar-right">
+        <button
+          class="icon-btn"
+          onclick="window.location.href='anasayfa.html'"
+          title="Ana Sayfa"
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+            <path
+              d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"
+              stroke="currentColor"
+              stroke-width="2"
+            />
+          </svg>
+        </button>
+
+        <div class="user-menu" id="userMenu">
+          <div class="user-avatar"><span id="userInitials">SA</span></div>
+          <div class="user-info">
+            <span class="user-name" id="userName">Admin</span>
+            <span class="user-role" id="userRole">Okul Yöneticisi</span>
+          </div>
+        </div>
+
+        <button class="icon-btn logout-btn" id="logoutBtn" title="Çıkış">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+            <path
+              d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4m7 14l5-5-5-5m5 5H9"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+            />
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Ana İçerik -->
+<main class="page-container" style="padding: 20px">
+  <!-- Başlık ve Kontrol Butonları -->
+  <div class="page-header" style="margin-bottom: 20px">
+    <div class="header-left">
+      <h1 class="page-title">
+        <span class="title-icon">🤖</span>
+        Akıllı Program Oluşturucu
+      </h1>
+      <p class="page-description">
+        Yapay zeka destekli ders dağıtım sistemi
+      </p>
+    </div>
+    <div class="header-right" style="display: flex; gap: 12px; align-items: center;">
+      
+      <!-- ✅ TABLO OLUŞTUR (Akıllı Asistan - Program Başlat) -->
+<button
+  class="btn-primary"
+  id="btnAkilliAsistan"
+  style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 12px 24px; border: none; border-radius: 8px; color: white; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: all 0.3s; box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);"
+  onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(102, 126, 234, 0.4)'"
+  onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(102, 126, 234, 0.3)'"
+>
+  <svg
+    width="20"
+    height="20"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    stroke-width="2"
+  >
+    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+  </svg>
+  <span>📋 Tablo Oluştur</span>
+</button>
+
+<!-- ✅ OTOMATİK DAĞIT (DÜZELTİLDİ!) -->
+<button
+  class="btn-primary"
+  id="btnOtomatikDagit"
+  onclick="window.location.href='otomatik-dagitim.html'"
+  style="background: linear-gradient(135deg, #00f5a0 0%, #00d9ff 100%); padding: 12px 24px; border: none; border-radius: 8px; color: white; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: all 0.3s; box-shadow: 0 4px 12px rgba(0, 245, 160, 0.3);"
+  onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(0, 245, 160, 0.4)'"
+  onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(0, 245, 160, 0.3)'"
+>
+  <svg
+    width="20"
+    height="20"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    stroke-width="2"
+  >
+    <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
+  </svg>
+  <span>🤖 Otomatik Dağıt</span>
+</button>
+
+<!-- ✅ KAYDET -->
+<button 
+  class="btn-secondary" 
+  id="btnKaydet"
+  style="background: #607d8b; padding: 12px 24px; border: none; border-radius: 8px; color: white; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: all 0.3s; box-shadow: 0 4px 12px rgba(96, 125, 139, 0.3);"
+  onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(96, 125, 139, 0.4)'"
+  onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(96, 125, 139, 0.3)'"
+>
+  <svg
+    width="20"
+    height="20"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    stroke-width="2"
+  >
+    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
+    <polyline points="17 21 17 13 7 13 7 21" />
+    <polyline points="7 3 7 8 15 8" />
+  </svg>
+  <span>💾 Kaydet</span>
+</button>
+
+    </div>
+  </div>
+
+      <!-- 3 Kolonlu Layout -->
+      <div class="program-layout">
+        <!-- SOL PANEL: Dersler ve Öğretmenler -->
+        <div class="program-sidebar">
+          <!-- İstatistikler -->
+          <div class="sidebar-section">
+            <h3 class="section-title">📊 İstatistikler</h3>
+            <div class="stats-mini">
+              <div class="stat-mini">
+                <span class="stat-mini-label">Yerleşen</span>
+                <span class="stat-mini-value" id="statYerlesen">0/0</span>
+              </div>
+              <div class="stat-mini">
+                <span class="stat-mini-label">Çakışma</span>
+                <span class="stat-mini-value" id="statCakisma">0</span>
+              </div>
+              <div class="stat-mini">
+                <span class="stat-mini-label">Boşluk</span>
+                <span class="stat-mini-value" id="statBosluk">—</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Dersler -->
+          <div class="sidebar-section">
+            <div class="accordion-header active" id="derslerAccordion">
+              <div class="accordion-title">
+                <span>📚</span>
+                <span>DERSLER</span>
+              </div>
+              <div class="accordion-icon">▶</div>
+            </div>
+            <div class="accordion-content active" id="derslerContent">
+              <div class="draggable-list" id="derslerList">
+                <div class="empty-message">Dersler yükleniyor...</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Öğretmenler -->
+          <div class="sidebar-section">
+            <div class="accordion-header" id="ogretmenlerAccordion">
+              <div class="accordion-title">
+                <span>👨‍🏫</span>
+                <span>ÖĞRETMENLER</span>
+              </div>
+              <div class="accordion-icon">▶</div>
+            </div>
+            <div class="accordion-content" id="ogretmenlerContent">
+              <div class="draggable-list" id="ogretmenlerList">
+                <div class="empty-message">Öğretmenler yükleniyor...</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Sınıflar -->
+          <div class="sidebar-section">
+            <div class="accordion-header" id="siniflarAccordion">
+              <div class="accordion-title">
+                <span>🏛️</span>
+                <span>SINIFLAR</span>
+              </div>
+              <div class="accordion-icon">▶</div>
+            </div>
+            <div class="accordion-content" id="siniflarContent">
+              <div class="draggable-list" id="siniflarList">
+                <div class="empty-message">Sınıflar yükleniyor...</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- İşlem Geçmişi -->
+          <div class="sidebar-section">
+            <div
+              style="
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+              "
+            >
+              <h3 class="section-title">📋 İşlem Geçmişi</h3>
+              <button
+                class="btn-icon-small"
+                id="btnUndo"
+                title="Geri Al (Ctrl+Z)"
+              >
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path d="M3 7v6h6" />
+                  <path d="M21 17a9 9 0 00-9-9 9 9 0 00-6 2.3L3 13" />
+                </svg>
+              </button>
+            </div>
+            <div class="log-list" id="logList">
+              <div class="log-item">Sistem hazır</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ORTA PANEL: Canlı Program Tablosu -->
+        <div class="program-main">
+          <div class="tablo-header">
+            <div class="tablo-info">
+              <span id="tabloBaslik">Program Tablosu</span>
+              <span class="tablo-meta" id="tabloMeta"
+                >Başlamak için Akıllı Asistan'ı kullanın</span
+              >
+            </div>
+            <div class="tablo-actions">
+              <button
+                class="btn-icon"
+                id="btnYenile"
+                title="Tabloyu Yenile"
+                style="display: none"
+              >
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path
+                    d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"
+                  />
+                </svg>
+              </button>
+              <button
+                class="btn-icon btn-danger"
+                id="btnSil"
+                title="Tabloyu Sil"
+                style="display: none"
+              >
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <polyline points="3 6 5 6 21 6" />
+                  <path
+                    d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"
+                  />
+                  <line x1="10" y1="11" x2="10" y2="17" />
+                  <line x1="14" y1="11" x2="14" y2="17" />
+                </svg>
+              </button>
+              <button
+                class="btn-icon"
+                id="btnSinifSec"
+                title="Sınıf Seç"
+                style="display: none"
+              >
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                </svg>
+              </button>
+              <button
+                class="btn-icon"
+                id="btnOgretmenSec"
+                title="Öğretmen Seç"
+                style="display: none"
+              >
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                  <circle cx="12" cy="7" r="4" />
+                </svg>
+              </button>
+              <button
+                class="btn-icon"
+                id="btnZoomIn"
+                title="Yakınlaştır"
+                style="display: none"
+              >
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <circle cx="11" cy="11" r="8" />
+                  <path d="M21 21l-4.35-4.35" />
+                  <line x1="11" y1="8" x2="11" y2="14" />
+                  <line x1="8" y1="11" x2="14" y2="11" />
+                </svg>
+              </button>
+              <button
+                class="btn-icon"
+                id="btnZoomOut"
+                title="Uzaklaştır"
+                style="display: none"
+              >
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <circle cx="11" cy="11" r="8" />
+                  <path d="M21 21l-4.35-4.35" />
+                  <line x1="8" y1="11" x2="14" y2="11" />
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <div class="tablo-container" id="tabloContainer">
+            <!-- SINIF VE ÖĞRETMEN SEÇİCİ -->
+            <div class="viewer-selector" id="viewerSelector" style="display: none;">
+              <div class="selector-group">
+                <label>
+                  <input
+                    type="radio"
+                    name="viewType"
+                    value="sinif"
+                    id="radioViewSinif"
+                    checked
+                  />
+                  Sınıf Programı
+                </label>
+                <select id="selectViewSinif" class="form-select">
+                  <option value="">-- Sınıf Seçin --</option>
+                </select>
+              </div>
+
+              <div class="selector-group">
+  <label>
+    <input
+      type="radio"
+      name="viewType"
+      value="ogretmen"
+      id="radioViewOgretmen"
+    />
+    👨‍🏫 Öğretmen Programı
+  </label>
+  <select id="selectViewOgretmen" class="form-select">
+    <option value="">-- Öğretmen Seçin --</option>
+  </select>
+</div>
+
+              <button class="btn-primary" id="btnGoruntule">
+                Görüntüle
+              </button>
+            </div>
+
+            <!-- PROGRAM TABLOSU -->
+            <div id="programViewTable" style="display: none;"></div>
+            <div class="tablo-placeholder">
+              <div style="font-size: 64px; margin-bottom: 16px">
+                <svg
+                  width="120"
+                  height="120"
+                  viewBox="0 0 120 120"
+                  style="filter: drop-shadow(0 8px 16px rgba(255, 140, 0, 0.3))"
+                >
+                  <!-- Robot gövdesi -->
+                  <rect
+                    x="30"
+                    y="50"
+                    width="60"
+                    height="50"
+                    rx="8"
+                    fill="url(#robotGradient)"
+                  />
+
+                  <!-- Robot başı -->
+                  <rect
+                    x="40"
+                    y="25"
+                    width="40"
+                    height="30"
+                    rx="6"
+                    fill="url(#robotGradient)"
+                  />
+
+                  <!-- Anten -->
+                  <line
+                    x1="60"
+                    y1="25"
+                    x2="60"
+                    y2="15"
+                    stroke="#ff8c00"
+                    stroke-width="3"
+                    stroke-linecap="round"
+                  />
+                  <circle cx="60" cy="12" r="4" fill="#fbbf24">
+                    <animate
+                      attributeName="fill"
+                      values="#fbbf24;#ff4500;#fbbf24"
+                      dur="2s"
+                      repeatCount="indefinite"
+                    />
+                  </circle>
+
+                  <!-- Gözler -->
+                  <circle cx="48" cy="38" r="5" fill="#60a5fa">
+                    <animate
+                      attributeName="r"
+                      values="5;6;5"
+                      dur="1.5s"
+                      repeatCount="indefinite"
+                    />
+                  </circle>
+                  <circle cx="72" cy="38" r="5" fill="#60a5fa">
+                    <animate
+                      attributeName="r"
+                      values="5;6;5"
+                      dur="1.5s"
+                      repeatCount="indefinite"
+                    />
+                  </circle>
+
+                  <!-- Ağız -->
+                  <path
+                    d="M 48 47 Q 60 52 72 47"
+                    stroke="#ff6b00"
+                    stroke-width="2"
+                    fill="none"
+                    stroke-linecap="round"
+                  />
+
+                  <!-- Kollar -->
+                  <rect
+                    x="18"
+                    y="60"
+                    width="12"
+                    height="30"
+                    rx="6"
+                    fill="url(#robotGradient)"
+                  />
+                  <rect
+                    x="90"
+                    y="60"
+                    width="12"
+                    height="30"
+                    rx="6"
+                    fill="url(#robotGradient)"
+                  />
+
+                  <!-- Eller -->
+                  <circle cx="24" cy="92" r="6" fill="#ff8c00">
+                    <animateTransform
+                      attributeName="transform"
+                      type="rotate"
+                      values="0 24 92;15 24 92;0 24 92"
+                      dur="2s"
+                      repeatCount="indefinite"
+                    />
+                  </circle>
+                  <circle cx="96" cy="92" r="6" fill="#ff8c00">
+                    <animateTransform
+                      attributeName="transform"
+                      type="rotate"
+                      values="0 96 92;-15 96 92;0 96 92"
+                      dur="2s"
+                      repeatCount="indefinite"
+                    />
+                  </circle>
+
+                  <!-- Gradients -->
+                  <defs>
+                    <linearGradient
+                      id="robotGradient"
+                      x1="0%"
+                      y1="0%"
+                      x2="100%"
+                      y2="100%"
+                    >
+                      <stop
+                        offset="0%"
+                        style="stop-color: #ff8c00; stop-opacity: 1"
+                      />
+                      <stop
+                        offset="100%"
+                        style="stop-color: #ff4500; stop-opacity: 1"
+                      />
+                    </linearGradient>
+                  </defs>
+                </svg>
+              </div>
+              <h3 style="margin: 0 0 8px 0; color: var(--text-primary)">
+                Akıllı Asistan ile Başlayın
+              </h3>
+              <p style="margin: 0; color: var(--text-secondary)">
+                "Akıllı Asistan" butonuna tıklayarak okul bilgilerinizi girin
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- SAĞ PANEL: Alternatifler ve Analiz -->
+<div class="program-sidebar">
+  <!-- SINIF-DERS-ÖĞRETMEN ATAMA -->
+  <div class="sidebar-section">
+    <button
+      class="btn-atama-modern"
+      id="btnAtamaAc"
+      onclick="openAtamaModal()"
+    >
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+        <line x1="9" y1="3" x2="9" y2="21"/>
+        <line x1="3" y1="9" x2="21" y2="9"/>
+        <line x1="3" y1="15" x2="21" y2="15"/>
+      </svg>
+      <div class="btn-atama-text">
+        <div class="btn-atama-title">📚 Sınıf-Ders-Öğretmen</div>
+        <div class="btn-atama-subtitle">Atama Ekranı</div>
+      </div>
+    </button>
+  </div>
+
+ <!-- ✅ YAPILAN ATAMALAR AKORDİYON (KAYDIRMA YOK) -->
+<div class="sidebar-section">
+  <div class="accordion-header" id="atamaListesiAccordion">
+    <div class="accordion-title">
+      <span>📋</span>
+      <span>YAPILAN ATAMALAR</span>
+    </div>
+    <div class="accordion-icon">▶</div>
+  </div>
+  <div class="accordion-content" id="atamaListesiContent">
+    <div id="atamaListesiContainer">
+      <div class="empty-message">Henüz atama yapılmadı</div>
+    </div>
+  </div>
+</div>
+
+  <!-- AI Önerileri -->
+  <div class="sidebar-section">
+    <h3 class="section-title">💡 AI Önerileri</h3>
+    <div class="oneri-list" id="oneriList">
+      <div class="oneri-item oneri-bilgi">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10" />
+          <line x1="12" y1="16" x2="12" y2="12" />
+          <line x1="12" y1="8" x2="12.01" y2="8" />
+        </svg>
+        <div>
+          <strong>Hoş Geldiniz!</strong>
+          <p>Akıllı asistan size yol gösterecek</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Kısıtlar ve Tercihler -->
+  <div class="sidebar-section">
+    <h3 class="section-title">⚙️ Ayarlar</h3>
+
+    <!-- Kısıtlar Butonu -->
+    <button class="btn-secondary" style="width: 100%; margin-bottom: 8px" id="btnKisitAc">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M12 2L2 7l10 5 10-5-10-5z" />
+        <path d="M2 17l10 5 10-5M2 12l10 5 10-5" />
+      </svg>
+      <span>Kısıtlar</span>
+    </button>
+
+    <!-- Öğretmen Tercihleri Butonu -->
+    <button class="btn-secondary" id="btnTercihAc" style="width: 100%;">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+        <circle cx="12" cy="7" r="4" />
+      </svg>
+      <span>Öğretmen Tercihleri</span>
+    </button>
+  </div>
+</div>
+
+    <!-- AKILLI ASİSTAN MODAL -->
+<div class="modal-overlay" id="modalAsistan" style="display: none">
+  <div class="modal-container" style="max-width: 800px">
+    <div class="modal-header">
+      <h2>
+        <span style="font-size: 28px; margin-right: 8px">🤖</span>
+        <span>Akıllı Asistan</span>
+      </h2>
+      <button class="modal-close" onclick="closeModal('modalAsistan')">
+        <svg
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <path d="M18 6L6 18M6 6l12 12" />
+        </svg>
+      </button>
+    </div>
+
+    <!-- Step İndikatörü -->
+    <div class="asistan-steps" id="asistanSteps">
+      <div class="asistan-step active" data-step="1">
+        <span class="step-number">1</span>
+        <span class="step-label">Hoş Geldiniz</span>
+      </div>
+      <div class="asistan-step" data-step="2">
+        <span class="step-number">2</span>
+        <span class="step-label">Okul Bilgileri</span>
+      </div>
+      <div class="asistan-step" data-step="3">
+        <span class="step-number">3</span>
+        <span class="step-label">Ders Saatleri</span>
+      </div>
+      <div class="asistan-step" data-step="4">
+        <span class="step-number">4</span>
+        <span class="step-label">Tamamlandı</span>
+      </div>
+    </div>
+
+    <div class="modal-body">
+      <form id="formAsistan">
+        <!-- STEP 1: Hoş Geldiniz -->
+        <div class="asistan-content" data-step="1" style="display: block;">
+          <div class="welcome-screen">
+            <div
+              style="
+                font-size: 64px;
+                text-align: center;
+                margin-bottom: 24px;
+              "
+            >
+              🎓
+            </div>
+            <h2
+              style="
+                text-align: center;
+                margin: 0 0 16px 0;
+                color: #1a1a1a;
+              "
+            >
+              Hoş Geldiniz!
+            </h2>
+            <p
+              style="
+                text-align: center;
+                color: #666;
+                font-size: 16px;
+                line-height: 1.6;
+              "
+            >
+              Akıllı program oluşturucu size yardımcı olacak. <br />
+              Önce okulunuzun temel bilgilerini girmeniz gerekiyor. <br />
+              Bu bilgiler sayesinde size özel bir program tablosu
+              oluşturulacak.
+            </p>
+            <div class="info-box" style="margin-top: 24px; background: #e3f2fd; padding: 16px; border-radius: 8px; display: flex; gap: 12px; align-items: flex-start;">
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="#2196f3"
+                stroke-width="2"
+              >
+                <circle cx="12" cy="12" r="10" />
+                <line x1="12" y1="16" x2="12" y2="12" />
+                <line x1="12" y1="8" x2="12.01" y2="8" />
+              </svg>
+              <div>
+                <strong style="color: #1a1a1a;">Bilgi:</strong> 
+                <span style="color: #666;">Bu işlem sadece bir kez yapılır. Sonrasında istediğiniz zaman değiştirebilirsiniz.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- STEP 2: Okul Bilgileri -->
+        <div class="asistan-content" data-step="2" style="display: none;">
+          <h3 style="margin: 0 0 20px 0; color: #1a1a1a;">
+            📅 Okul Bilgileri
+          </h3>
+
+          <div class="form-grid" style="display: grid; gap: 20px;">
+            <div class="form-group full-width">
+              <label class="form-label required" style="color: #1a1a1a; font-weight: 600; margin-bottom: 8px; display: block;">
+                Hafta Kaç Gün Ders Yapıyorsunuz?
+              </label>
+              <div class="radio-group" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                <label class="radio-card" style="border: 2px solid #e0e0e0; padding: 16px; border-radius: 8px; cursor: pointer; transition: all 0.2s;">
+                  <input type="radio" name="haftaGunu" value="5" checked style="margin-right: 8px;" />
+                  <div class="radio-content">
+                    <span style="font-size: 24px">5️⃣</span>
+                    <span style="color: #1a1a1a; font-weight: 600;">5 Gün (Pzt-Cum)</span>
+                  </div>
+                </label>
+                <label class="radio-card" style="border: 2px solid #e0e0e0; padding: 16px; border-radius: 8px; cursor: pointer; transition: all 0.2s;">
+                  <input type="radio" name="haftaGunu" value="6" style="margin-right: 8px;" />
+                  <div class="radio-content">
+                    <span style="font-size: 24px">6️⃣</span>
+                    <span style="color: #1a1a1a; font-weight: 600;">6 Gün (Pzt-Cmt)</span>
+                  </div>
+                </label>
+              </div>
+            </div>
+
+            <div class="form-group full-width">
+              <label class="form-label required" style="color: #1a1a1a; font-weight: 600; margin-bottom: 8px; display: block;">
+                Günlük Ders Dağılımı
+              </label>
+              <div class="radio-group" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                <label class="radio-card" style="border: 2px solid #e0e0e0; padding: 16px; border-radius: 8px; cursor: pointer; transition: all 0.2s;">
+                  <input type="radio" name="gunlukDers" value="sabit" checked style="margin-right: 8px;" />
+                  <div class="radio-content">
+                    <span style="color: #1a1a1a; font-weight: 600;">Sabit (Her gün aynı)</span>
+                  </div>
+                </label>
+                <label class="radio-card" style="border: 2px solid #e0e0e0; padding: 16px; border-radius: 8px; cursor: pointer; transition: all 0.2s;">
+                  <input type="radio" name="gunlukDers" value="farkli" style="margin-right: 8px;" />
+                  <div class="radio-content">
+                    <span style="color: #1a1a1a; font-weight: 600;">Farklı (Günlere göre)</span>
+                  </div>
+                </label>
+              </div>
+            </div>
+
+            <!-- GÜNDE KAÇ DERS -->
+            <div class="form-group full-width" id="sabitDersGroup">
+              <label class="form-label required" style="color: #1a1a1a; font-weight: 600; text-align: center; display: block; margin-bottom: 12px; font-size: 15px;">
+                GÜNDE KAÇ DERS?
+              </label>
+
+              <div class="number-select modern" style="display: flex; align-items: center; justify-content: center; gap: 16px; background: #f5f5f5; padding: 16px; border-radius: 12px; max-width: 280px; margin: 0 auto;">
+                <button
+                  type="button"
+                  class="number-btn-decrease"
+                  style="background: #607d8b; color: white; border: none; border-radius: 50%; width: 40px; height: 40px; font-size: 22px; cursor: pointer; transition: all 0.2s; font-weight: bold;"
+                >
+                  −
+                </button>
+
+                <input
+                  type="number"
+                  id="sabitDersSayisi"
+                  class="number-input"
+                  value="8"
+                  min="4"
+                  max="10"
+                  style="width: 70px; text-align: center; background: white; border: 2px solid #e0e0e0; border-radius: 8px; color: #1a1a1a; font-size: 20px; font-weight: bold; padding: 8px; outline: none;"
+                />
+
+                <button
+                  type="button"
+                  class="number-btn-increase"
+                  style="background: #607d8b; color: white; border: none; border-radius: 50%; width: 40px; height: 40px; font-size: 22px; cursor: pointer; transition: all 0.2s; font-weight: bold;"
+                >
+                  +
+                </button>
+              </div>
+
+              <small class="form-hint" style="color: #666; text-align: center; display: block; margin-top: 10px; font-size: 13px;">
+                4 ile 10 arasında bir değer seçin
+              </small>
+            </div>
+
+            <!-- Farklı günlük ders (gizli) -->
+            <div class="form-group full-width" id="farkliDersGroup" style="display: none;">
+              <label class="form-label required" style="color: #1a1a1a; font-weight: 600; margin-bottom: 12px; display: block;">
+                Her Gün İçin Ders Sayısı
+              </label>
+              <div style="display: grid; gap: 12px;">
+                <div style="display: flex; gap: 12px; align-items: center;">
+                  <span style="width: 100px; color: #1a1a1a; font-weight: 600;">Pazartesi:</span>
+                  <input type="number" class="form-input" id="pazartesiDers" value="8" min="4" max="10" style="flex: 1; padding: 8px; border: 2px solid #e0e0e0; border-radius: 8px; color: #1a1a1a;" />
+                </div>
+                <div style="display: flex; gap: 12px; align-items: center;">
+                  <span style="width: 100px; color: #1a1a1a; font-weight: 600;">Salı:</span>
+                  <input type="number" class="form-input" id="saliDers" value="8" min="4" max="10" style="flex: 1; padding: 8px; border: 2px solid #e0e0e0; border-radius: 8px; color: #1a1a1a;" />
+                </div>
+                <div style="display: flex; gap: 12px; align-items: center;">
+                  <span style="width: 100px; color: #1a1a1a; font-weight: 600;">Çarşamba:</span>
+                  <input type="number" class="form-input" id="carsambaDers" value="8" min="4" max="10" style="flex: 1; padding: 8px; border: 2px solid #e0e0e0; border-radius: 8px; color: #1a1a1a;" />
+                </div>
+                <div style="display: flex; gap: 12px; align-items: center;">
+                  <span style="width: 100px; color: #1a1a1a; font-weight: 600;">Perşembe:</span>
+                  <input type="number" class="form-input" id="persembeDers" value="8" min="4" max="10" style="flex: 1; padding: 8px; border: 2px solid #e0e0e0; border-radius: 8px; color: #1a1a1a;" />
+                </div>
+                <div style="display: flex; gap: 12px; align-items: center;">
+                  <span style="width: 100px; color: #1a1a1a; font-weight: 600;">Cuma:</span>
+                  <input type="number" class="form-input" id="cumaDers" value="6" min="4" max="10" style="flex: 1; padding: 8px; border: 2px solid #e0e0e0; border-radius: 8px; color: #1a1a1a;" />
+                </div>
+                <div style="display: none; gap: 12px; align-items: center;" id="cumartesiRow">
+                  <span style="width: 100px; color: #1a1a1a; font-weight: 600;">Cumartesi:</span>
+                  <input type="number" class="form-input" id="cumartesiDers" value="6" min="4" max="10" style="flex: 1; padding: 8px; border: 2px solid #e0e0e0; border-radius: 8px; color: #1a1a1a;" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- STEP 3: Ders Saatleri -->
+        <div class="asistan-content" data-step="3" style="display: none;">
+          <h3 style="margin: 0 0 20px 0; color: #1a1a1a;">
+            ⏰ Ders Saatleri ve Molalar
+          </h3>
+
+          <div class="form-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+            <div class="form-group">
+              <label class="form-label required" style="color: #1a1a1a; font-weight: 600; margin-bottom: 8px; display: block;">
+                Ders Başlangıç Saati
+              </label>
+              <input type="time" id="dersBaslangic" class="form-input" value="08:00" required style="width: 100%; padding: 10px; border: 2px solid #e0e0e0; border-radius: 8px; color: #1a1a1a; font-size: 14px;" />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label required" style="color: #1a1a1a; font-weight: 600; margin-bottom: 8px; display: block;">
+                Ders Süresi (dakika)
+              </label>
+              <input type="number" id="dersSuresi" class="form-input" value="40" min="30" max="60" required style="width: 100%; padding: 10px; border: 2px solid #e0e0e0; border-radius: 8px; color: #1a1a1a; font-size: 14px;" />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label required" style="color: #1a1a1a; font-weight: 600; margin-bottom: 8px; display: block;">
+                Teneffüs Süresi (dakika)
+              </label>
+              <input type="number" id="teneffusSuresi" class="form-input" value="10" min="5" max="20" required style="width: 100%; padding: 10px; border: 2px solid #e0e0e0; border-radius: 8px; color: #1a1a1a; font-size: 14px;" />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" style="color: #1a1a1a; font-weight: 600; margin-bottom: 8px; display: block;">
+                Öğle Arası Var mı?
+              </label>
+              <select id="ogleArasi" class="form-select" style="width: 100%; padding: 10px; border: 2px solid #e0e0e0; border-radius: 8px; color: #1a1a1a; font-size: 14px;">
+                <option value="0">Yok</option>
+                <option value="1">Var</option>
+              </select>
+            </div>
+
+            <div class="form-group full-width" id="ogleArasiDetay" style="display: none; grid-column: 1 / -1;">
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                <div>
+                  <label class="form-label" style="color: #1a1a1a; font-weight: 600; margin-bottom: 8px; display: block;">
+                    Hangi Dersten Sonra?
+                  </label>
+                  <input type="number" id="ogleArasiDers" class="form-input" value="4" min="1" max="8" style="width: 100%; padding: 10px; border: 2px solid #e0e0e0; border-radius: 8px; color: #1a1a1a; font-size: 14px;" />
+                </div>
+                <div>
+                  <label class="form-label" style="color: #1a1a1a; font-weight: 600; margin-bottom: 8px; display: block;">
+                    Öğle Arası Süresi (dakika)
+                  </label>
+                  <input type="number" id="ogleArasiSure" class="form-input" value="60" min="30" max="120" style="width: 100%; padding: 10px; border: 2px solid #e0e0e0; border-radius: 8px; color: #1a1a1a; font-size: 14px;" />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="info-box" style="margin-top: 20px; background: #e3f2fd; padding: 16px; border-radius: 8px; display: flex; gap: 12px; align-items: flex-start;">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#2196f3" stroke-width="2">
+              <circle cx="12" cy="12" r="10" />
+              <line x1="12" y1="16" x2="12" y2="12" />
+              <line x1="12" y1="8" x2="12.01" y2="8" />
+            </svg>
+            <div>
+              <strong style="color: #1a1a1a;">Önizleme:</strong>
+              <span id="saatOnizleme" style="color: #666;">1. Ders: 08:00-08:40</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- STEP 4: Tamamlandı -->
+        <div class="asistan-content" data-step="4" style="display: none;">
+          <div class="welcome-screen">
+            <div style="font-size: 64px; text-align: center; margin-bottom: 24px;">
+              ✅
+            </div>
+            <h2 style="text-align: center; margin: 0 0 16px 0; color: #1a1a1a;">
+              Harika! Tamamlandı
+            </h2>
+            <p style="text-align: center; color: #666; font-size: 16px; line-height: 1.6; margin-bottom: 24px;">
+              Okul bilgileriniz kaydedildi. <br />
+              Şimdi program tablosunu oluşturuyorum...
+            </p>
+            <div class="success-summary" id="successSummary">
+              <!-- JavaScript ile doldurulacak -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Navigasyon Butonları -->
+        <div class="modal-footer" style="padding: 16px 20px; border-top: 1px solid #e0e0e0; display: flex; justify-content: flex-end; gap: 12px;">
+          <button type="button" class="btn-secondary" id="btnAsistanGeri" style="display: none; padding: 10px 20px; background: #6c757d; color: white; border: none; border-radius: 8px; cursor: pointer;">
+            ← Geri
+          </button>
+          <button type="button" class="btn-secondary" id="btnAsistanIptal" style="padding: 10px 20px; background: #6c757d; color: white; border: none; border-radius: 8px; cursor: pointer;">
+            İptal
+          </button>
+          <button type="button" class="btn-primary" id="btnAsistanIleri" style="padding: 10px 20px; background: #4a90e2; color: white; border: none; border-radius: 8px; cursor: pointer;">
+            İleri →
+          </button>
+          <button type="button" class="btn-primary" id="btnAsistanTamamla" style="display: none; padding: 10px 20px; background: #4caf50; color: white; border: none; border-radius: 8px; cursor: pointer;">
+            Tamamla ve Başlat
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============================================
+// AKILLI ASİSTAN WIZARD KONTROL
+// ============================================
+(function() {
+  let currentStep = 1;
+  const totalSteps = 4;
+
+  // İleri butonu
+  const btnIleri = document.getElementById('btnAsistanIleri');
+  if (btnIleri) {
+    btnIleri.addEventListener('click', function() {
+      console.log('İleri butonuna tıklandı, mevcut adım:', currentStep);
+      if (currentStep < totalSteps) {
+        currentStep++;
+        updateWizardUI();
+      }
+    });
+  }
+
+  // Geri butonu
+  const btnGeri = document.getElementById('btnAsistanGeri');
+  if (btnGeri) {
+    btnGeri.addEventListener('click', function() {
+      console.log('Geri butonuna tıklandı, mevcut adım:', currentStep);
+      if (currentStep > 1) {
+        currentStep--;
+        updateWizardUI();
+      }
+    });
+  }
+
+  // İptal butonu
+  const btnIptal = document.getElementById('btnAsistanIptal');
+  if (btnIptal) {
+    btnIptal.addEventListener('click', function() {
+      closeModal('modalAsistan');
+      currentStep = 1;
+      updateWizardUI();
+    });
+  }
+
+  // ✅ TAMAMLA VE BAŞLAT BUTONU
+  const btnTamamla = document.getElementById('btnAsistanTamamla');
+  if (btnTamamla) {
+    btnTamamla.addEventListener('click', async function() {
+      console.log('🎯 Tamamla ve Başlat butonuna tıklandı');
+      
+      try {
+        // 1. Form verilerini topla
+        const haftaGunu = parseInt(document.querySelector('input[name="haftaGunu"]:checked').value);
+        const gunlukDersTip = document.querySelector('input[name="gunlukDers"]:checked').value;
+        const sabitDersSayisi = parseInt(document.getElementById('sabitDersSayisi').value);
+        const dersBaslangic = document.getElementById('dersBaslangic').value;
+        const dersSuresi = parseInt(document.getElementById('dersSuresi').value);
+        const teneffusSuresi = parseInt(document.getElementById('teneffusSuresi').value);
+        const ogleArasiVar = document.getElementById('ogleArasi').value === '1';
+        
+        console.log('📊 Form verileri:', {
+          haftaGunu,
+          gunlukDersTip,
+          sabitDersSayisi,
+          dersBaslangic,
+          dersSuresi,
+          teneffusSuresi,
+          ogleArasiVar
+        });
+
+        // 2. Özet oluştur
+        const successSummary = document.getElementById('successSummary');
+        if (successSummary) {
+          const gunler = haftaGunu === 5 ? 'Pazartesi-Cuma' : 'Pazartesi-Cumartesi';
+          successSummary.innerHTML = `
+            <div style="background: #e8f5e9; padding: 16px; border-radius: 8px; margin-bottom: 12px;">
+              <strong style="color: #1a1a1a;">📅 Hafta:</strong>
+              <span style="color: #666;">${gunler} (${haftaGunu} gün)</span>
+            </div>
+            <div style="background: #e8f5e9; padding: 16px; border-radius: 8px; margin-bottom: 12px;">
+              <strong style="color: #1a1a1a;">📚 Günlük Ders:</strong>
+              <span style="color: #666;">${sabitDersSayisi} saat/gün</span>
+            </div>
+            <div style="background: #e8f5e9; padding: 16px; border-radius: 8px; margin-bottom: 12px;">
+              <strong style="color: #1a1a1a;">⏰ Başlangıç:</strong>
+              <span style="color: #666;">${dersBaslangic}</span>
+            </div>
+            <div style="background: #e8f5e9; padding: 16px; border-radius: 8px; margin-bottom: 12px;">
+              <strong style="color: #1a1a1a;">⏱️ Ders Süresi:</strong>
+              <span style="color: #666;">${dersSuresi} dakika</span>
+            </div>
+            <div style="background: #e8f5e9; padding: 16px; border-radius: 8px;">
+              <strong style="color: #1a1a1a;">🔔 Teneffüs:</strong>
+              <span style="color: #666;">${teneffusSuresi} dakika</span>
+            </div>
+          `;
+        }
+
+        // 3. Bildirim göster
+        if (typeof ModernBildirim !== 'undefined') {
+          ModernBildirim.info('İşleniyor', 'Program oluşturuluyor...');
+        }
+
+        // 4. Veritabanına kaydet
+        const programData = {
+          sinif_id: 1, // Geçici
+          program_adi: `Program ${new Date().toLocaleDateString('tr-TR')}`,
+          hafta_gunu: haftaGunu,
+          gunluk_ders_sayisi: sabitDersSayisi,
+          ders_suresi: dersSuresi,
+          teneffus_suresi: teneffusSuresi,
+          baslangic_saati: dersBaslangic,
+          ogle_arasi_var: ogleArasiVar ? 1 : 0,
+          ogle_arasi_ders_sonrasi: ogleArasiVar ? parseInt(document.getElementById('ogleArasiDers').value) : 0,
+          ogle_arasi_suresi: ogleArasiVar ? parseInt(document.getElementById('ogleArasiSure').value) : 0,
+          olusturan_kullanici_id: null,
+          notlar: 'Akıllı Asistan ile oluşturuldu'
+        };
+
+        console.log('📤 Program data gönderiliyor:', programData);
+
+       // 5. API çağrısı (eğer varsa)
+if (typeof window.electronAPI !== 'undefined' && window.electronAPI.createDersProgram) {
+  const result = await window.electronAPI.createDersProgram(programData);
+  
+  console.log('📥 API yanıtı:', result);
+  
+  if (result.success) {
+    console.log('✅ Program oluşturuldu başarıyla!');
+    
+    // Program ID'sini güvenli şekilde al
+    const programId = result.data?.program_id || result.programId || result.id;
+    
+    if (programId) {
+      console.log('✅ Program ID:', programId);
+      
+      // LocalStorage'a kaydet
+      localStorage.setItem('currentProgramId', programId.toString());
+      localStorage.setItem('programConfig', JSON.stringify(programData));
+      
+      // Başarı bildirimi
+      if (typeof ModernBildirim !== 'undefined') {
+        ModernBildirim.success('Başarılı!', 'Program oluşturuldu! ID: ' + programId);
+      }
+      
+      // 2 saniye sonra modalı kapat ve tabloyu oluştur
+      setTimeout(() => {
+        closeModal('modalAsistan');
+        currentStep = 1;
+        updateWizardUI();
+        
+        // Program tablosunu oluştur
+        if (typeof createProgramTable !== 'undefined') {
+          createProgramTable();
+        }
+      }, 2000);
+      
+    } else {
+      console.warn('⚠️ Program ID bulunamadı ama başarılı:', result);
+      
+      if (typeof ModernBildirim !== 'undefined') {
+        ModernBildirim.success('Başarılı!', 'Program oluşturuldu!');
+      }
+      
+      setTimeout(() => {
+        closeModal('modalAsistan');
+        currentStep = 1;
+        updateWizardUI();
+      }, 2000);
+    }
+    
+  } else {
+    console.error('❌ Program oluşturulamadı:', result.message);
+    if (typeof ModernBildirim !== 'undefined') {
+      ModernBildirim.error('Hata', result.message || 'Program oluşturulamadı!');
+    }
+  }
+} else {
+  console.warn('⚠️ electronAPI bulunamadı');
+  
+  // Yine de modalı kapat
+  setTimeout(() => {
+    closeModal('modalAsistan');
+    currentStep = 1;
+    updateWizardUI();
+  }, 2000);
+}
+
+      } catch (error) {
+        console.error('❌ Tamamla hatası:', error);
+        if (typeof ModernBildirim !== 'undefined') {
+          ModernBildirim.error('Hata', 'Program oluşturulurken hata oluştu!');
+        }
+      }
+    });
+  }
+
+  // +/- butonları
+  const btnDecrease = document.querySelector('.number-btn-decrease');
+  const btnIncrease = document.querySelector('.number-btn-increase');
+  const inputSaat = document.getElementById('sabitDersSayisi');
+
+  if (btnDecrease && inputSaat) {
+    btnDecrease.addEventListener('click', function() {
+      const val = parseInt(inputSaat.value) || 8;
+      if (val > 4) inputSaat.value = val - 1;
+    });
+  }
+
+  if (btnIncrease && inputSaat) {
+    btnIncrease.addEventListener('click', function() {
+      const val = parseInt(inputSaat.value) || 8;
+      if (val < 10) inputSaat.value = val + 1;
+    });
+  }
+
+  // Öğle arası toggle
+  const ogleArasi = document.getElementById('ogleArasi');
+  if (ogleArasi) {
+    ogleArasi.addEventListener('change', function() {
+      const detay = document.getElementById('ogleArasiDetay');
+      if (detay) {
+        detay.style.display = this.value === '1' ? 'block' : 'none';
+      }
+    });
+  }
+
+  // UI Güncelleme
+  function updateWizardUI() {
+    console.log('UI güncelleniyor, adım:', currentStep);
+
+    // Adım göstergesini güncelle
+    const steps = document.querySelectorAll('.asistan-step');
+    steps.forEach((step, index) => {
+      if (index + 1 < currentStep) {
+        step.classList.add('completed');
+        step.classList.remove('active');
+      } else if (index + 1 === currentStep) {
+        step.classList.add('active');
+        step.classList.remove('completed');
+      } else {
+        step.classList.remove('active', 'completed');
+      }
+    });
+
+    // İçerikleri göster/gizle
+    const contents = document.querySelectorAll('.asistan-content');
+    contents.forEach((content, index) => {
+      content.style.display = (index + 1) === currentStep ? 'block' : 'none';
+    });
+
+    // Butonları güncelle
+    const btnGeri = document.getElementById('btnAsistanGeri');
+    const btnIleri = document.getElementById('btnAsistanIleri');
+    const btnTamamla = document.getElementById('btnAsistanTamamla');
+    const btnIptal = document.getElementById('btnAsistanIptal');
+
+    if (btnGeri) btnGeri.style.display = currentStep === 1 ? 'none' : 'inline-block';
+    if (btnIleri) btnIleri.style.display = currentStep === totalSteps ? 'none' : 'inline-block';
+    if (btnTamamla) btnTamamla.style.display = currentStep === totalSteps ? 'inline-block' : 'none';
+    if (btnIptal) btnIptal.style.display = currentStep === totalSteps ? 'none' : 'inline-block';
+  }
+
+  console.log('✅ Akıllı Asistan wizard kontrol yüklendi');
+})();
+</script>
+    <!-- ==========================================
+         🎯 KISIT YÖNETİMİ MODALI
+         ========================================== -->
+    <div id="kisitModal" class="modal-overlay" style="display: none;">
+      <div class="modal-container modal-large">
+        <!-- Modal Header -->
+        <div class="modal-header">
+          <div class="modal-header-left">
+            <div class="modal-icon gradient-orange">
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path d="M12 2L2 7l10 5 10-5-10-5z" />
+                <path d="M2 17l10 5 10-5M2 12l10 5 10-5" />
+              </svg>
+            </div>
+            <div>
+              <h2 class="modal-title">🎯 Kısıt Yönetimi</h2>
+              <p class="modal-subtitle">Ders dağıtım kurallarını belirleyin</p>
+            </div>
+          </div>
+          <button class="modal-close" id="btnKisitKapat">
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path d="M18 6L6 18M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+<!-- TAB MENÜSÜ -->
+        <div class="modal-tabs">
+          <button class="modal-tab active" data-tab="genel">
+            <span class="modal-tab-icon">📊</span>
+            <span>Genel Ayarlar</span>
+          </button>
+          <button class="modal-tab" data-tab="ogretmen">
+            <span class="modal-tab-icon">👨‍🏫</span>
+            <span>Öğretmen Bazlı</span>
+          </button>
+          <button class="modal-tab" data-tab="blok">
+            <span class="modal-tab-icon">🎲</span>
+            <span>Akıllı Blok</span>
+          </button>
+          <button class="modal-tab" data-tab="onizleme">
+            <span class="modal-tab-icon">👁️</span>
+            <span>Önizleme</span>
+          </button>
+        </div>
+
+        <!-- Modal Body -->
+        <div class="modal-body">
+          <!-- TAB 1: GENEL AYARLAR -->
+          <div id="tab-genel" class="tab-content active">
+          <!-- GENEL KISITLAR -->
+          <div class="kisit-section">
+            <div class="kisit-section-header">
+              <h3>📊 GENEL KISITLAR</h3>
+              <span class="kisit-badge">Tüm öğretmenlere uygulanır</span>
+            </div>
+
+            <div class="kisit-card">
+              <!-- Tüm Öğretmenlere Uygula -->
+              <div class="form-group">
+                <label class="checkbox-label">
+                  <input type="checkbox" id="chkTumOgretmenlere" checked />
+                  <span class="checkbox-custom"></span>
+                  <span class="checkbox-text">Tüm öğretmenlere uygula</span>
+                </label>
+                <p class="form-help">
+                  İşaretliyseniz, tüm öğretmenler için aynı kural geçerli olur
+                </p>
+              </div>
+
+              <!-- Günlük Ders Aralığı -->
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label">En Az Günlük Ders</label>
+                  <select id="selectMinGunlukDers" class="form-select">
+                    <option value="2" selected>2 saat</option>
+                    <option value="3">3 saat</option>
+                    <option value="4">4 saat</option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label">En Çok Günlük Ders</label>
+                  <select id="selectMaxGunlukDers" class="form-select">
+                    <option value="6">6 saat</option>
+                    <option value="7">7 saat</option>
+                    <option value="8" selected>8 saat</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- Tek Saat Yasak Uyarısı -->
+              <div class="kisit-warning">
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path
+                    d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"
+                  />
+                  <line x1="12" y1="9" x2="12" y2="13" />
+                  <line x1="12" y1="17" x2="12.01" y2="17" />
+                </svg>
+                <span>⚠️ ASLA günde 1 saat ders olmayacak</span>
+              </div>
+
+              <!-- Boş Pencere -->
+              <div class="form-group">
+                <label class="form-label">Maksimum Boş Pencere</label>
+                <select id="selectMaxBosPencere" class="form-select">
+                  <option value="1">1 boş pencere</option>
+                  <option value="2" selected>2 boş pencere</option>
+                  <option value="3">3 boş pencere</option>
+                </select>
+                <p class="form-help">
+                  Öğretmenin günlük programında en fazla kaç boş ders saati
+                  olabilir
+                </p>
+              </div>
+            </div>
+          </div>
+</div>
+          <!-- TAB 2: ÖĞRETMEN BAZLI -->
+          <div id="tab-ogretmen" class="tab-content">
+          <!-- ÖĞRETMEN BAZLI KISITLAR -->
+          <div class="kisit-section">
+            <div class="kisit-section-header">
+              <h3>👨‍🏫 ÖĞRETMEN BAZLI KISITLAR</h3>
+              <span class="kisit-badge kisit-badge-blue">Bireysel ayarlar</span>
+            </div>
+
+            <div class="kisit-card">
+              <!-- Öğretmen Kartları -->
+              <div class="form-label">Öğretmen Seçin (Karta Tıklayın)</div>
+              <div class="ogretmen-card-list" id="ogretmenCardList">
+                <!-- JavaScript ile doldurulacak -->
+              </div>
+
+              <!-- Seçili Öğretmen Bilgisi -->
+              <div
+                id="secilenOgretmenInfo"
+                class="secilen-ogretmen-info"
+                style="display: none"
+              >
+                <div class="info-badge">
+                  <span class="info-label">✅ Seçili Öğretmen:</span>
+                  <span class="info-value" id="secilenOgretmenAd"></span>
+                  <button
+                    class="btn-clear-selection"
+                    onclick="clearOgretmenSelection()"
+                  >
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                    >
+                      <line x1="18" y1="6" x2="6" y2="18"></line>
+                      <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Kısıt Ayarları (Seçim yapınca görünecek) -->
+              <div
+                class="form-row"
+                id="kisitAyarlari"
+                style="display: none; margin-top: 15px"
+              >
+                <div class="form-group">
+                  <label class="form-label">En Az Günlük Ders</label>
+                  <select id="selectOgretmenMin" class="form-select">
+                    <option value="">-- Seçin --</option>
+                    <option value="2">2 saat</option>
+                    <option value="3">3 saat</option>
+                    <option value="4">4 saat</option>
+                    <option value="5">5 saat</option>
+                    <option value="6">6 saat</option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label">En Çok Günlük Ders</label>
+                  <select id="selectOgretmenMax" class="form-select">
+                    <option value="">-- Seçin --</option>
+                    <option value="4">4 saat</option>
+                    <option value="5">5 saat</option>
+                    <option value="6">6 saat</option>
+                    <option value="7">7 saat</option>
+                    <option value="8">8 saat</option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label">Max Boş Pencere</label>
+                  <select id="selectOgretmenBos" class="form-select">
+                    <option value="">-- Seçin --</option>
+                    <option value="0">Yok</option>
+                    <option value="1">1 saat</option>
+                    <option value="2">2 saat</option>
+                    <option value="3">3 saat</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- Butonlar (Seçim yapınca görünecek) -->
+              <div
+                class="form-actions-inline"
+                id="kisitButtons"
+                style="display: none; margin-top: 15px"
+              >
+                <button class="btn btn-primary" onclick="addOgretmenKisit()">
+                  <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <path d="M12 5v14M5 12h14" />
+                  </svg>
+                  Kısıt Ekle
+                </button>
+                <button
+                  class="btn btn-ghost"
+                  onclick="clearOgretmenSelection()"
+                >
+                  İptal
+                </button>
+              </div>
+
+              <!-- Kayıtlı Kısıtlar Listesi -->
+              <div class="kisit-list-header" style="margin-top: 25px">
+                <h4>📌 Kayıtlı Kişisel Kısıtlar</h4>
+              </div>
+              <div id="kisitListesi" class="kisit-list">
+                <div class="empty-state">
+                  <svg
+                    width="48"
+                    height="48"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                  >
+                    <circle cx="12" cy="12" r="10" />
+                    <path d="M12 16v-4M12 8h.01" />
+                  </svg>
+                  <p>Henüz öğretmen kısıtı eklenmedi</p>
+                </div>
+              </div>
+            </div>
+          </div>
+</div>
+          <!-- TAB 3: AKILLI BLOK -->
+          <div id="tab-blok" class="tab-content">
+          <!-- AKILLI BLOK KISITLARI -->
+          <div class="kisit-section">
+            <div class="kisit-section-header">
+              <h3>🎲 AKILLI BLOK KISITLARI</h3>
+              <span class="kisit-badge kisit-badge-green"
+                >Otomatik dağıtım</span
+              >
+            </div>
+
+            <div class="kisit-card">
+              <div class="form-group">
+                <label class="checkbox-label">
+                  <input type="checkbox" id="chkAyniGunYasak" checked />
+                  <span class="checkbox-custom"></span>
+                  <span class="checkbox-text"
+                    >Aynı sınıfa aynı öğretmen arka arkaya ders veremez</span
+                  >
+                </label>
+                <p class="form-help">
+                  Örnek: Matematik öğretmeni aynı gün 9-A'ya 3 saat üst üste
+                  giremez
+                </p>
+              </div>
+
+              <div class="form-group">
+                <label class="checkbox-label">
+                  <input type="checkbox" id="chkBlokFarkliGun" checked />
+                  <span class="checkbox-custom"></span>
+                  <span class="checkbox-text"
+                    >Bloklar farklı günlere dağıtılsın</span
+                  >
+                </label>
+                <p class="form-help">
+                  Örnek: 4 saatlik ders → 2+2 şeklinde farklı günlere
+                  yerleştirilir
+                </p>
+              </div>
+
+              <div class="form-group">
+                <label class="checkbox-label">
+                  <input type="checkbox" id="chkFarkliDersAyri" checked />
+                  <span class="checkbox-custom"></span>
+                  <span class="checkbox-text"
+                    >Aynı öğretmenin aynı sınıftaki farklı dersleri farklı
+                    günlerde olsun</span
+                  >
+                </label>
+                <p class="form-help">
+                  Örnek: X öğretmenin 9-A'da hem Matematik hem Seçmeli Proje
+                  dersi varsa, bunlar aynı güne gelmez
+                </p>
+              </div>
+
+              <div class="kisit-info">
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <circle cx="12" cy="12" r="10" />
+                  <path d="M12 16v-4M12 8h.01" />
+                </svg>
+                <span
+                  >Bu kurallar otomatik dağıtım algoritması tarafından dikkate
+                  alınır</span
+                >
+              </div>
+            </div>
+          </div>
+        </div>
+</div>
+          <!-- TAB 4: ÖNİZLEME -->
+          <div id="tab-onizleme" class="tab-content">
+            <div id="onizlemeContent">
+              <!-- JavaScript ile doldurulacak -->
+            </div>
+          </div>
+        <!-- Modal Footer -->
+        <div class="modal-footer">
+          <button class="btn btn-ghost" id="btnKisitIptal">İptal</button>
+          <button class="btn btn-secondary" id="btnKisitVarsayilan">
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" />
+              <path d="M21 3v5h-5" />
+            </svg>
+            Varsayılana Dön
+          </button>
+          <button class="btn btn-primary" id="btnKisitKaydet">
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path
+                d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"
+              />
+              <polyline points="17 21 17 13 7 13 7 21" />
+              <polyline points="7 3 7 8 15 8" />
+            </svg>
+            Kaydet
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==========================================
+         👨‍🏫 ÖĞRETMEN TERCİHLERİ MODALI
+         ========================================== -->
+    <div id="tercihModal" class="modal-overlay" style="display: none;">
+      <div class="modal-container modal-large">
+        <!-- Modal Header -->
+        <div class="modal-header">
+          <div class="modal-header-left">
+            <div class="modal-icon gradient-blue">
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                <circle cx="12" cy="7" r="4" />
+              </svg>
+            </div>
+            <div>
+              <h2 class="modal-title">👨‍🏫 Öğretmen Tercihleri</h2>
+              <p class="modal-subtitle">
+                Öğretmenlerin boş gün ve kapalı saat tercihlerini yönetin
+              </p>
+            </div>
+          </div>
+          <button class="modal-close" id="btnTercihKapat">
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path d="M18 6L6 18M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        <!-- Modal Body -->
+        <div class="modal-body">
+          <!-- Öğretmen Seçimi -->
+          <div class="tercih-section">
+            <div class="form-group">
+              <label class="form-label">Öğretmen Seç</label>
+              <select
+                id="selectOgretmenTercih"
+                class="form-select form-select-large"
+              >
+                <option value="">-- Öğretmen Seçin --</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Boş Gün Tercihi -->
+          <div class="tercih-section">
+            <div class="tercih-section-header">
+              <h3>📅 BOŞ GÜN TERCİHİ</h3>
+              <span class="tercih-badge">Hangi gün hiç ders yapmasın?</span>
+            </div>
+
+            <div class="tercih-card">
+              <div class="tercih-gun-group">
+                <label class="tercih-gun-label">
+                  <input type="radio" name="bosGun" value="0" />
+                  <span class="tercih-gun-button">
+                    <span class="gun-icon">📅</span>
+                    <span class="gun-text">Boş Gün Yok</span>
+                  </span>
+                </label>
+
+                <label class="tercih-gun-label">
+                  <input type="radio" name="bosGun" value="1" />
+                  <span class="tercih-gun-button">
+                    <span class="gun-icon">1️⃣</span>
+                    <span class="gun-text">Pazartesi</span>
+                  </span>
+                </label>
+
+                <label class="tercih-gun-label">
+                  <input type="radio" name="bosGun" value="2" />
+                  <span class="tercih-gun-button">
+                    <span class="gun-icon">2️⃣</span>
+                    <span class="gun-text">Salı</span>
+                  </span>
+                </label>
+
+                <label class="tercih-gun-label">
+                  <input type="radio" name="bosGun" value="3" />
+                  <span class="tercih-gun-button">
+                    <span class="gun-icon">3️⃣</span>
+                    <span class="gun-text">Çarşamba</span>
+                  </span>
+                </label>
+
+                <label class="tercih-gun-label">
+                  <input type="radio" name="bosGun" value="4" />
+                  <span class="tercih-gun-button">
+                    <span class="gun-icon">4️⃣</span>
+                    <span class="gun-text">Perşembe</span>
+                  </span>
+                </label>
+
+                <label class="tercih-gun-label">
+                  <input type="radio" name="bosGun" value="5" />
+                  <span class="tercih-gun-button">
+                    <span class="gun-icon">5️⃣</span>
+                    <span class="gun-text">Cuma</span>
+                  </span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Kapalı Saatler -->
+          <div class="tercih-section">
+            <div class="tercih-section-header">
+              <h3>⏰ DERS YAPILAMAYACAK SAATLER</h3>
+              <span class="tercih-badge tercih-badge-red"
+                >Kırmızı = Kapalı</span
+              >
+            </div>
+
+            <div class="tercih-card">
+              <div class="saat-grid-container">
+                <table class="saat-grid" id="saatGrid">
+                  <thead>
+                    <tr>
+                      <th class="saat-header-gun">Gün</th>
+                      <th class="saat-header">1</th>
+                      <th class="saat-header">2</th>
+                      <th class="saat-header">3</th>
+                      <th class="saat-header">4</th>
+                      <th class="saat-header">5</th>
+                      <th class="saat-header">6</th>
+                      <th class="saat-header">7</th>
+                      <th class="saat-header">8</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr data-gun="1">
+                      <td class="gun-label">Pazartesi</td>
+                      <td class="saat-cell" data-saat="1"></td>
+                      <td class="saat-cell" data-saat="2"></td>
+                      <td class="saat-cell" data-saat="3"></td>
+                      <td class="saat-cell" data-saat="4"></td>
+                      <td class="saat-cell" data-saat="5"></td>
+                      <td class="saat-cell" data-saat="6"></td>
+                      <td class="saat-cell" data-saat="7"></td>
+                      <td class="saat-cell" data-saat="8"></td>
+                    </tr>
+                    <tr data-gun="2">
+                      <td class="gun-label">Salı</td>
+                      <td class="saat-cell" data-saat="1"></td>
+                      <td class="saat-cell" data-saat="2"></td>
+                      <td class="saat-cell" data-saat="3"></td>
+                      <td class="saat-cell" data-saat="4"></td>
+                      <td class="saat-cell" data-saat="5"></td>
+                      <td class="saat-cell" data-saat="6"></td>
+                      <td class="saat-cell" data-saat="7"></td>
+                      <td class="saat-cell" data-saat="8"></td>
+                    </tr>
+                    <tr data-gun="3">
+                      <td class="gun-label">Çarşamba</td>
+                      <td class="saat-cell" data-saat="1"></td>
+                      <td class="saat-cell" data-saat="2"></td>
+                      <td class="saat-cell" data-saat="3"></td>
+                      <td class="saat-cell" data-saat="4"></td>
+                      <td class="saat-cell" data-saat="5"></td>
+                      <td class="saat-cell" data-saat="6"></td>
+                      <td class="saat-cell" data-saat="7"></td>
+                      <td class="saat-cell" data-saat="8"></td>
+                    </tr>
+                    <tr data-gun="4">
+                      <td class="gun-label">Perşembe</td>
+                      <td class="saat-cell" data-saat="1"></td>
+                      <td class="saat-cell" data-saat="2"></td>
+                      <td class="saat-cell" data-saat="3"></td>
+                      <td class="saat-cell" data-saat="4"></td>
+                      <td class="saat-cell" data-saat="5"></td>
+                      <td class="saat-cell" data-saat="6"></td>
+                      <td class="saat-cell" data-saat="7"></td>
+                      <td class="saat-cell" data-saat="8"></td>
+                    </tr>
+                    <tr data-gun="5">
+                      <td class="gun-label">Cuma</td>
+                      <td class="saat-cell" data-saat="1"></td>
+                      <td class="saat-cell" data-saat="2"></td>
+                      <td class="saat-cell" data-saat="3"></td>
+                      <td class="saat-cell" data-saat="4"></td>
+                      <td class="saat-cell" data-saat="5"></td>
+                      <td class="saat-cell" data-saat="6"></td>
+                      <td class="saat-cell" data-saat="7"></td>
+                      <td class="saat-cell" data-saat="8"></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <div class="saat-actions">
+                <button class="btn btn-sm btn-ghost" id="btnTumunuSec">
+                  Tümünü Seç
+                </button>
+                <button class="btn btn-sm btn-ghost" id="btnTumunuKaldir">
+                  Tümünü Kaldır
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Yapay Zeka Önerisi -->
+          <div
+            id="aiOneriContainer"
+            class="tercih-section"
+            style="display: none"
+          >
+            <div class="ai-oneri-card">
+              <div class="ai-oneri-icon">🤖</div>
+              <div class="ai-oneri-content">
+                <h4>Yapay Zeka Önerisi</h4>
+                <p id="aiOneriText">
+                  Çarşamba günü 8 öğretmen boş istiyor! Dağıtım zorlaşabilir.
+                </p>
+                <div class="ai-oneri-actions">
+                  <button class="btn btn-sm btn-primary" id="btnOneriUygula">
+                    Öneriyi Uygula
+                  </button>
+                  <button class="btn btn-sm btn-ghost" id="btnOneriYokSay">
+                    Yok Say
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Modal Footer -->
+        <div class="modal-footer">
+          <button class="btn btn-ghost" id="btnTercihIptal">İptal</button>
+          <button class="btn btn-danger" id="btnTercihSil">
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <polyline points="3 6 5 6 21 6" />
+              <path
+                d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"
+              />
+            </svg>
+            Tercihleri Sil
+          </button>
+          <button class="btn btn-primary" id="btnTercihKaydet">
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path
+                d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"
+              />
+              <polyline points="17 21 17 13 7 13 7 21" />
+              <polyline points="7 3 7 8 15 8" />
+            </svg>
+            Kaydet
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==========================================
+     📚 SINIF-DERS-ÖĞRETMEN ATAMA MODALI
+     ========================================== -->
+<div class="modal" id="atamaModal">
+  <div class="modal-content modal-large">
+    <!-- Header -->
+    <div class="modal-header">
+      <h2>📚 SINIF-DERS-ÖĞRETMEN ATAMA</h2>
+      <button class="btn-close" onclick="closeAtamaModal()" style="background: rgba(244, 67, 54, 0.2); border: none; color: #f44336; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; font-size: 24px; font-weight: 900; transition: all 0.2s;">✕</button>
+    </div>
+
+    <!-- Steps -->
+    <div class="atama-steps">
+      <div class="atama-step active" data-step="1">
+        <div class="step-number">1</div>
+        <div class="step-label">Haftalık Saat</div>
+      </div>
+      <div class="atama-step" data-step="2">
+        <div class="step-number">2</div>
+        <div class="step-label">Sınıf Seç</div>
+      </div>
+      <div class="atama-step" data-step="3">
+        <div class="step-number">3</div>
+        <div class="step-label">Ders Ata</div>
+      </div>
+      <div class="atama-step" data-step="4">
+        <div class="step-number">4</div>
+        <div class="step-label">Öğretmen Ata</div>
+      </div>
+      <div class="atama-step" data-step="5">
+        <div class="step-number">5</div>
+        <div class="step-label">Kontrol</div>
+      </div>
+    </div>
+
+    <!-- Body -->
+    <div class="modal-body">
+      <!-- ========================================== -->
+      <!-- STEP 1: HAFTALIK SAAT -->
+      <!-- ========================================== -->
+      <div class="atama-content active" data-step="1">
+        <h3>📅 Haftalık Ders Saati Giriniz</h3>
+        
+        <div class="form-group">
+          <label class="form-label">Bu sınıf için haftalık toplam ders saati</label>
+          <input 
+            type="number" 
+            id="inputHaftalikSaat" 
+            class="form-input" 
+            placeholder="Örn: 40" 
+            min="1" 
+            max="50"
+            style="font-size: 24px; text-align: center; font-weight: 900;"
+          >
+          <p class="form-help" style="color: #666; margin-top: 10px;">
+            Sınıfın toplam haftalık ders yükü (genellikle 35-45 saat arası)
+          </p>
+        </div>
+
+        <div class="ozet-onay" style="margin-top: 30px;">
+          <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="#2196f3" stroke-width="2">
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+            <line x1="16" y1="2" x2="16" y2="6"/>
+            <line x1="8" y1="2" x2="8" y2="6"/>
+            <line x1="3" y1="10" x2="21" y2="10"/>
+          </svg>
+          <p style="margin-top: 16px; color: #666; font-size: 14px;">
+            Bu değer, sınıfa atanacak toplam ders saatini belirler
+          </p>
+        </div>
+      </div>
+
+      <!-- ========================================== -->
+      <!-- STEP 2: SINIF SEÇ -->
+      <!-- ========================================== -->
+      <div class="atama-content" data-step="2">
+        <h3>🏫 Sınıf Seçiniz</h3>
+        
+        <div class="sinif-card-grid" id="sinifCardGrid">
+          <!-- JavaScript ile doldurulacak -->
+          <div class="empty-message">Sınıflar yükleniyor...</div>
+        </div>
+        
+        <div class="kopyalama-section">
+          <h4>📋 Üst Sınıftan Kopyala (Opsiyonel)</h4>
+          <p style="font-size: 12px; color: #666; margin-bottom: 12px;">
+            Daha önce atama yaptığınız bir sınıftan kopyalayabilirsiniz
+          </p>
+          <select id="selectKopyalaSinif" class="form-select" style="margin-bottom: 12px;">
+            <option value="">-- Kopyalanacak Sınıf Seçin --</option>
+          </select>
+          <button class="btn btn-ghost" onclick="kopyalaSiniftan()">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+            </svg>
+            Kopyala
+          </button>
+        </div>
+      </div>
+
+      <!-- ========================================== -->
+      <!-- STEP 3: DERS ATA -->
+      <!-- ========================================== -->
+      <div class="atama-content" data-step="3">
+        <h3 id="dersListesiBaslik">Sınıfa Ders Atayınız</h3>
+        
+        <div class="secili-sinif-info">
+          <span class="info-label">Seçili Sınıf:</span>
+          <span class="info-value" id="secilenSinifAd">-</span>
+          <span class="info-label">Haftalık Saat:</span>
+          <span class="info-value" id="secilenHaftalikSaat">-</span>
+        </div>
+
+        <div class="ders-atama-container">
+          <!-- Sol: Ders Listesi -->
+          <div>
+            <h4 style="font-size: 14px; font-weight: 800; color: #1a1a1a; margin-bottom: 12px;">
+              Mevcut Dersler
+            </h4>
+            <div class="ders-listesi" id="dersListesi">
+              <div class="empty-message">Dersler yükleniyor...</div>
+            </div>
+          </div>
+
+          <!-- Sağ: Atanan Dersler -->
+          <div class="atanan-dersler">
+            <h4>
+              Atanan Dersler 
+              (<span id="atananToplamSaat">0</span>/<span id="hedefToplamSaat">0</span> saat)
+            </h4>
+            <div class="progress-bar">
+              <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+            </div>
+            <div class="atanan-ders-list" id="atananDersList">
+              <div class="empty-message">Henüz ders eklenmedi</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="kisit-info" style="margin-top: 20px;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="12" y1="16" x2="12" y2="12"/>
+            <line x1="12" y1="8" x2="12.01" y2="8"/>
+          </svg>
+          <span>
+            Toplam ders saati hedef ile eşleşmelidir. Fazla veya eksik saat ile devam edemezsiniz.
+          </span>
+        </div>
+      </div>
+
+      <!-- ========================================== -->
+      <!-- STEP 4: ÖĞRETMEN ATA -->
+      <!-- ========================================== -->
+      <div class="atama-content" data-step="4">
+        <h3>👨‍🏫 Derslere Öğretmen Atayınız</h3>
+        
+        <div class="kisit-info" style="margin-bottom: 20px;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="12" y1="16" x2="12" y2="12"/>
+            <line x1="12" y1="8" x2="12.01" y2="8"/>
+          </svg>
+          <span>
+            Her ders için bir öğretmen seçmelisiniz. Aynı öğretmen birden fazla derse atanabilir.
+          </span>
+        </div>
+
+        <div class="ogretmen-atama-list" id="ogretmenAtamaList">
+          <div class="empty-message">Öğretmen atama listesi hazırlanıyor...</div>
+        </div>
+      </div>
+
+      <!-- ========================================== -->
+      <!-- STEP 5: KONTROL VE ONAY -->
+      <!-- ========================================== -->
+      <div class="atama-content" data-step="5">
+        <h3>✅ Kontrol ve Onay</h3>
+        
+        <div class="atama-ozet" id="atamaOzet">
+          <div class="ozet-onay">
+            <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="#4caf50" stroke-width="2">
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+              <polyline points="22 4 12 14.01 9 11.01"/>
+            </svg>
+            <h3>Özet hazırlanıyor...</h3>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="modal-footer">
+      <button class="btn btn-ghost" id="btnAtamaGeri" onclick="atamaGeriGit()" style="display: none;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="19" y1="12" x2="5" y2="12"/>
+          <polyline points="12 19 5 12 12 5"/>
+        </svg>
+        Geri
+      </button>
+      
+      <button class="btn btn-ghost" onclick="closeAtamaModal()">
+        İptal
+      </button>
+      
+      <button class="btn btn-primary" id="btnAtamaIleri" onclick="atamaIleriGit()">
+        İleri
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="5" y1="12" x2="19" y2="12"/>
+          <polyline points="12 5 19 12 12 19"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================ -->
+<!-- PROGRAM GÖRÜNÜM MODAL -->
+<!-- ============================================ -->
+<div class="viewer-modal-overlay" id="viewerModalOverlay" style="display: none;">
+  <div class="viewer-modal">
+    <div class="viewer-modal-header">
+      <h2 id="viewerModalTitle">Program Seçin</h2>
+      <button class="viewer-modal-close" onclick="closeViewerModal()">×</button>
+    </div>
+    <div class="viewer-modal-body" id="viewerModalBody">
+      <!-- Sınıflar veya Öğretmenler buraya yüklenecek -->
+    </div>
+  </div>
+</div>
+
+<!-- ==========================================
+     🤖 OTOMATİK DAĞITIM MODALI
+     ========================================== -->
+<div class="modal-overlay" id="modalOtomatikDagitim" style="display: none;">
+  <div class="modal-container" style="max-width: 900px;">
+    <!-- Header -->
+    <div class="modal-header">
+      <h2>
+        <span style="font-size: 28px; margin-right: 8px;">🤖</span>
+        <span>Otomatik Ders Dağıtımı</span>
+      </h2>
+      <button class="modal-close" id="btnDagitimKapat">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M18 6L6 18M6 6l12 12" />
+        </svg>
+      </button>
+    </div>
+
+    <!-- Body -->
+    <div class="modal-body">
+      <!-- Algoritma Seçimi -->
+      <div style="margin-bottom: 24px;">
+        <h3 style="color: #1a1a1a; margin: 0 0 16px 0; font-size: 16px;">
+          🧬 Algoritma Seçimi
+        </h3>
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;">
+          <label style="display: flex; align-items: center; gap: 8px; padding: 12px; background: #f8f9fa; border: 2px solid #e0e0e0; border-radius: 8px; cursor: pointer;">
+            <input type="checkbox" id="chkGA" checked style="width: 18px; height: 18px;">
+            <span style="color: #1a1a1a; font-weight: 600; font-size: 14px;">Genetik Algoritma</span>
+          </label>
+          <label style="display: flex; align-items: center; gap: 8px; padding: 12px; background: #f8f9fa; border: 2px solid #e0e0e0; border-radius: 8px; cursor: pointer;">
+            <input type="checkbox" id="chkACO" checked style="width: 18px; height: 18px;">
+            <span style="color: #1a1a1a; font-weight: 600; font-size: 14px;">Karınca Kolonisi</span>
+          </label>
+          <label style="display: flex; align-items: center; gap: 8px; padding: 12px; background: #f8f9fa; border: 2px solid #e0e0e0; border-radius: 8px; cursor: pointer;">
+            <input type="checkbox" id="chkSA" checked style="width: 18px; height: 18px;">
+            <span style="color: #1a1a1a; font-weight: 600; font-size: 14px;">Tavlama Benzetimi</span>
+          </label>
+          <label style="display: flex; align-items: center; gap: 8px; padding: 12px; background: #f8f9fa; border: 2px solid #e0e0e0; border-radius: 8px; cursor: pointer;">
+            <input type="checkbox" id="chkTabu" checked style="width: 18px; height: 18px;">
+            <span style="color: #1a1a1a; font-weight: 600; font-size: 14px;">Tabu Arama</span>
+          </label>
+          <label style="display: flex; align-items: center; gap: 8px; padding: 12px; background: #f8f9fa; border: 2px solid #e0e0e0; border-radius: 8px; cursor: pointer;">
+            <input type="checkbox" id="chkRL" checked style="width: 18px; height: 18px;">
+            <span style="color: #1a1a1a; font-weight: 600; font-size: 14px;">Pekiştirmeli Öğr.</span>
+          </label>
+          <label style="display: flex; align-items: center; gap: 8px; padding: 12px; background: #f8f9fa; border: 2px solid #e0e0e0; border-radius: 8px; cursor: pointer;">
+            <input type="checkbox" id="chkFuzzy" checked style="width: 18px; height: 18px;">
+            <span style="color: #1a1a1a; font-weight: 600; font-size: 14px;">Bulanık Mantık</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Seçenekler -->
+      <div style="margin-bottom: 24px;">
+        <h3 style="color: #1a1a1a; margin: 0 0 16px 0; font-size: 16px;">
+          ⚙️ Dağıtım Seçenekleri
+        </h3>
+        <div style="display: grid; gap: 12px;">
+          <label style="display: flex; align-items: center; gap: 8px;">
+            <input type="checkbox" id="chkOgretmenTercih" checked style="width: 18px; height: 18px;">
+            <span style="color: #1a1a1a; font-weight: 600;">Öğretmen tercihlerini dikkate al</span>
+          </label>
+          <label style="display: flex; align-items: center; gap: 8px;">
+            <input type="checkbox" id="chkBlokDers" checked style="width: 18px; height: 18px;">
+            <span style="color: #1a1a1a; font-weight: 600;">Blok dersleri farklı günlere yerleştir</span>
+          </label>
+          <label style="display: flex; align-items: center; gap: 8px;">
+            <input type="checkbox" id="chkBosPencere" checked style="width: 18px; height: 18px;">
+            <span style="color: #1a1a1a; font-weight: 600;">Boş pencereleri minimize et</span>
+          </label>
+          <label style="display: flex; align-items: center; gap: 8px;">
+            <input type="checkbox" id="chkGunDengeleme" checked style="width: 18px; height: 18px;">
+            <span style="color: #1a1a1a; font-weight: 600;">Günlük ders yükünü dengele</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Hız/Kalite Dengesi -->
+      <div style="margin-bottom: 24px;">
+        <h3 style="color: #1a1a1a; margin: 0 0 16px 0; font-size: 16px;">
+          ⚖️ Hız / Kalite Dengesi
+        </h3>
+        <div style="display: flex; gap: 12px; align-items: center;">
+          <span style="color: #666; font-size: 13px;">Hızlı</span>
+          <input type="range" id="rangeHizKalite" min="1" max="5" value="3" style="flex: 1;">
+          <span style="color: #666; font-size: 13px;">Kaliteli</span>
+        </div>
+        <p style="margin: 8px 0 0 0; color: #666; font-size: 12px; text-align: center;" id="hizKaliteText">
+          Dengeli mod (Önerilen)
+        </p>
+      </div>
+
+      <!-- Bilgi Kutusu -->
+      <div style="background: #e3f2fd; padding: 16px; border-radius: 8px; display: flex; gap: 12px; align-items: flex-start;">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#2196f3" stroke-width="2">
+          <circle cx="12" cy="12" r="10" />
+          <line x1="12" y1="16" x2="12" y2="12" />
+          <line x1="12" y1="8" x2="12.01" y2="8" />
+        </svg>
+        <div>
+          <strong style="color: #1a1a1a;">Tahmini Süre:</strong>
+          <span style="color: #666;" id="tahminiSure">2-5 dakika</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="modal-footer" style="padding: 16px 20px; border-top: 1px solid #e0e0e0; display: flex; justify-content: flex-end; gap: 12px;">
+      <button class="btn-secondary" id="btnDagitimIptal" style="padding: 10px 20px; background: #6c757d; color: white; border: none; border-radius: 8px; cursor: pointer;">
+        İptal
+      </button>
+      <button class="btn-primary" id="btnDagitimBaslat" style="padding: 10px 20px; background: #4caf50; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
+        🚀 Dağıtımı Başlat
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- İlerleme Modal -->
+<div class="modal-overlay" id="modalDagitimIlerleme" style="display: none;">
+  <div class="modal-container" style="max-width: 600px;">
+    <div class="modal-body" style="padding: 40px; text-align: center;">
+      <div style="font-size: 64px; margin-bottom: 16px;">🤖</div>
+      <h3 style="color: #1a1a1a; margin: 0 0 8px 0;">Dağıtım Yapılıyor...</h3>
+      <p style="color: #666; margin: 0 0 24px 0;" id="ilerlemeText">Başlatılıyor...</p>
+      
+      <div style="width: 100%; background: #e0e0e0; border-radius: 12px; height: 24px; overflow: hidden; margin-bottom: 16px;">
+        <div id="ilerlemeBar" style="width: 0%; height: 100%; background: linear-gradient(90deg, #4caf50, #8bc34a); transition: width 0.3s;"></div>
+      </div>
+      
+      <div style="color: #666; font-size: 14px;">
+        <span id="ilerlemeYuzde">0</span>% tamamlandı
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// Hız/Kalite slider güncelleme
+document.getElementById('rangeHizKalite')?.addEventListener('input', function() {
+  const value = parseInt(this.value);
+  const text = document.getElementById('hizKaliteText');
+  const tahmini = document.getElementById('tahminiSure');
+  
+  const modes = {
+    1: { text: 'Çok Hızlı (Düşük kalite)', sure: '30 saniye - 1 dakika' },
+    2: { text: 'Hızlı', sure: '1-2 dakika' },
+    3: { text: 'Dengeli mod (Önerilen)', sure: '2-5 dakika' },
+    4: { text: 'Kaliteli', sure: '5-10 dakika' },
+    5: { text: 'Çok Kaliteli (Yavaş)', sure: '10-20 dakika' }
+  };
+  
+  if (text) text.textContent = modes[value].text;
+  if (tahmini) tahmini.textContent = modes[value].sure;
+});
+</script>
+
+<script>
+// ============================================
+// 💾 VERİTABANINA ATAMA KAYDET FONKSİYONU
+// ============================================
+
+/**
+ * STEP 5'te "İleri" butonuna tıklandığında çağrılır
+ * Tüm atamaları veritabanına kaydeder
+ */
+async function saverrToDatabase() {
+  try {
+    console.log("💾 ============================================");
+    console.log("💾 ATAMALARI VERİTABANINA KAYDETME BAŞLADI");
+    console.log("💾 ============================================");
+
+    // 1. Program ID'yi al
+    const programId = parseInt(localStorage.getItem("currentProgramId"));
+
+    if (!programId) {
+      console.error("❌ Program ID bulunamadı!");
+      if (typeof ModernBildirim !== 'undefined') {
+        ModernBildirim.error("Hata", "Program ID bulunamadı! Lütfen önce program oluşturun.");
+      }
+      return false;
+    }
+
+    console.log(`📋 Program ID: ${programId}`);
+
+    // 2. Seçili sınıf ID'sini al (global değişkenden)
+    if (typeof window.atamaModalState === 'undefined' || !window.atamaModalState.selectedSinifId) {
+      console.error("❌ Seçili sınıf bulunamadı!");
+      if (typeof ModernBildirim !== 'undefined') {
+        ModernBildirim.error("Hata", "Seçili sınıf bulunamadı!");
+      }
+      return false;
+    }
+
+    const sinifId = window.atamaModalState.selectedSinifId;
+    console.log(`🏫 Seçili Sınıf ID: ${sinifId}`);
+
+    // 3. Atanan dersleri al (global state'den)
+    if (!window.atamaModalState.atananDersler || window.atamaModalState.atananDersler.length === 0) {
+      console.error("❌ Hiç ders ataması bulunamadı!");
+      if (typeof ModernBildirim !== 'undefined') {
+        ModernBildirim.error("Hata", "Hiç ders ataması bulunamadı!");
+      }
+      return false;
+    }
+
+    const atananDersler = window.atamaModalState.atananDersler;
+    console.log(`📚 Toplam ${atananDersler.length} ders ataması bulundu`);
+
+    // 4. Her ders için öğretmen ataması kontrolü
+    const eksikOgretmenler = atananDersler.filter(ders => !ders.ogretmenId);
+    if (eksikOgretmenler.length > 0) {
+      console.error("❌ Bazı derslere öğretmen atanmamış!");
+      if (typeof ModernBildirim !== 'undefined') {
+        ModernBildirim.error("Hata", `${eksikOgretmenler.length} derse öğretmen atanmamış!`);
+      }
+      return false;
+    }
+
+    // 5. Bildirim göster
+    if (typeof ModernBildirim !== 'undefined') {
+      ModernBildirim.info("İşleniyor", "Atamalar veritabanına kaydediliyor...");
+    }
+
+    // 6. Önce bu sınıfın eski atamalarını sil
+    console.log(`🗑️ ${sinifId} numaralı sınıfın eski atamaları siliniyor...`);
+    
+    try {
+      await window.electronAPI.dbQuery(
+        "DELETE FROM sinif_ders_ogretmen WHERE program_id = ? AND sinif_id = ?",
+        [programId, sinifId]
+      );
+      console.log("✅ Eski atamalar silindi");
+    } catch (error) {
+      console.warn("⚠️ Eski atama silme hatası (devam ediliyor):", error);
+    }
+
+    // 7. Yeni atamaları kaydet
+    let savedCount = 0;
+    let errorCount = 0;
+
+    console.log("📤 Yeni atamalar kaydediliyor...");
+
+    for (const ders of atananDersler) {
+      try {
+        const result = await window.electronAPI.dbQuery(
+          `INSERT INTO sinif_ders_ogretmen 
+           (program_id, sinif_id, ders_id, ogretmen_id, haftalik_ders_saati) 
+           VALUES (?, ?, ?, ?, ?)`,
+          [
+            programId,
+            sinifId,
+            ders.dersId,
+            ders.ogretmenId,
+            ders.haftalikSaat
+          ]
+        );
+
+        savedCount++;
+        console.log(`  ✅ ${savedCount}. Atama kaydedildi:`, {
+          ders: ders.dersAd,
+          ogretmen: ders.ogretmenAd,
+          saat: ders.haftalikSaat
+        });
+
+      } catch (error) {
+        errorCount++;
+        console.error(`  ❌ ${errorCount}. Atama kaydetme hatası:`, error, ders);
+      }
+    }
+
+    // 8. Sonuç bildirimi
+    console.log("💾 ============================================");
+    console.log(`✅ KAYIT TAMAMLANDI: ${savedCount}/${atananDersler.length} atama kaydedildi`);
+    if (errorCount > 0) {
+      console.warn(`⚠️ ${errorCount} atama kaydedilemedi`);
+    }
+    console.log("💾 ============================================");
+
+    if (typeof ModernBildirim !== 'undefined') {
+      if (savedCount === atananDersler.length) {
+        ModernBildirim.success(
+          "Başarılı!",
+          `${savedCount} ders ataması veritabanına kaydedildi!`
+        );
+      } else {
+        ModernBildirim.warning(
+          "Kısmen Başarılı",
+          `${savedCount}/${atananDersler.length} atama kaydedildi. ${errorCount} hata oluştu.`
+        );
+      }
+    }
+
+    // 9. LocalStorage'a da kaydet (yedek)
+    const localStorageKey = `sinifDersAtamalari_${programId}`;
+    const mevcutAtamalar = JSON.parse(localStorage.getItem(localStorageKey) || "[]");
+    
+    // Bu sınıfın eski atamalarını sil
+    const filteredAtamalar = mevcutAtamalar.filter(a => a.sinif_id !== sinifId);
+    
+    // Yeni atamaları ekle
+    atananDersler.forEach(ders => {
+      filteredAtamalar.push({
+        program_id: programId,
+        sinif_id: sinifId,
+        ders_id: ders.dersId,
+        ders_adi: ders.dersAd,
+        ogretmen_id: ders.ogretmenId,
+        ogretmen_adi: ders.ogretmenAd,
+        haftalik_ders_saati: ders.haftalikSaat
+      });
+    });
+    
+    localStorage.setItem(localStorageKey, JSON.stringify(filteredAtamalar));
+    console.log("💾 LocalStorage'a da kaydedildi (yedek)");
+
+    return true;
+
+  } catch (error) {
+    console.error("❌ Kaydetme hatası:", error);
+    if (typeof ModernBildirim !== 'undefined') {
+      ModernBildirim.error("Hata", "Atamalar kaydedilemedi: " + error.message);
+    }
+    return false;
+  }
+}
+
+// ============================================
+// 🔄 MEVCUT atamaIleriGit() FONKSİYONUNA ENTEGRE ET
+// ============================================
+
+// Mevcut atamaIleriGit() fonksiyonunu bul ve STEP 5'te kaydetme ekle
+(function() {
+  // Sayfa yüklendiğinde event listener ekle
+  document.addEventListener('DOMContentLoaded', function() {
+    console.log("📋 Atama modal kayıt fonksiyonu hazır");
+  });
+})();
+</script>
+
+<!-- ============================================ -->
+<!-- VERİ YÖNETİM SİSTEMİ -->
+<!-- ============================================ -->
+<script src="schedule-data-manager.js"></script>
+<script src="schedule-constraints.js"></script>
+<script src="schedule-preferences.js"></script>
+<script src="schedule-drag-drop.js"></script>
+
+<!-- ============================================ -->
+<!-- AŞAMA 1: TEMEL PERFORMANS MODÜLLERİ -->
+<!-- ============================================ -->
+<script src="../js/modules/algorithms/schedule-scoring.js"></script>
+<script src="../js/modules/algorithms/solver-pipeline.js"></script>
+<script src="../js/modules/algorithms/incremental-conflict-cache.js"></script>
+<script src="../js/modules/algorithms/constraint-preprocessor.js"></script>
+<script src="../js/modules/algorithms/fairness-engine.js"></script>
+<script src="../js/modules/algorithms/solution-stabilizer.js"></script>
+<script src="../js/modules/algorithms/block-structure.js"></script>
+<script src="../js/modules/algorithms/block-placement-controller.js"></script>
+
+<!-- ============================================ -->
+<!-- AŞAMA 2: OPTIMIZATION MODÜLLERİ -->
+<!-- ============================================ -->
+<script src="../js/modules/algorithms/block-day-validator.js"></script>
+<script src="../js/modules/algorithms/block-consecutive-check.js"></script>
+<script src="../js/modules/algorithms/block-aware-swap.js"></script>
+<script src="../js/modules/algorithms/parallel-solver.js"></script>
+<script src="../js/modules/algorithms/save-manager.js"></script>
+<script src="../js/modules/algorithms/etkilenen-ogretmen-finder.js"></script>
+
+<!-- ============================================ -->
+<!-- AŞAMA 3: UX VE GÖRSELLEŞTİRME MODÜLLERİ -->
+<!-- ============================================ -->
+<script src="../js/modules/algorithms/progress-tracker.js"></script>
+<script src="../js/modules/algorithms/interactive-schedule-viewer.js"></script>
+<script src="../js/modules/algorithms/schedule-comparison-tool.js"></script>
+<script src="../js/modules/algorithms/algorithm-visualizer.js"></script>
+<script src="../js/modules/algorithms/performance-monitor.js"></script>
+<script src="../js/modules/algorithms/debug-logger.js"></script>
+
+<!-- ============================================ -->
+<!-- YAPABİLİRSEK: GELİŞMİŞ ALGORİTMALAR -->
+<!-- ============================================ -->
+<script src="../js/modules/algorithms/weighted-constraint-system.js"></script>
+<script src="../js/modules/algorithms/pattern-memory.js"></script>
+<script src="../js/modules/algorithms/reinforcement-learning.js"></script>
+<script src="../js/modules/algorithms/fuzzy-logic.js"></script>
+<script src="../js/modules/algorithms/genetic-algorithm.js"></script>
+<script src="../js/modules/algorithms/ant-colony-optimization.js"></script>
+<script src="../js/modules/algorithms/simulated-annealing.js"></script>
+<script src="../js/modules/algorithms/tabu-search.js"></script>
+<script src="../js/modules/algorithms/meta-controller.js"></script>
+
+<!-- ============================================ -->
+<!-- ANA ALGORİTMA (Tüm modüllerden sonra!) -->
+<!-- ============================================ -->
+<script src="../js/modules/algorithms/schedule-algorithm-v2.js"></script>
+
+<!-- ============================================ -->
+<!-- YARDIMCI MODÜLLER -->
+<!-- ============================================ -->
+<script src="../js/modules/helpers/distribution-analyzer.js"></script>
+<script src="../js/modules/helpers/undo-redo-manager.js"></script>
+<script src="../js/modules/helpers/lock-manager.js"></script>
+<script src="../js/modules/helpers/export-import-manager.js"></script>
+<script src="../js/modules/helpers/statistics-manager.js"></script>
+<script src="../js/modules/helpers/conflict-detector.js"></script>
+
+<!-- ============================================ -->
+<!-- ÖZELLİK MODÜLLERİ -->
+<!-- ============================================ -->
+<script src="../js/modules/features/swap-engine.js"></script>
+<script src="../js/modules/features/live-scheduler.js"></script>
+
+<!-- ============================================ -->
+<!-- ESKİ MODÜLLER (Geriye Dönük Uyumluluk) -->
+<!-- ============================================ -->
+<script src="schedule-viewer.js"></script>
+<script src="../bilesenler/bildirim-sistemi.js"></script>
+
+<!-- ============================================ -->
+<!-- AKILLI ASİSTAN -->
+<!-- ============================================ -->
+<script src="akilli-asistan-kontrol.js"></script>
+
+<!-- ============================================ -->
+<!-- CANLI DAĞITIM MODÜLLERİ -->
+<!-- ============================================ -->
+<script src="canli-dagitim-ui.js"></script>
+<script src="canli-dagitim-blok-manager.js"></script>
+<script src="canli-dagitim-grid.js"></script>
+<script src="canli-dagitim-main.js"></script>
+
+<!-- ============================================ -->
+<!-- ANA PROGRAM (EN SON!) -->
+<!-- ============================================ -->
+<script src="program-olustur.js"></script>
+
+</body>
+</html>

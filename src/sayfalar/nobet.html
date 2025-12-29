@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Öğretmen Nöbet Sistemi</title>
+    <link rel="stylesheet" href="nobet.css" />
+    <link rel="stylesheet" href="../bilesenler/bildirim-sistemi.css" />
+  </head>
+  <body>
+    <!-- Arka Plan Animasyonları -->
+    <div class="bg-animations">
+      <div class="gradient-orb orb-1"></div>
+      <div class="gradient-orb orb-2"></div>
+      <div class="gradient-orb orb-3"></div>
+    </div>
+
+    <!-- Üst Bar -->
+    <header class="top-bar">
+      <div class="top-bar-left">
+        <button class="back-btn" onclick="window.location.href='anasayfa.html'">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+            <path
+              d="M19 12H5M12 19l-7-7 7-7"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+          <span>Anasayfa</span>
+        </button>
+        <div class="page-title">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <rect
+              x="3"
+              y="4"
+              width="18"
+              height="18"
+              rx="2"
+              stroke="url(#gradient1)"
+              stroke-width="2"
+            />
+            <line
+              x1="3"
+              y1="9"
+              x2="21"
+              y2="9"
+              stroke="url(#gradient1)"
+              stroke-width="2"
+            />
+            <line
+              x1="8"
+              y1="4"
+              x2="8"
+              y2="22"
+              stroke="url(#gradient1)"
+              stroke-width="2"
+            />
+            <defs>
+              <linearGradient
+                id="gradient1"
+                x1="0%"
+                y1="0%"
+                x2="100%"
+                y2="100%"
+              >
+                <stop
+                  offset="0%"
+                  style="stop-color: #00d9ff; stop-opacity: 1"
+                />
+                <stop
+                  offset="100%"
+                  style="stop-color: #7b2fff; stop-opacity: 1"
+                />
+              </linearGradient>
+            </defs>
+          </svg>
+          <h1>Öğretmen Nöbet Sistemi</h1>
+        </div>
+      </div>
+
+      <div class="top-bar-right">
+        <button
+          class="btn-modern btn-warning"
+          id="btnGunTercihleri"
+          onclick="openGunTercihModal()"
+        >
+          <span class="btn-icon">📅</span>
+          <span class="btn-text">Gün Tercihleri</span>
+        </button>
+        <button class="btn-modern btn-success" id="btnAkilliAta">
+          <span class="btn-icon">🤖</span>
+          <span class="btn-text">Akıllı Atama</span>
+        </button>
+        <button class="btn-modern btn-primary" id="btnKaydet">
+          <span class="btn-icon">💾</span>
+          <span class="btn-text">Kaydet</span>
+        </button>
+        <button class="btn-modern btn-secondary" id="btnYazdir">
+          <span class="btn-icon">🖨️</span>
+          <span class="btn-text">Yazdır</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Ana Container -->
+    <div class="main-container">
+      <!-- Sol Panel -->
+      <aside class="left-panel">
+        <!-- Program Seçimi -->
+        <div class="panel-card">
+          <div class="card-header">
+            <h3>📅 Nöbet Programı</h3>
+          </div>
+          <div class="card-body">
+            <div class="form-group">
+              <label>Program Tipi</label>
+              <select id="programTipi" class="form-select">
+                <option value="haftalik">Haftalık</option>
+                <option value="aylik">Aylık</option>
+                <option value="donemlik">Dönemlik</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Başlangıç Tarihi</label>
+              <input type="date" id="baslangicTarihi" class="form-input" />
+            </div>
+            <div class="form-group">
+              <label>Bitiş Tarihi</label>
+              <input type="date" id="bitisTarihi" class="form-input" />
+            </div>
+            <button
+              class="btn-modern btn-primary btn-block"
+              id="btnYeniProgram"
+            >
+              <span class="btn-icon">➕</span>
+              <span class="btn-text">Yeni Program</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Nöbet Yerleri -->
+        <div class="panel-card">
+          <div class="card-header">
+            <h3>📍 Nöbet Yerleri</h3>
+            <button class="icon-btn-small" id="btnNobetYeriEkle">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                <path
+                  d="M12 5v14M5 12h14"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                />
+              </svg>
+            </button>
+          </div>
+          <div class="card-body">
+            <div class="nobet-yerleri-list" id="nobetYerleriList">
+              <!-- JavaScript ile doldurulacak -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Öğretmen Listesi -->
+        <div class="panel-card">
+          <div class="card-header">
+            <h3>👨‍🏫 Öğretmenler</h3>
+            <span class="badge" id="ogretmenSayisi">0</span>
+          </div>
+          <div class="card-body">
+            <div class="search-box">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                <circle
+                  cx="11"
+                  cy="11"
+                  r="8"
+                  stroke="currentColor"
+                  stroke-width="2"
+                />
+                <path
+                  d="M21 21l-4.35-4.35"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                />
+              </svg>
+              <input
+                type="text"
+                placeholder="Öğretmen ara..."
+                id="ogretmenAra"
+                class="search-input"
+              />
+            </div>
+            <div class="ogretmen-list" id="ogretmenList">
+              <!-- JavaScript ile doldurulacak -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Pasif Öğretmenler -->
+        <div class="panel-card">
+          <div class="card-header">
+            <h3>🚫 Pasif Öğretmenler</h3>
+            <span class="badge badge-danger" id="pasifSayisi">0</span>
+          </div>
+          <div class="card-body">
+            <div class="pasif-list" id="pasifList">
+              <!-- JavaScript ile doldurulacak -->
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Ana İçerik -->
+      <main class="main-content">
+        <!-- İstatistik Kartları -->
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div
+              class="stat-icon"
+              style="
+                background: linear-gradient(135deg, #00d9ff 0%, #0099cc 100%);
+              "
+            >
+              📊
+            </div>
+            <div class="stat-info">
+              <span class="stat-label">Toplam Nöbet</span>
+              <span class="stat-value" id="statToplamNobet">0</span>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div
+              class="stat-icon"
+              style="
+                background: linear-gradient(135deg, #00f5a0 0%, #00d285 100%);
+              "
+            >
+              ✅
+            </div>
+            <div class="stat-info">
+              <span class="stat-label">Atanan</span>
+              <span class="stat-value" id="statAtanan">0</span>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div
+              class="stat-icon"
+              style="
+                background: linear-gradient(135deg, #ffd93d 0%, #ffb800 100%);
+              "
+            >
+              ⏳
+            </div>
+            <div class="stat-info">
+              <span class="stat-label">Bekleyen</span>
+              <span class="stat-value" id="statBekleyen">0</span>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div
+              class="stat-icon"
+              style="
+                background: linear-gradient(135deg, #ff6b9d 0%, #ff4081 100%);
+              "
+            >
+              👥
+            </div>
+            <div class="stat-info">
+              <span class="stat-label">Aktif Öğretmen</span>
+              <span class="stat-value" id="statAktifOgretmen">0</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Nöbet Tablosu -->
+        <div class="table-card">
+          <div class="table-header">
+            <h2>Nöbet Çizelgesi</h2>
+            <div class="table-actions">
+              <button class="btn-modern btn-secondary btn-sm" id="btnTemizle">
+                <span class="btn-icon">🗑️</span>
+                <span class="btn-text">Temizle</span>
+              </button>
+            </div>
+          </div>
+          <div class="table-container">
+            <table class="nobet-table" id="nobetTable">
+              <thead>
+                <tr>
+                  <th style="width: 200px">Nöbet Yeri</th>
+                  <th>Pazartesi</th>
+                  <th>Salı</th>
+                  <th>Çarşamba</th>
+                  <th>Perşembe</th>
+                  <th>Cuma</th>
+                </tr>
+              </thead>
+              <tbody id="nobetTableBody">
+                <!-- JavaScript ile doldurulacak -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Nöbet Açıklamaları -->
+        <div class="aciklamalar-card">
+          <div class="card-header">
+            <h3>📝 Nöbet Açıklamaları</h3>
+            <button class="icon-btn-small" id="btnAciklamaEkle">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                <path
+                  d="M12 5v14M5 12h14"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                />
+              </svg>
+            </button>
+          </div>
+          <div class="card-body">
+            <div class="aciklamalar-list" id="aciklamalarList">
+              <!-- JavaScript ile doldurulacak -->
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <!-- MODAL: Öğretmen Ders Programı -->
+    <div class="modal-overlay" id="dersProgramiModal" style="display: none">
+      <div class="modal-container" style="max-width: 900px">
+        <div class="modal-header">
+          <h2>
+            <span>📅</span>
+            <span id="modalOgretmenAdi">Öğretmen</span> - Ders Programı
+          </h2>
+          <button class="modal-close" onclick="closeDersProgramiModal()">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+              <line
+                x1="18"
+                y1="6"
+                x2="6"
+                y2="18"
+                stroke="currentColor"
+                stroke-width="2"
+              />
+              <line
+                x1="6"
+                y1="6"
+                x2="18"
+                y2="18"
+                stroke="currentColor"
+                stroke-width="2"
+              />
+            </svg>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div id="dersProgramiContent">
+            <!-- Ders programı tablosu buraya gelecek -->
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button
+            class="btn-modern btn-secondary"
+            onclick="closeDersProgramiModal()"
+          >
+            <span class="btn-icon">✖</span>
+            <span class="btn-text">Kapat</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL: Nöbet Yeri Ekle/Düzenle -->
+    <div class="modal-overlay" id="nobetYeriModal" style="display: none">
+      <div class="modal-container" style="max-width: 500px">
+        <div class="modal-header">
+          <h2 id="nobetYeriModalBaslik">
+            <span>📍</span>
+            Nöbet Yeri Ekle
+          </h2>
+          <button class="modal-close" onclick="closeNobetYeriModal()">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+              <line
+                x1="18"
+                y1="6"
+                x2="6"
+                y2="18"
+                stroke="currentColor"
+                stroke-width="2"
+              />
+              <line
+                x1="6"
+                y1="6"
+                x2="18"
+                y2="18"
+                stroke="currentColor"
+                stroke-width="2"
+              />
+            </svg>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label>Nöbet Yeri Adı *</label>
+            <input
+              type="text"
+              id="nobetYeriAdi"
+              class="form-input"
+              placeholder="Örn: Ön Bahçe"
+            />
+          </div>
+          <div class="form-group">
+            <label>Açıklama</label>
+            <textarea
+              id="nobetYeriAciklama"
+              class="form-textarea"
+              placeholder="Açıklama giriniz..."
+              rows="3"
+            ></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button
+            class="btn-modern btn-secondary"
+            onclick="closeNobetYeriModal()"
+          >
+            <span class="btn-icon">✖</span>
+            <span class="btn-text">İptal</span>
+          </button>
+          <button class="btn-modern btn-primary" id="btnNobetYeriKaydet">
+            <span class="btn-icon">💾</span>
+            <span class="btn-text">Kaydet</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL: Pasif Öğretmen -->
+    <div class="modal-overlay" id="pasifOgretmenModal" style="display: none">
+      <div class="modal-container" style="max-width: 500px">
+        <div class="modal-header">
+          <h2>
+            <span>🚫</span>
+            Öğretmeni Pasif Yap
+          </h2>
+          <button class="modal-close" onclick="closePasifOgretmenModal()">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+              <line
+                x1="18"
+                y1="6"
+                x2="6"
+                y2="18"
+                stroke="currentColor"
+                stroke-width="2"
+              />
+              <line
+                x1="6"
+                y1="6"
+                x2="18"
+                y2="18"
+                stroke="currentColor"
+                stroke-width="2"
+              />
+            </svg>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label>Öğretmen</label>
+            <input
+              type="text"
+              id="pasifOgretmenAdi"
+              class="form-input"
+              readonly
+            />
+          </div>
+          <div class="form-group">
+            <label>Neden *</label>
+            <select id="pasifNeden" class="form-select">
+              <option value="">Seçiniz...</option>
+              <option value="Sağlık Raporu">Sağlık Raporu</option>
+              <option value="İdari Görev">İdari Görev</option>
+              <option value="Rehber Öğretmen">Rehber Öğretmen</option>
+              <option value="Ücretli Öğretmen">Ücretli Öğretmen</option>
+              <option value="Hamilelik">Hamilelik</option>
+              <option value="İzinli">İzinli</option>
+              <option value="Diğer">Diğer</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Açıklama</label>
+            <textarea
+              id="pasifAciklama"
+              class="form-textarea"
+              placeholder="Detay giriniz..."
+              rows="3"
+            ></textarea>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Başlangıç Tarihi</label>
+              <input type="date" id="pasifBaslangic" class="form-input" />
+            </div>
+            <div class="form-group">
+              <label>Bitiş Tarihi</label>
+              <input type="date" id="pasifBitis" class="form-input" />
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button
+            class="btn-modern btn-secondary"
+            onclick="closePasifOgretmenModal()"
+          >
+            <span class="btn-icon">✖</span>
+            <span class="btn-text">İptal</span>
+          </button>
+          <button class="btn-modern btn-danger" id="btnPasifKaydet">
+            <span class="btn-icon">🚫</span>
+            <span class="btn-text">Pasif Yap</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL: Açıklama Ekle -->
+    <div class="modal-overlay" id="aciklamaModal" style="display: none">
+      <div class="modal-container" style="max-width: 500px">
+        <div class="modal-header">
+          <h2>
+            <span>📝</span>
+            Açıklama Ekle
+          </h2>
+          <button class="modal-close" onclick="closeAciklamaModal()">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+              <line
+                x1="18"
+                y1="6"
+                x2="6"
+                y2="18"
+                stroke="currentColor"
+                stroke-width="2"
+              />
+              <line
+                x1="6"
+                y1="6"
+                x2="18"
+                y2="18"
+                stroke="currentColor"
+                stroke-width="2"
+              />
+            </svg>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label>Açıklama *</label>
+            <textarea
+              id="aciklamaMetin"
+              class="form-textarea"
+              placeholder="Nöbet açıklaması giriniz..."
+              rows="4"
+            ></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button
+            class="btn-modern btn-secondary"
+            onclick="closeAciklamaModal()"
+          >
+            <span class="btn-icon">✖</span>
+            <span class="btn-text">İptal</span>
+          </button>
+          <button class="btn-modern btn-primary" id="btnAciklamaKaydet">
+            <span class="btn-icon">💾</span>
+            <span class="btn-text">Kaydet</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL: Öğretmen Gün Tercihleri -->
+    <div class="modal-overlay" id="gunTercihModal" style="display: none">
+      <div class="modal-container" style="max-width: 600px">
+        <div class="modal-header">
+          <h2>
+            <span>📅</span>
+            Öğretmen Gün Tercihleri
+          </h2>
+          <button class="modal-close" onclick="closeGunTercihModal()">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+              <line
+                x1="18"
+                y1="6"
+                x2="6"
+                y2="18"
+                stroke="currentColor"
+                stroke-width="2"
+              />
+              <line
+                x1="6"
+                y1="6"
+                x2="18"
+                y2="18"
+                stroke="currentColor"
+                stroke-width="2"
+              />
+            </svg>
+          </button>
+        </div>
+        <div class="modal-body">
+          <p
+            style="
+              margin-bottom: 20px;
+              color: var(--text-secondary);
+              font-size: 14px;
+            "
+          >
+            Öğretmenlerin hangi günlerde nöbet tutacağını belirleyin. Akıllı
+            atama bu tercihlere göre çalışacaktır.
+          </p>
+
+          <div class="tercih-list" id="tercihList">
+            <!-- JavaScript ile doldurulacak -->
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button
+            class="btn-modern btn-secondary"
+            onclick="closeGunTercihModal()"
+          >
+            <span class="btn-icon">✖</span>
+            <span class="btn-text">Kapat</span>
+          </button>
+          <button class="btn-modern btn-primary" id="btnTercihKaydet">
+            <span class="btn-icon">💾</span>
+            <span class="btn-text">Kaydet</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script src="../bilesenler/bildirim-sistemi.js"></script>
+    <script src="nobet.js"></script>
+  </body>
+</html>

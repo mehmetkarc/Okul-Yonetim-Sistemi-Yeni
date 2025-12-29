@@ -1,0 +1,4731 @@
+<!DOCTYPE html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Gezi Planlama - Okul Yönetim Sistemi</title>
+    <link rel="stylesheet" href="gezi-planla.css" />
+    <link rel="stylesheet" href="../bilesenler/bildirim-sistemi.css" />
+  </head>
+  <body>
+    <!-- Arka Plan Animasyonları -->
+    <div class="bg-animations">
+      <div class="gradient-orb orb-1"></div>
+      <div class="gradient-orb orb-2"></div>
+      <div class="gradient-orb orb-3"></div>
+    </div>
+
+    <!-- Üst Bar -->
+    <header class="top-bar">
+      <div class="top-bar-left">
+        <!-- GERİ DÖN BUTONLARI -->
+        <div class="nav-buttons">
+          <button class="btn-nav" onclick="geriDon()" title="Geri Dön">
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path d="M19 12H5M12 19l-7-7 7-7" />
+            </svg>
+          </button>
+          <button
+            class="btn-nav"
+            onclick="anasayfayaDon()"
+            title="Anasayfaya Dön"
+          >
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+              <polyline points="9 22 9 12 15 12 15 22" />
+            </svg>
+          </button>
+        </div>
+        <div class="page-info">
+          <h1 class="page-title">✈️ Gezi Planlama</h1>
+          <p class="page-subtitle">Okul gezileri ve etkinlik yönetimi</p>
+        </div>
+      </div>
+      <div class="top-bar-right">
+        <button class="btn-modern btn-primary" id="btnYeniGezi">
+          <span class="btn-icon">
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <line x1="12" y1="5" x2="12" y2="19" />
+              <line x1="5" y1="12" x2="19" y2="12" />
+            </svg>
+          </span>
+          <span class="btn-text">Yeni Gezi Oluştur</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Ana Container -->
+    <div class="main-container">
+      <!-- Sol Sidebar: Filtreler -->
+      <aside class="filter-sidebar">
+        <div class="sidebar-section">
+          <h3 class="section-title">
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
+            </svg>
+            Filtreler
+          </h3>
+
+          <!-- Durum Filtresi -->
+          <div class="filter-group">
+            <label class="filter-label">DURUM</label>
+            <label class="checkbox-label">
+              <input type="checkbox" id="filterPlanlanan" checked />
+              <span class="checkbox-custom"></span>
+              <span class="checkbox-text">Planlanan</span>
+              <span class="badge-count" id="countPlanlanan">0</span>
+            </label>
+            <label class="checkbox-label">
+              <input type="checkbox" id="filterAktif" checked />
+              <span class="checkbox-custom"></span>
+              <span class="checkbox-text">Aktif</span>
+              <span class="badge-count" id="countAktif">0</span>
+            </label>
+            <label class="checkbox-label">
+              <input type="checkbox" id="filterTamamlanan" checked />
+              <span class="checkbox-custom"></span>
+              <span class="checkbox-text">Tamamlanan</span>
+              <span class="badge-count" id="countTamamlanan">0</span>
+            </label>
+            <label class="checkbox-label">
+              <input type="checkbox" id="filterIptal" />
+              <span class="checkbox-custom"></span>
+              <span class="checkbox-text">İptal</span>
+              <span class="badge-count" id="countIptal">0</span>
+            </label>
+          </div>
+
+          <!-- Tarih Aralığı -->
+          <div class="filter-group">
+            <label class="filter-label">TARİH ARALIĞI</label>
+            <input type="date" class="form-input" id="filterBaslangic" />
+            <input type="date" class="form-input" id="filterBitis" />
+          </div>
+
+          <!-- Gezi Türü -->
+          <div class="filter-group">
+            <label class="filter-label">GEZİ TÜRÜ</label>
+            <label class="checkbox-label">
+              <input type="checkbox" id="filterIlceIci" checked />
+              <span class="checkbox-custom"></span>
+              <span class="checkbox-text">İlçe İçi</span>
+              <span class="badge-count" id="countIlceIci">0</span>
+            </label>
+            <label class="checkbox-label">
+              <input type="checkbox" id="filterIlIci" checked />
+              <span class="checkbox-custom"></span>
+              <span class="checkbox-text">İl İçi</span>
+              <span class="badge-count" id="countIlIci">0</span>
+            </label>
+            <label class="checkbox-label">
+              <input type="checkbox" id="filterIlDisi" checked />
+              <span class="checkbox-custom"></span>
+              <span class="checkbox-text">İl Dışı</span>
+              <span class="badge-count" id="countIlDisi">0</span>
+            </label>
+            <label class="checkbox-label">
+              <input type="checkbox" id="filterYurtDisi" checked />
+              <span class="checkbox-custom"></span>
+              <span class="checkbox-text">Yurt Dışı</span>
+              <span class="badge-count" id="countYurtDisi">0</span>
+            </label>
+          </div>
+
+          <!-- Sorumlu Öğretmen -->
+          <div class="filter-group">
+            <label class="filter-label">SORUMLU ÖĞRETMEN</label>
+            <select class="form-select" id="filterSorumluOgretmen">
+              <option value="">Tümü</option>
+            </select>
+          </div>
+
+          <!-- Temizle Butonu -->
+          <button
+            class="btn-modern btn-secondary full-width"
+            id="btnFiltreleriTemizle"
+          >
+            <span class="btn-icon">
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path
+                  d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"
+                />
+              </svg>
+            </span>
+            <span class="btn-text">Filtreleri Temizle</span>
+          </button>
+        </div>
+      </aside>
+
+      <!-- Orta: Gezi Kartları -->
+      <main class="content-area">
+        <!-- Arama ve Sıralama -->
+        <div class="content-header">
+          <div class="search-box">
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <circle cx="11" cy="11" r="8" />
+              <path d="M21 21l-4.35-4.35" />
+            </svg>
+            <input type="text" placeholder="Gezi ara..." id="searchInput" />
+          </div>
+          <select class="form-select" id="sortSelect">
+            <option value="tarih-yeni">Tarihe Göre (Yeni)</option>
+            <option value="tarih-eski">Tarihe Göre (Eski)</option>
+            <option value="isim-az">İsme Göre (A-Z)</option>
+            <option value="isim-za">İsme Göre (Z-A)</option>
+          </select>
+        </div>
+
+        <!-- Gezi Kartları Grid -->
+        <div class="gezi-grid" id="geziGrid">
+          <!-- JavaScript ile doldurulacak -->
+          <div class="empty-state" id="emptyState">
+            <svg
+              width="120"
+              height="120"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1"
+            >
+              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+              <circle cx="12" cy="10" r="3" />
+            </svg>
+            <h3>Henüz gezi eklenmemiş</h3>
+            <p>Yeni bir gezi oluşturmak için yukarıdaki butona tıklayın</p>
+          </div>
+        </div>
+
+        <!-- Pagination -->
+        <div class="pagination" id="pagination" style="display: none">
+          <button class="page-btn" id="btnPrevPage">
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path d="M15 18l-6-6 6-6" />
+            </svg>
+            Önceki
+          </button>
+          <div class="page-numbers" id="pageNumbers"></div>
+          <button class="page-btn" id="btnNextPage">
+            Sonraki
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path d="M9 18l6-6-6-6" />
+            </svg>
+          </button>
+        </div>
+      </main>
+
+      <!-- Sağ Sidebar: İstatistikler -->
+      <aside class="stats-sidebar">
+        <div class="sidebar-section">
+          <h3 class="section-title">
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <line x1="18" y1="20" x2="18" y2="10" />
+              <line x1="12" y1="20" x2="12" y2="4" />
+              <line x1="6" y1="20" x2="6" y2="14" />
+            </svg>
+            Özet Bilgiler
+          </h3>
+
+          <div class="stat-card">
+            <div
+              class="stat-icon"
+              style="
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+              "
+            >
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+              </svg>
+            </div>
+            <div class="stat-content">
+              <div class="stat-label">Toplam Geziler</div>
+              <div class="stat-value" id="statToplam">0</div>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div
+              class="stat-icon"
+              style="
+                background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+              "
+            >
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <circle cx="12" cy="12" r="10" />
+                <polyline points="12 6 12 12 16 14" />
+              </svg>
+            </div>
+            <div class="stat-content">
+              <div class="stat-label">Aktif Geziler</div>
+              <div class="stat-value" id="statAktif">0</div>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div
+              class="stat-icon"
+              style="
+                background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+              "
+            >
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                <polyline points="22 4 12 14.01 9 11.01" />
+              </svg>
+            </div>
+            <div class="stat-content">
+              <div class="stat-label">Tamamlanan</div>
+              <div class="stat-value" id="statTamamlanan">0</div>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div
+              class="stat-icon"
+              style="
+                background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+              "
+            >
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                <circle cx="9" cy="7" r="4" />
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+              </svg>
+            </div>
+            <div class="stat-content">
+              <div class="stat-label">Toplam Katılımcı</div>
+              <div class="stat-value" id="statKatilimci">0</div>
+            </div>
+          </div>
+
+          <!-- En Yakın Gezi -->
+          <div class="upcoming-trip" id="upcomingTrip" style="display: none">
+            <div class="upcoming-header">
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <circle cx="12" cy="12" r="10" />
+                <polyline points="12 6 12 12 16 14" />
+              </svg>
+              <span>En Yakın Gezi</span>
+            </div>
+            <div class="upcoming-content">
+              <div class="upcoming-name" id="upcomingName">-</div>
+              <div class="upcoming-date" id="upcomingDate">-</div>
+              <div class="upcoming-countdown" id="upcomingCountdown">-</div>
+            </div>
+          </div>
+        </div>
+      </aside>
+    </div>
+
+    <!-- YENİ GEZİ MODAL -->
+    <div class="modal-overlay" id="geziModal" style="display: none">
+      <div class="modal-container modal-large">
+        <div class="modal-header">
+          <h2>
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+              <circle cx="12" cy="10" r="3" />
+            </svg>
+            <span id="modalTitle">Yeni Gezi Oluştur</span>
+          </h2>
+          <button class="modal-close" onclick="closeGeziModal()">
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </button>
+        </div>
+
+        <div class="modal-body">
+          <!-- TEMEL BİLGİLER -->
+          <div class="form-section">
+            <h3 class="form-section-title">
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path
+                  d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
+                />
+                <polyline points="14 2 14 8 20 8" />
+                <line x1="16" y1="13" x2="8" y2="13" />
+                <line x1="16" y1="17" x2="8" y2="17" />
+                <polyline points="10 9 9 9 8 9" />
+              </svg>
+              Temel Bilgiler
+            </h3>
+
+            <div class="form-grid">
+              <div class="form-group full-width">
+                <label class="form-label">Gezi Adı *</label>
+                <input
+                  type="text"
+                  class="form-input"
+                  id="geziAdi"
+                  placeholder="Örn: Anıtkabir Gezisi"
+                />
+              </div>
+
+              <div class="form-group full-width">
+                <label class="form-label">Düzenleneceği Yer *</label>
+                <input
+                  type="text"
+                  class="form-input"
+                  id="duzenlenecekYer"
+                  placeholder="Örn: Ankara"
+                />
+              </div>
+
+              <div class="form-group full-width">
+                <label class="form-label">Takip Edilecek Güzergah *</label>
+                <input
+                  type="text"
+                  class="form-input"
+                  id="guzergah"
+                  placeholder="Örn: İstanbul - Ankara - İstanbul"
+                />
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Gezi Tarihi *</label>
+                <input type="date" class="form-input" id="geziTarihi" />
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Çıkış Saati *</label>
+                <input type="time" class="form-input" id="cikisSaati" />
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Dönüş Tarihi *</label>
+                <input type="date" class="form-input" id="donusTarihi" />
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Dönüş Saati *</label>
+                <input type="time" class="form-input" id="donusSaati" />
+              </div>
+
+              <div class="form-group full-width">
+                <label class="form-label">Gezi Türü *</label>
+                <div class="radio-group">
+                  <label class="radio-card">
+                    <input type="radio" name="geziTuru" value="ilce_ici" />
+                    <div class="radio-content">
+                      <div class="radio-icon">🏘️</div>
+                      <div class="radio-label">İlçe İçi</div>
+                    </div>
+                  </label>
+                  <label class="radio-card">
+                    <input type="radio" name="geziTuru" value="il_ici" />
+                    <div class="radio-content">
+                      <div class="radio-icon">🏙️</div>
+                      <div class="radio-label">İl İçi</div>
+                    </div>
+                  </label>
+                  <label class="radio-card">
+                    <input type="radio" name="geziTuru" value="il_disi" />
+                    <div class="radio-content">
+                      <div class="radio-icon">🗺️</div>
+                      <div class="radio-label">İl Dışı</div>
+                    </div>
+                  </label>
+                  <label class="radio-card">
+                    <input type="radio" name="geziTuru" value="yurt_disi" />
+                    <div class="radio-content">
+                      <div class="radio-icon">🌍</div>
+                      <div class="radio-label">Yurt Dışı</div>
+                    </div>
+                  </label>
+                </div>
+              </div>
+
+              <div class="form-group full-width">
+                <label class="form-label">Gezinin Konusu *</label>
+                <input
+                  type="text"
+                  class="form-input"
+                  id="geziKonusu"
+                  placeholder="Örn: Tarih ve Kültür"
+                />
+              </div>
+
+              <div class="form-group full-width">
+                <label class="form-label">Gezinin Amacı *</label>
+                <textarea
+                  class="form-textarea"
+                  id="geziAmaci"
+                  rows="3"
+                  placeholder="Gezinin amacını detaylıca yazınız..."
+                ></textarea>
+              </div>
+
+              <div class="form-group full-width">
+                <label class="form-label">İnceleme-Araştırma Görevi</label>
+                <textarea
+                  class="form-textarea"
+                  id="arastirmaGorevi"
+                  rows="3"
+                  placeholder="Öğrencilere verilecek görevleri yazınız..."
+                ></textarea>
+              </div>
+
+              <div class="form-group full-width">
+                <label class="form-label">Değerlendirme</label>
+                <textarea
+                  class="form-textarea"
+                  id="degerlendirme"
+                  rows="3"
+                  placeholder="Gezi sonrası değerlendirme notlarınız..."
+                ></textarea>
+              </div>
+            </div>
+          </div>
+
+          <!-- YÖNETİCİLER -->
+          <div class="form-section">
+            <h3 class="form-section-title">
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                <circle cx="8.5" cy="7" r="4" />
+                <polyline points="17 11 19 13 23 9" />
+              </svg>
+              Kafile Başkanı & Sorumlu Öğretmenler
+            </h3>
+
+            <div class="form-grid">
+              <div class="form-group full-width">
+                <label class="form-label">Kafile Başkanı *</label>
+                <div class="search-input-wrapper">
+                  <input
+                    type="text"
+                    class="form-input"
+                    id="kafileBaskanSearch"
+                    placeholder="Öğretmen ara (Ad, TC)..."
+                  />
+                  <button
+                    class="btn-modern btn-search"
+                    onclick="araKafileBaskan()"
+                  >
+                    <svg
+                      width="18"
+                      height="18"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                    >
+                      <circle cx="11" cy="11" r="8" />
+                      <path d="M21 21l-4.35-4.35" />
+                    </svg>
+                  </button>
+                </div>
+                <div
+                  class="selected-item"
+                  id="selectedKafileBaskan"
+                  style="display: none"
+                >
+                  <div class="selected-info">
+                    <strong id="kafileBaskanAd"></strong>
+                    <span id="kafileBaskanUnvan"></span>
+                  </div>
+                  <button
+                    class="btn-modern btn-remove"
+                    onclick="removeKafileBaskan()"
+                  >
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                    >
+                      <line x1="18" y1="6" x2="6" y2="18" />
+                      <line x1="6" y1="6" x2="18" y2="18" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+
+              <div class="form-group full-width">
+                <label class="form-label">Sorumlu Öğretmenler</label>
+                <div class="search-input-wrapper">
+                  <input
+                    type="text"
+                    class="form-input"
+                    id="sorumluOgretmenSearch"
+                    placeholder="Öğretmen ara ve ekle..."
+                  />
+                  <button
+                    class="btn-modern btn-search"
+                    onclick="araSorumluOgretmen()"
+                  >
+                    <svg
+                      width="18"
+                      height="18"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                    >
+                      <circle cx="11" cy="11" r="8" />
+                      <path d="M21 21l-4.35-4.35" />
+                    </svg>
+                  </button>
+                </div>
+                <div class="selected-list" id="sorumluOgretmenList">
+                  <!-- JavaScript ile doldurulacak -->
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- KATILIMCILAR -->
+          <div class="form-section">
+            <h3 class="form-section-title">
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                <circle cx="9" cy="7" r="4" />
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+              </svg>
+              Katılımcılar
+            </h3>
+
+            <!-- Öğrenci Arama -->
+            <div class="form-group full-width">
+              <label class="form-label">Öğrenci Ekle</label>
+              <div class="search-input-wrapper">
+                <input
+                  type="text"
+                  class="form-input"
+                  id="ogrenciSearch"
+                  placeholder="Öğrenci ara (Okul No, Ad Soyad, TC)..."
+                />
+                <button class="btn-modern btn-search" onclick="araOgrenci()">
+                  <svg
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <circle cx="11" cy="11" r="8" />
+                    <path d="M21 21l-4.35-4.35" />
+                  </svg>
+                </button>
+              </div>
+              <div class="participant-count">
+                <span
+                  >Seçilen Öğrenci: <strong id="ogrenciCount">0</strong></span
+                >
+              </div>
+              <div class="selected-list" id="ogrenciList">
+                <!-- JavaScript ile doldurulacak -->
+              </div>
+            </div>
+
+            <!-- Misafir Ekleme -->
+            <div class="form-group full-width">
+              <label class="form-label">Misafir Ekle</label>
+              <button
+                class="btn-modern btn-secondary full-width"
+                onclick="openMisafirModal()"
+              >
+                <span class="btn-icon">
+                  <svg
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <line x1="12" y1="5" x2="12" y2="19" />
+                    <line x1="5" y1="12" x2="19" y2="12" />
+                  </svg>
+                </span>
+                <span class="btn-text">Yeni Misafir Ekle</span>
+              </button>
+              <div class="participant-count">
+                <span
+                  >Seçilen Misafir: <strong id="misafirCount">0</strong></span
+                >
+              </div>
+              <div class="selected-list" id="misafirList">
+                <!-- JavaScript ile doldurulacak -->
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button class="btn-modern btn-secondary" onclick="closeGeziModal()">
+            <span class="btn-icon">
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <line x1="18" y1="6" x2="6" y2="18" />
+                <line x1="6" y1="6" x2="18" y2="18" />
+              </svg>
+            </span>
+            <span class="btn-text">İptal</span>
+          </button>
+          <button class="btn-modern btn-warning" onclick="taslakKaydet()">
+            <span class="btn-icon">
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path
+                  d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"
+                />
+              </svg>
+            </span>
+            <span class="btn-text">Taslak Kaydet</span>
+          </button>
+          <button class="btn-modern btn-success" onclick="geziKaydet()">
+            <span class="btn-icon">
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+            </span>
+            <span class="btn-text">Kaydet ve Kapat</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MİSAFİR EKLEME MODAL -->
+    <div class="modal-overlay" id="misafirModal" style="display: none">
+      <div class="modal-container">
+        <div class="modal-header">
+          <h2>
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+              <circle cx="8.5" cy="7" r="4" />
+              <line x1="20" y1="8" x2="20" y2="14" />
+              <line x1="23" y1="11" x2="17" y2="11" />
+            </svg>
+            Misafir Ekle
+          </h2>
+          <button class="modal-close" onclick="closeMisafirModal()">
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label">Ad Soyad *</label>
+            <input type="text" class="form-input" id="misafirAdSoyad" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">TC Kimlik No *</label>
+            <input
+              type="text"
+              class="form-input"
+              id="misafirTC"
+              maxlength="11"
+            />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Cinsiyet *</label>
+            <select class="form-select" id="misafirCinsiyet">
+              <option value="">Seçiniz</option>
+              <option value="Erkek">Erkek</option>
+              <option value="Kadın">Kadın</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Telefon</label>
+            <input type="tel" class="form-input" id="misafirTelefon" />
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button
+            class="btn-modern btn-secondary"
+            onclick="closeMisafirModal()"
+          >
+            <span class="btn-icon">
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <line x1="18" y1="6" x2="6" y2="18" />
+                <line x1="6" y1="6" x2="18" y2="18" />
+              </svg>
+            </span>
+            <span class="btn-text">İptal</span>
+          </button>
+          <button class="btn-modern btn-primary" onclick="misafirEkle()">
+            <span class="btn-icon">
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <line x1="12" y1="5" x2="12" y2="19" />
+                <line x1="5" y1="12" x2="19" y2="12" />
+              </svg>
+            </span>
+            <span class="btn-text">Ekle</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- GEZİ DETAY MODAL -->
+    <div class="modal-overlay" id="geziDetayModal" style="display: none">
+      <div class="modal-container modal-large">
+        <div
+          class="modal-header"
+          style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
+        >
+          <h2
+            style="color: white; display: flex; align-items: center; gap: 12px"
+          >
+            <svg
+              width="28"
+              height="28"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <circle cx="12" cy="12" r="10" />
+              <line x1="12" y1="16" x2="12" y2="12" />
+              <line x1="12" y1="8" x2="12.01" y2="8" />
+            </svg>
+            <span id="detayGeziAdi">Gezi Detayları</span>
+          </h2>
+          <button
+            class="modal-close"
+            onclick="closeDetayModal()"
+            style="color: white"
+          >
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </button>
+        </div>
+
+        <div class="modal-body" style="max-height: 70vh; overflow-y: auto">
+          <!-- DURUM BADGESİ -->
+          <div style="text-align: center; margin-bottom: 30px">
+            <span
+              id="detayDurumBadge"
+              class="gezi-card-status"
+              style="font-size: 16px; padding: 12px 24px; display: inline-block"
+              >Planlanan</span
+            >
+          </div>
+
+          <!-- TARİH & SAAT BİLGİLERİ -->
+          <div class="detay-section">
+            <h3 class="detay-section-title">
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                style="color: #667eea"
+              >
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                <line x1="16" y1="2" x2="16" y2="6" />
+                <line x1="8" y1="2" x2="8" y2="6" />
+                <line x1="3" y1="10" x2="21" y2="10" />
+              </svg>
+              Tarih & Saat Bilgileri
+            </h3>
+            <div class="detay-grid">
+              <div class="detay-item">
+                <div
+                  class="detay-icon"
+                  style="
+                    background: linear-gradient(
+                      135deg,
+                      #667eea 0%,
+                      #764ba2 100%
+                    );
+                  "
+                >
+                  <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="white"
+                    stroke-width="2"
+                  >
+                    <path d="M9 11l3 3L22 4" />
+                    <path
+                      d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"
+                    />
+                  </svg>
+                </div>
+                <div class="detay-content">
+                  <div class="detay-label">Gezi Tarihi</div>
+                  <div class="detay-value" id="detayGeziTarihi">-</div>
+                </div>
+              </div>
+              <div class="detay-item">
+                <div
+                  class="detay-icon"
+                  style="
+                    background: linear-gradient(
+                      135deg,
+                      #f093fb 0%,
+                      #f5576c 100%
+                    );
+                  "
+                >
+                  <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="white"
+                    stroke-width="2"
+                  >
+                    <circle cx="12" cy="12" r="10" />
+                    <polyline points="12 6 12 12 16 14" />
+                  </svg>
+                </div>
+                <div class="detay-content">
+                  <div class="detay-label">Çıkış Saati</div>
+                  <div class="detay-value" id="detayCikisSaati">-</div>
+                </div>
+              </div>
+              <div class="detay-item">
+                <div
+                  class="detay-icon"
+                  style="
+                    background: linear-gradient(
+                      135deg,
+                      #4facfe 0%,
+                      #00f2fe 100%
+                    );
+                  "
+                >
+                  <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="white"
+                    stroke-width="2"
+                  >
+                    <path d="M9 11l3 3L22 4" />
+                    <path
+                      d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"
+                    />
+                  </svg>
+                </div>
+                <div class="detay-content">
+                  <div class="detay-label">Dönüş Tarihi</div>
+                  <div class="detay-value" id="detayDonusTarihi">-</div>
+                </div>
+              </div>
+              <div class="detay-item">
+                <div
+                  class="detay-icon"
+                  style="
+                    background: linear-gradient(
+                      135deg,
+                      #fa709a 0%,
+                      #fee140 100%
+                    );
+                  "
+                >
+                  <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="white"
+                    stroke-width="2"
+                  >
+                    <circle cx="12" cy="12" r="10" />
+                    <polyline points="12 6 12 12 16 14" />
+                  </svg>
+                </div>
+                <div class="detay-content">
+                  <div class="detay-label">Dönüş Saati</div>
+                  <div class="detay-value" id="detayDonusSaati">-</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- YER BİLGİLERİ -->
+          <div class="detay-section">
+            <h3 class="detay-section-title">
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                style="color: #f093fb"
+              >
+                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                <circle cx="12" cy="10" r="3" />
+              </svg>
+              Yer & Güzergah Bilgileri
+            </h3>
+            <div class="detay-grid">
+              <div class="detay-item full-width">
+                <div
+                  class="detay-icon"
+                  style="
+                    background: linear-gradient(
+                      135deg,
+                      #a8edea 0%,
+                      #fed6e3 100%
+                    );
+                  "
+                >
+                  <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                  </svg>
+                </div>
+                <div class="detay-content">
+                  <div class="detay-label">Düzenlenecek Yer</div>
+                  <div class="detay-value" id="detayDuzenlenecekYer">-</div>
+                </div>
+              </div>
+              <div class="detay-item full-width">
+                <div
+                  class="detay-icon"
+                  style="
+                    background: linear-gradient(
+                      135deg,
+                      #ff9a9e 0%,
+                      #fecfef 100%
+                    );
+                  "
+                >
+                  <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <path
+                      d="M18 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V4a2 2 0 00-2-2z"
+                    />
+                    <path d="M9 8h6M9 12h6M9 16h6" />
+                  </svg>
+                </div>
+                <div class="detay-content">
+                  <div class="detay-label">Güzergah</div>
+                  <div class="detay-value" id="detayGuzergah">-</div>
+                </div>
+              </div>
+              <div class="detay-item">
+                <div
+                  class="detay-icon"
+                  style="
+                    background: linear-gradient(
+                      135deg,
+                      #ffecd2 0%,
+                      #fcb69f 100%
+                    );
+                  "
+                >
+                  <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                  </svg>
+                </div>
+                <div class="detay-content">
+                  <div class="detay-label">Gezi Türü</div>
+                  <div class="detay-value" id="detayGeziTuru">-</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- KATILIMCILAR -->
+          <div class="detay-section">
+            <h3 class="detay-section-title">
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                style="color: #4facfe"
+              >
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                <circle cx="9" cy="7" r="4" />
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+              </svg>
+              Katılımcılar
+            </h3>
+            <div class="detay-stats">
+              <div
+                class="stat-box"
+                style="
+                  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                "
+              >
+                <svg
+                  width="32"
+                  height="32"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="white"
+                  stroke-width="2"
+                >
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                  <circle cx="12" cy="7" r="4" />
+                </svg>
+                <div class="stat-number" id="detayOgrenciSayisi">0</div>
+                <div class="stat-label">Öğrenci</div>
+              </div>
+              <div
+                class="stat-box"
+                style="
+                  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+                "
+              >
+                <svg
+                  width="32"
+                  height="32"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="white"
+                  stroke-width="2"
+                >
+                  <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                  <circle cx="8.5" cy="7" r="4" />
+                  <polyline points="17 11 19 13 23 9" />
+                </svg>
+                <div class="stat-number" id="detayOgretmenSayisi">0</div>
+                <div class="stat-label">Öğretmen</div>
+              </div>
+              <div
+                class="stat-box"
+                style="
+                  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+                "
+              >
+                <svg
+                  width="32"
+                  height="32"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="white"
+                  stroke-width="2"
+                >
+                  <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                  <circle cx="8.5" cy="7" r="4" />
+                  <line x1="20" y1="8" x2="20" y2="14" />
+                  <line x1="23" y1="11" x2="17" y2="11" />
+                </svg>
+                <div class="stat-number" id="detayMisafirSayisi">0</div>
+                <div class="stat-label">Misafir</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- KAFİLE BAŞKANI -->
+          <div class="detay-section">
+            <h3 class="detay-section-title">
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                style="color: #fa709a"
+              >
+                <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                <circle cx="8.5" cy="7" r="4" />
+                <polyline points="17 11 19 13 23 9" />
+              </svg>
+              Kafile Başkanı
+            </h3>
+            <div class="detay-leader">
+              <div class="leader-avatar">
+                <svg
+                  width="40"
+                  height="40"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                  <circle cx="12" cy="7" r="4" />
+                </svg>
+              </div>
+              <div class="leader-info">
+                <div class="leader-name" id="detayKafileBaskan">-</div>
+                <div class="leader-title" id="detayKafileBaskanUnvan">-</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- KONU & AMAÇ -->
+          <div class="detay-section">
+            <h3 class="detay-section-title">
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                style="color: #ffecd2"
+              >
+                <path
+                  d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
+                />
+                <polyline points="14 2 14 8 20 8" />
+                <line x1="16" y1="13" x2="8" y2="13" />
+                <line x1="16" y1="17" x2="8" y2="17" />
+                <polyline points="10 9 9 9 8 9" />
+              </svg>
+              Konu & Amaç
+            </h3>
+            <div class="detay-text-box">
+              <div class="text-box-item">
+                <div class="text-box-label">📚 Gezi Konusu</div>
+                <div class="text-box-value" id="detayKonu">-</div>
+              </div>
+              <div class="text-box-item">
+                <div class="text-box-label">🎯 Gezi Amacı</div>
+                <div class="text-box-value" id="detayAmac">-</div>
+              </div>
+              <div
+                class="text-box-item"
+                id="detayArastirmaBox"
+                style="display: none"
+              >
+                <div class="text-box-label">🔍 Araştırma Görevi</div>
+                <div class="text-box-value" id="detayArastirma">-</div>
+              </div>
+              <div
+                class="text-box-item"
+                id="detayDegerlendirmeBox"
+                style="display: none"
+              >
+                <div class="text-box-label">✅ Değerlendirme</div>
+                <div class="text-box-value" id="detayDegerlendirme">-</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div
+          class="modal-footer"
+          style="background: #f9fafb; border-top: 2px solid #e5e7eb"
+        >
+          <button class="btn-modern btn-primary" onclick="closeDetayModal()">
+            <span class="btn-icon">✓</span>
+            <span class="btn-text">Tamam</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ULAŞIM YÖNETİMİ MODAL -->
+    <div class="modal-overlay" id="ulasimModal" style="display: none">
+      <div class="modal-container modal-extra-large">
+        <div
+          class="modal-header"
+          style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%)"
+        >
+          <h2
+            style="color: white; display: flex; align-items: center; gap: 12px"
+          >
+            <svg
+              width="28"
+              height="28"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <rect x="1" y="3" width="15" height="13" />
+              <polygon points="16 8 20 8 23 11 23 16 16 16 16 8" />
+              <circle cx="5.5" cy="18.5" r="2.5" />
+              <circle cx="18.5" cy="18.5" r="2.5" />
+            </svg>
+            <span id="ulasimGeziAdi">Ulaşım Yönetimi</span>
+          </h2>
+          <button
+            class="modal-close"
+            onclick="closeUlasimModal()"
+            style="color: white"
+          >
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </button>
+        </div>
+
+        <div class="modal-body" style="max-height: 75vh; overflow-y: auto">
+          <!-- GEZİ TÜRÜ UYARISI -->
+          <div
+            id="ulasimTurUyari"
+            style="
+              display: none;
+              padding: 16px;
+              background: #fef3c7;
+              border-left: 4px solid #f59e0b;
+              border-radius: 8px;
+              margin-bottom: 20px;
+            "
+          >
+            <p style="margin: 0; color: #92400e; font-weight: 600">
+              ⚠️ Yurt dışı gezisi için uçak/gemi/tren bilgisi de
+              ekleyebilirsiniz.
+            </p>
+          </div>
+
+          <!-- TAB MENU -->
+          <div class="ulasim-tabs">
+            <button
+              class="ulasim-tab active"
+              data-tab="arac"
+              onclick="switchUlasimTab('arac')"
+            >
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <rect x="1" y="3" width="15" height="13" />
+                <polygon points="16 8 20 8 23 11 23 16 16 16 16 8" />
+                <circle cx="5.5" cy="18.5" r="2.5" />
+                <circle cx="18.5" cy="18.5" r="2.5" />
+              </svg>
+              Araç Bilgileri
+            </button>
+            <button
+              class="ulasim-tab"
+              data-tab="ucak"
+              onclick="switchUlasimTab('ucak')"
+              id="tabUcak"
+              style="display: none"
+            >
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path
+                  d="M17.8 19.2L16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"
+                />
+              </svg>
+              Uçak Bilgileri
+            </button>
+            <button
+              class="ulasim-tab"
+              data-tab="gemi"
+              onclick="switchUlasimTab('gemi')"
+              id="tabGemi"
+              style="display: none"
+            >
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path
+                  d="M2 21c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1 .6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"
+                />
+                <path
+                  d="M19.38 20A11.6 11.6 0 0 0 21 14l-9-4-9 4c0 2.9.94 5.34 2.81 7.76"
+                />
+                <path d="M19 13V7a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v6" />
+              </svg>
+              Gemi Bilgileri
+            </button>
+            <button
+              class="ulasim-tab"
+              data-tab="tren"
+              onclick="switchUlasimTab('tren')"
+              id="tabTren"
+              style="display: none"
+            >
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <rect x="4" y="4" width="16" height="16" rx="2" />
+                <path d="M4 11h16M12 4v7M8 15h.01M16 15h.01" />
+              </svg>
+              Tren Bilgileri
+            </button>
+
+            <!-- ✅ YENİ: KONAKLAMA TABI -->
+            <button
+              class="ulasim-tab"
+              data-tab="konaklama"
+              onclick="switchUlasimTab('konaklama')"
+              id="tabKonaklama"
+            >
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                <polyline points="9 22 9 12 15 12 15 22" />
+              </svg>
+              Konaklama
+            </button>
+          </div>
+
+          <!-- ARAÇ KISMI -->
+          <div id="tabContent_arac" class="ulasim-tab-content active">
+            <div class="form-section">
+              <h3 class="form-section-title">
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <rect x="1" y="3" width="15" height="13" />
+                  <polygon points="16 8 20 8 23 11 23 16 16 16 16 8" />
+                </svg>
+                Mevcut Araçlar
+              </h3>
+              <div id="aracListesi" class="arac-liste">
+                <!-- JavaScript ile doldurulacak -->
+                <div class="empty-state-small">
+                  <p>Henüz araç eklenmedi</p>
+                </div>
+              </div>
+              <button
+                class="btn-modern btn-primary"
+                onclick="openAracEkleModal()"
+              >
+                <span class="btn-icon">+</span>
+                <span class="btn-text">Yeni Araç Ekle</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- UÇAK KISMI -->
+          <div id="tabContent_ucak" class="ulasim-tab-content">
+            <div class="form-section">
+              <h3 class="form-section-title">
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path
+                    d="M17.8 19.2L16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"
+                  />
+                </svg>
+                Uçuş Bilgileri
+              </h3>
+              <div id="ucakListesi" class="ulasim-liste">
+                <div class="empty-state-small">
+                  <p>Henüz uçuş bilgisi eklenmedi</p>
+                </div>
+              </div>
+              <button
+                class="btn-modern btn-primary"
+                onclick="openUcakEkleModal()"
+              >
+                <span class="btn-icon">+</span>
+                <span class="btn-text">Uçuş Bilgisi Ekle</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- GEMİ KISMI -->
+          <div id="tabContent_gemi" class="ulasim-tab-content">
+            <p style="text-align: center; color: #6b7280; padding: 40px">
+              Gemi bilgisi ekleme özelliği yakında...
+            </p>
+          </div>
+
+          <!-- TREN KISMI -->
+          <div id="tabContent_tren" class="ulasim-tab-content">
+            <p style="text-align: center; color: #6b7280; padding: 40px">
+              Tren bilgisi ekleme özelliği yakında...
+            </p>
+          </div>
+        </div>
+
+        <!-- ✅ YENİ: KONAKLAMA KISMI -->
+        <div id="tabContent_konaklama" class="ulasim-tab-content">
+          <div class="form-section">
+            <h3 class="form-section-title">
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                <polyline points="9 22 9 12 15 12 15 22" />
+              </svg>
+              Konaklama Bilgileri
+            </h3>
+            <div id="konaklamaListesi" class="konaklama-liste">
+              <div class="empty-state-small">
+                <p>Henüz konaklama bilgisi eklenmedi</p>
+              </div>
+            </div>
+            <button
+              class="btn-modern btn-primary"
+              onclick="openKonaklamaEkleModal()"
+            >
+              <span class="btn-icon">+</span>
+              <span class="btn-text">Konaklama Ekle</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button class="btn-modern btn-secondary" onclick="closeUlasimModal()">
+            <span class="btn-icon">✖</span>
+            <span class="btn-text">Kapat</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ARAÇ EKLEME MODAL -->
+    <div class="modal-overlay" id="aracEkleModal" style="display: none">
+      <div class="modal-container modal-large">
+        <div
+          class="modal-header"
+          style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
+        >
+          <h2
+            style="color: white; display: flex; align-items: center; gap: 12px"
+          >
+            <svg
+              width="28"
+              height="28"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <rect x="1" y="3" width="15" height="13" />
+              <polygon points="16 8 20 8 23 11 23 16 16 16 16 8" />
+              <circle cx="5.5" cy="18.5" r="2.5" />
+              <circle cx="18.5" cy="18.5" r="2.5" />
+            </svg>
+            <span id="aracModalTitle">Yeni Araç Ekle</span>
+          </h2>
+          <button
+            class="modal-close"
+            onclick="closeAracEkleModal()"
+            style="color: white"
+          >
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </button>
+        </div>
+
+        <div class="modal-body" style="max-height: 70vh; overflow-y: auto">
+          <!-- ARAÇ BİLGİLERİ -->
+          <div class="form-section">
+            <h3 class="form-section-title">
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <rect x="1" y="3" width="15" height="13" />
+              </svg>
+              Araç Bilgileri
+            </h3>
+            <div class="form-grid-2">
+              <div class="form-group">
+                <label class="form-label">Araç Plakası *</label>
+                <input
+                  type="text"
+                  class="form-input"
+                  id="aracPlaka"
+                  placeholder="34 ABC 123"
+                  maxlength="15"
+                />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Araç Modeli</label>
+                <input
+                  type="text"
+                  class="form-input"
+                  id="aracModel"
+                  placeholder="Mercedes Travego"
+                />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Trafiğe Çıkış Tarihi</label>
+                <input type="date" class="form-input" id="aracTrafigeCikis" />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Son Muayene Tarihi</label>
+                <input type="date" class="form-input" id="aracMuayene" />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Mali Sorumluluk Poliçe No</label>
+                <input type="text" class="form-input" id="aracMaliPolice" />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Mali Sorumluluk Bitiş Tarihi</label>
+                <input type="date" class="form-input" id="aracMaliBitis" />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Koltuk Ferdi Kaza Poliçe No</label>
+                <input type="text" class="form-input" id="aracFerdiPolice" />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Koltuk Ferdi Kaza Bitiş Tarihi</label>
+                <input type="date" class="form-input" id="aracFerdiBitis" />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Araç Kapasitesi</label>
+                <input
+                  type="number"
+                  class="form-input"
+                  id="aracKapasite"
+                  placeholder="45"
+                  min="1"
+                />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Araç Özellikleri (Opsiyonel)</label>
+                <textarea
+                  class="form-textarea"
+                  id="aracOzellikler"
+                  rows="2"
+                  placeholder="Klimalı, TV'li, WiFi..."
+                ></textarea>
+              </div>
+            </div>
+          </div>
+
+          <!-- ŞOFÖR BİLGİLERİ -->
+          <div class="form-section">
+            <h3 class="form-section-title">
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                <circle cx="12" cy="7" r="4" />
+              </svg>
+              Şoför Bilgileri
+            </h3>
+
+            <!-- ANA ŞOFÖR -->
+            <div class="form-grid-2">
+              <div class="form-group">
+                <label class="form-label">1. Şoför TC Kimlik No *</label>
+                <input
+                  type="text"
+                  class="form-input"
+                  id="sofor1TC"
+                  placeholder="12345678901"
+                  maxlength="11"
+                />
+              </div>
+              <div class="form-group">
+                <label class="form-label">1. Şoför Ad Soyad *</label>
+                <input
+                  type="text"
+                  class="form-input"
+                  id="sofor1Ad"
+                  placeholder="Ali Yılmaz"
+                />
+              </div>
+              <div class="form-group">
+                <label class="form-label">1. Şoför Telefon</label>
+                <input
+                  type="tel"
+                  class="form-input"
+                  id="sofor1Tel"
+                  placeholder="0555 123 4567"
+                />
+              </div>
+              <div class="form-group">
+                <label class="form-label">1. Şoför SRC Belge No</label>
+                <input
+                  type="text"
+                  class="form-input"
+                  id="sofor1SRC"
+                  placeholder="SRC1-123456"
+                />
+              </div>
+              <div class="form-group">
+                <label class="form-label">1. Şoför SRC Belge Tarihi</label>
+                <input type="date" class="form-input" id="sofor1SRCTarih" />
+              </div>
+            </div>
+
+            <!-- 2. ŞOFÖR (OPSİYONEL) -->
+            <div
+              style="
+                margin-top: 30px;
+                padding-top: 20px;
+                border-top: 2px dashed #e5e7eb;
+              "
+            >
+              <h4
+                style="
+                  font-size: 16px;
+                  font-weight: 700;
+                  color: #6b7280;
+                  margin-bottom: 16px;
+                "
+              >
+                2. Şoför (Opsiyonel)
+              </h4>
+              <div class="form-grid-2">
+                <div class="form-group">
+                  <label class="form-label">2. Şoför TC Kimlik No</label>
+                  <input
+                    type="text"
+                    class="form-input"
+                    id="sofor2TC"
+                    placeholder="12345678901"
+                    maxlength="11"
+                  />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">2. Şoför Ad Soyad</label>
+                  <input
+                    type="text"
+                    class="form-input"
+                    id="sofor2Ad"
+                    placeholder="Mehmet Kaya"
+                  />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">2. Şoför Telefon</label>
+                  <input
+                    type="tel"
+                    class="form-input"
+                    id="sofor2Tel"
+                    placeholder="0555 987 6543"
+                  />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">2. Şoför SRC Belge No</label>
+                  <input
+                    type="text"
+                    class="form-input"
+                    id="sofor2SRC"
+                    placeholder="SRC2-654321"
+                  />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">2. Şoför SRC Belge Tarihi</label>
+                  <input type="date" class="form-input" id="sofor2SRCTarih" />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- BELGE YÜKLEME -->
+          <div class="form-section">
+            <h3 class="form-section-title">
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path
+                  d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
+                />
+                <polyline points="14 2 14 8 20 8" />
+                <line x1="12" y1="18" x2="12" y2="12" />
+                <line x1="9" y1="15" x2="15" y2="15" />
+              </svg>
+              Belge Yükle (Ehliyet, Ruhsat, vb.)
+            </h3>
+            <div class="file-upload-area" id="fileUploadArea">
+              <div class="file-upload-icon">
+                <svg
+                  width="32"
+                  height="32"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                  <polyline points="17 8 12 3 7 8" />
+                  <line x1="12" y1="3" x2="12" y2="15" />
+                </svg>
+              </div>
+              <div class="file-upload-text">
+                <h4>Dosya seçmek için tıklayın veya sürükleyin</h4>
+                <p>PDF, PNG, JPEG, Excel, Word (Max 10MB)</p>
+              </div>
+              <input
+                type="file"
+                id="fileInput"
+                multiple
+                accept=".pdf,.png,.jpg,.jpeg,.xlsx,.xls,.doc,.docx"
+                style="display: none"
+              />
+            </div>
+            <div class="uploaded-files" id="uploadedFilesList"></div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button
+            class="btn-modern btn-secondary"
+            onclick="closeAracEkleModal()"
+          >
+            <span class="btn-icon">✖</span>
+            <span class="btn-text">İptal</span>
+          </button>
+          <button class="btn-modern btn-success" onclick="aracKaydet()">
+            <span class="btn-icon">✓</span>
+            <span class="btn-text">Araç Kaydet</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- UÇAK BİLGİSİ EKLEME MODAL -->
+    <div class="modal-overlay" id="ucakEkleModal" style="display: none">
+      <div class="modal-container modal-large">
+        <div
+          class="modal-header"
+          style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)"
+        >
+          <h2
+            style="color: white; display: flex; align-items: center; gap: 12px"
+          >
+            <svg
+              width="28"
+              height="28"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path
+                d="M17.8 19.2L16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"
+              />
+            </svg>
+            <span id="ucakModalTitle">Uçuş Bilgisi Ekle</span>
+          </h2>
+          <button
+            class="modal-close"
+            onclick="closeUcakEkleModal()"
+            style="color: white"
+          >
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </button>
+        </div>
+
+        <div class="modal-body" style="max-height: 70vh; overflow-y: auto">
+          <div class="form-section">
+            <h3 class="form-section-title">
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path
+                  d="M17.8 19.2L16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"
+                />
+              </svg>
+              Uçuş Bilgileri
+            </h3>
+            <div class="form-grid-2">
+              <div class="form-group">
+                <label class="form-label">Havayolu Firması *</label>
+                <input
+                  type="text"
+                  class="form-input"
+                  id="ucakFirma"
+                  placeholder="Turkish Airlines"
+                />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Uçuş No *</label>
+                <input
+                  type="text"
+                  class="form-input"
+                  id="ucakSeferNo"
+                  placeholder="TK1234"
+                />
+              </div>
+              <div class="form-group">
+                <label class="form-label">PNR Kodu</label>
+                <input
+                  type="text"
+                  class="form-input"
+                  id="ucakPNR"
+                  placeholder="ABC123"
+                />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Kalkış Havalimanı *</label>
+                <input
+                  type="text"
+                  class="form-input"
+                  id="ucakKalkis"
+                  placeholder="İstanbul (IST)"
+                />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Varış Havalimanı *</label>
+                <input
+                  type="text"
+                  class="form-input"
+                  id="ucakVaris"
+                  placeholder="Paris (CDG)"
+                />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Kalkış Tarihi *</label>
+                <input type="date" class="form-input" id="ucakKalkisTarih" />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Kalkış Saati *</label>
+                <input type="time" class="form-input" id="ucakKalkisSaat" />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Varış Tarihi *</label>
+                <input type="date" class="form-input" id="ucakVarisTarih" />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Varış Saati *</label>
+                <input type="time" class="form-input" id="ucakVarisSaat" />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Aktarma Var mı?</label>
+                <select class="form-select" id="ucakAktarma">
+                  <option value="0">Hayır (Direkt Uçuş)</option>
+                  <option value="1">Evet (Aktarmalı)</option>
+                </select>
+              </div>
+              <div
+                class="form-group full-width"
+                id="ucakAktarmaBilgiGroup"
+                style="display: none"
+              >
+                <label class="form-label">Aktarma Bilgisi</label>
+                <textarea
+                  class="form-textarea"
+                  id="ucakAktarmaBilgi"
+                  rows="2"
+                  placeholder="Aktarma havalimanı ve süre..."
+                ></textarea>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Bilet Ücreti (Kişi Başı)</label>
+                <input
+                  type="number"
+                  class="form-input"
+                  id="ucakUcret"
+                  placeholder="2500"
+                  step="0.01"
+                />
+              </div>
+              <div class="form-group full-width">
+                <label class="form-label">Notlar</label>
+                <textarea
+                  class="form-textarea"
+                  id="ucakNotlar"
+                  rows="2"
+                  placeholder="Ek bilgiler..."
+                ></textarea>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button
+            class="btn-modern btn-secondary"
+            onclick="closeUcakEkleModal()"
+          >
+            <span class="btn-icon">✖</span>
+            <span class="btn-text">İptal</span>
+          </button>
+          <button class="btn-modern btn-success" onclick="ucakKaydet()">
+            <span class="btn-icon">✓</span>
+            <span class="btn-text">Uçuş Kaydet</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Aktarma select değişince
+      document.getElementById("ucakAktarma").addEventListener("change", (e) => {
+        const group = document.getElementById("ucakAktarmaBilgiGroup");
+        group.style.display = e.target.value === "1" ? "block" : "none";
+      });
+    </script>
+
+    <!-- KONAKLAMA EKLEME MODAL -->
+    <div class="modal-overlay" id="konaklamaEkleModal" style="display: none">
+      <div class="modal-container modal-extra-large">
+        <div
+          class="modal-header"
+          style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%)"
+        >
+          <h2
+            style="color: white; display: flex; align-items: center; gap: 12px"
+          >
+            <svg
+              width="28"
+              height="28"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+              <polyline points="9 22 9 12 15 12 15 22" />
+            </svg>
+            <span id="konaklamaModalTitle">Konaklama Bilgisi Ekle</span>
+          </h2>
+          <button
+            class="modal-close"
+            onclick="closeKonaklamaModal()"
+            style="color: white"
+          >
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </button>
+        </div>
+
+        <div class="modal-body" style="max-height: 75vh; overflow-y: auto">
+          <!-- OTEL BİLGİLERİ -->
+          <div class="form-section">
+            <h3 class="form-section-title">
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+              </svg>
+              Otel Bilgileri
+            </h3>
+            <div class="form-grid-2">
+              <div class="form-group">
+                <label class="form-label">Otel Adı *</label>
+                <input
+                  type="text"
+                  class="form-input"
+                  id="otelAdi"
+                  placeholder="Hilton Garden Inn"
+                />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Otel Telefon</label>
+                <input
+                  type="tel"
+                  class="form-input"
+                  id="otelTelefon"
+                  placeholder="0212 123 4567"
+                />
+              </div>
+              <div class="form-group full-width">
+                <label class="form-label">Otel Adresi</label>
+                <textarea
+                  class="form-textarea"
+                  id="otelAdres"
+                  rows="2"
+                  placeholder="Adres bilgisi..."
+                ></textarea>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Otel E-posta</label>
+                <input
+                  type="email"
+                  class="form-input"
+                  id="otelEmail"
+                  placeholder="info@hotel.com"
+                />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Giriş Tarihi *</label>
+                <input
+                  type="date"
+                  class="form-input"
+                  id="konaklamaGirisTarih"
+                />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Çıkış Tarihi *</label>
+                <input
+                  type="date"
+                  class="form-input"
+                  id="konaklamaCikisTarih"
+                />
+              </div>
+              <div class="form-group full-width">
+                <label class="form-label">Notlar</label>
+                <textarea
+                  class="form-textarea"
+                  id="konaklamaNotlar"
+                  rows="2"
+                  placeholder="Ek bilgiler..."
+                ></textarea>
+              </div>
+            </div>
+          </div>
+
+          <!-- ODA YÖNETİMİ -->
+          <div class="form-section">
+            <h3 class="form-section-title">
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <rect x="2" y="7" width="20" height="14" rx="2" />
+                <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
+              </svg>
+              Oda Yönetimi
+            </h3>
+
+            <!-- Oda Ekleme Formu -->
+            <div class="oda-ekle-form">
+              <div class="form-grid-3">
+                <div class="form-group">
+                  <label class="form-label">Oda No</label>
+                  <input
+                    type="text"
+                    class="form-input"
+                    id="odaNo"
+                    placeholder="101"
+                  />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Oda Tipi</label>
+                  <select class="form-select" id="odaTipi">
+                    <option value="tek">Tek Kişilik</option>
+                    <option value="cift">Çift Kişilik</option>
+                    <option value="uc">Üç Kişilik</option>
+                    <option value="dort">Dört Kişilik</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <button
+                    class="btn-modern btn-primary"
+                    onclick="odaEkle()"
+                    style="margin-top: 28px"
+                  >
+                    <span class="btn-icon">+</span>
+                    <span class="btn-text">Oda Ekle</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Eklenen Odalar Listesi -->
+            <div id="odalarListesi" class="odalar-liste">
+              <div class="empty-state-small">
+                <p>Henüz oda eklenmedi</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button
+            class="btn-modern btn-secondary"
+            onclick="closeKonaklamaModal()"
+          >
+            <span class="btn-icon">✖</span>
+            <span class="btn-text">İptal</span>
+          </button>
+          <button class="btn-modern btn-success" onclick="konaklamaKaydet()">
+            <span class="btn-icon">✓</span>
+            <span class="btn-text">Konaklama Kaydet</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ODA YERLEŞİM MODALI -->
+    <div class="modal-overlay" id="odaYerlesimModal" style="display: none">
+      <div class="modal-container modal-extra-large">
+        <div
+          class="modal-header"
+          style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
+        >
+          <h2
+            style="color: white; display: flex; align-items: center; gap: 12px"
+          >
+            <svg
+              width="28"
+              height="28"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+              <circle cx="9" cy="7" r="4" />
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+              <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+            </svg>
+            <span id="odaYerlesimTitle">Oda Yerleşimi</span>
+          </h2>
+          <button
+            class="modal-close"
+            onclick="closeOdaYerlesimModal()"
+            style="color: white"
+          >
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </button>
+        </div>
+
+        <div class="modal-body" style="max-height: 75vh; overflow-y: auto">
+          <div class="yerlesim-container">
+            <!-- SOL: Yerleşmemiş Kişiler -->
+            <div class="yerlesim-panel">
+              <h3 class="panel-title">
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                  <circle cx="9" cy="7" r="4" />
+                </svg>
+                Yerleşmemiş Kişiler (<span id="yerlesmemisCount">0</span>)
+              </h3>
+              <div id="yerlesmemisListesi" class="kisi-liste"></div>
+            </div>
+
+            <!-- SAĞ: Odalar ve Yerleşenler -->
+            <div class="yerlesim-panel">
+              <h3 class="panel-title">
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <rect x="2" y="7" width="20" height="14" rx="2" />
+                </svg>
+                Odalar
+              </h3>
+              <div
+                id="odalarYerlesimListesi"
+                class="odalar-yerlesim-liste"
+              ></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button
+            class="btn-modern btn-secondary"
+            onclick="closeOdaYerlesimModal()"
+          >
+            <span class="btn-icon">✖</span>
+            <span class="btn-text">Kapat</span>
+          </button>
+          <button class="btn-modern btn-success" onclick="yerlesimKaydet()">
+            <span class="btn-icon">✓</span>
+            <span class="btn-text">Yerleşimi Kaydet</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- TUR FİRMASI MODALI -->
+    <div class="modal-overlay" id="firmaModal" style="display: none">
+      <div class="modal-container modal-extra-large">
+        <div
+          class="modal-header"
+          style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%)"
+        >
+          <h2
+            style="color: white; display: flex; align-items: center; gap: 12px"
+          >
+            <svg
+              width="28"
+              height="28"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+              <polyline points="9 22 9 12 15 12 15 22" />
+            </svg>
+            <span id="firmaModalTitle">Tur Firması Bilgileri</span>
+          </h2>
+          <button
+            class="modal-close"
+            onclick="closeFirmaModal()"
+            style="color: white"
+          >
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </button>
+        </div>
+
+        <div class="modal-body" style="max-height: 75vh; overflow-y: auto">
+          <!-- FİRMA KİMLİK BİLGİLERİ -->
+          <div class="form-section">
+            <h3 class="form-section-title">
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+              </svg>
+              Firma Kimlik Bilgileri
+            </h3>
+            <div class="form-grid-2">
+              <div class="form-group">
+                <label class="form-label">Firma/Acente Adı *</label>
+                <input
+                  type="text"
+                  class="form-input"
+                  id="firmaAdi"
+                  placeholder="Örn: ABC Turizm A.Ş."
+                />
+              </div>
+              <div class="form-group">
+                <label class="form-label">İşletme Belgesi No</label>
+                <input
+                  type="text"
+                  class="form-input"
+                  id="firmaIsletmeBelge"
+                  placeholder="Turizm Bakanlığı Belge No"
+                />
+              </div>
+              <div class="form-group">
+                <label class="form-label">TÜRSAB Belge No</label>
+                <input
+                  type="text"
+                  class="form-input"
+                  id="firmaTursabNo"
+                  placeholder="Örn: A-12345"
+                />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Vergi Dairesi</label>
+                <input
+                  type="text"
+                  class="form-input"
+                  id="firmaVergiDaire"
+                  placeholder="Örn: Kadıköy"
+                />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Vergi No</label>
+                <input
+                  type="text"
+                  class="form-input"
+                  id="firmaVergiNo"
+                  placeholder="10 haneli vergi numarası"
+                />
+              </div>
+              <div class="form-group">
+                <label class="form-label">B2/D2 Yetki Belgesi No</label>
+                <input
+                  type="text"
+                  class="form-input"
+                  id="firmaYetkiBelge"
+                  placeholder="Şehirlerarası taşıma belgesi"
+                />
+              </div>
+            </div>
+          </div>
+
+          <!-- İLETİŞİM VE YETKİLİ -->
+          <div class="form-section">
+            <h3 class="form-section-title">
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path
+                  d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"
+                />
+              </svg>
+              İletişim ve Yetkili Bilgileri
+            </h3>
+            <div class="form-grid-2">
+              <div class="form-group">
+                <label class="form-label">Yetkili Adı Soyadı *</label>
+                <input
+                  type="text"
+                  class="form-input"
+                  id="firmaYetkili"
+                  placeholder="Örn: Ahmet Yılmaz"
+                />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Yetkili Ünvanı</label>
+                <input
+                  type="text"
+                  class="form-input"
+                  id="firmaYetkiliUnvan"
+                  placeholder="Örn: Genel Müdür"
+                />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Yetkili Telefon *</label>
+                <input
+                  type="tel"
+                  class="form-input"
+                  id="firmaYetkiliTel"
+                  placeholder="0555 123 4567"
+                />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Firma Telefon</label>
+                <input
+                  type="tel"
+                  class="form-input"
+                  id="firmaTelefon"
+                  placeholder="0212 123 4567"
+                />
+              </div>
+              <div class="form-group full-width">
+                <label class="form-label">Firma Adresi</label>
+                <textarea
+                  class="form-textarea"
+                  id="firmaAdres"
+                  rows="2"
+                  placeholder="Tam adres bilgisi..."
+                ></textarea>
+              </div>
+              <div class="form-group">
+                <label class="form-label">E-posta</label>
+                <input
+                  type="email"
+                  class="form-input"
+                  id="firmaEmail"
+                  placeholder="info@firma.com"
+                />
+              </div>
+            </div>
+          </div>
+
+          <!-- REHBER BİLGİLERİ -->
+          <div class="form-section">
+            <h3 class="form-section-title">
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                <circle cx="12" cy="7" r="4" />
+              </svg>
+              Rehber Bilgileri
+            </h3>
+            <div class="form-grid-2">
+              <div class="form-group">
+                <label class="form-label">Rehber Adı Soyadı</label>
+                <input
+                  type="text"
+                  class="form-input"
+                  id="rehberAd"
+                  placeholder="Profesyonel rehber"
+                />
+              </div>
+              <div class="form-group">
+                <label class="form-label">TUREB Kokart No</label>
+                <input
+                  type="text"
+                  class="form-input"
+                  id="rehberKokart"
+                  placeholder="Rehber kokart numarası"
+                />
+              </div>
+            </div>
+          </div>
+
+          <!-- FİNANSAL DETAYLAR -->
+          <div class="form-section">
+            <h3 class="form-section-title">
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <line x1="12" y1="1" x2="12" y2="23" />
+                <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+              </svg>
+              Finansal Detaylar
+            </h3>
+            <div class="form-grid-3">
+              <div class="form-group">
+                <label class="form-label">Sözleşme Tarihi</label>
+                <input type="date" class="form-input" id="sozlesmeTarih" />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Toplam Bedel *</label>
+                <input
+                  type="number"
+                  class="form-input"
+                  id="toplamBedel"
+                  placeholder="150000"
+                  step="0.01"
+                />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Para Birimi</label>
+                <select class="form-select" id="paraBirimi">
+                  <option value="TL">TRY (₺)</option>
+                  <option value="USD">USD ($)</option>
+                  <option value="EUR">EUR (€)</option>
+                  <option value="GBP">GBP (£)</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- HİZMET KAPSAMI (CHECKBOX) -->
+          <div class="form-section">
+            <h3 class="form-section-title">
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+              Fiyata Dahil Olan Hizmetler
+            </h3>
+            <div class="checkbox-grid">
+              <label class="checkbox-label">
+                <input type="checkbox" id="hizmet_rehber" />
+                <span>Kokartlı Profesyonel Rehberlik</span>
+              </label>
+              <label class="checkbox-label">
+                <input type="checkbox" id="hizmet_muze" />
+                <span>Müze ve Ören Yeri Girişleri</span>
+              </label>
+              <label class="checkbox-label">
+                <input type="checkbox" id="hizmet_kahvalti" />
+                <span>Sabah Kahvaltısı</span>
+              </label>
+              <label class="checkbox-label">
+                <input type="checkbox" id="hizmet_ogle" />
+                <span>Öğle Yemeği</span>
+              </label>
+              <label class="checkbox-label">
+                <input type="checkbox" id="hizmet_aksam" />
+                <span>Akşam Yemeği</span>
+              </label>
+              <label class="checkbox-label">
+                <input type="checkbox" id="hizmet_konaklama_oda" />
+                <span>Konaklama (Oda Kahvaltı)</span>
+              </label>
+              <label class="checkbox-label">
+                <input type="checkbox" id="hizmet_konaklama_yarim" />
+                <span>Konaklama (Yarım Pansiyon)</span>
+              </label>
+              <label class="checkbox-label">
+                <input type="checkbox" id="hizmet_konaklama_tam" />
+                <span>Konaklama (Tam Pansiyon)</span>
+              </label>
+              <label class="checkbox-label">
+                <input type="checkbox" id="hizmet_sigorta" />
+                <span>Zorunlu Seyahat Sigortası</span>
+              </label>
+              <label class="checkbox-label">
+                <input type="checkbox" id="hizmet_yurtdisi_sigorta" />
+                <span>Yurt Dışı Sağlık Sigortası</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- NOTLAR VE ÖZEL KOŞULLAR -->
+          <div class="form-section">
+            <h3 class="form-section-title">
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path
+                  d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
+                />
+                <polyline points="14 2 14 8 20 8" />
+              </svg>
+              Notlar ve Özel Koşullar
+            </h3>
+            <div class="form-group">
+              <label class="form-label">Fiyata Dahil Olmayanlar</label>
+              <textarea
+                class="form-textarea"
+                id="dahilOlmayan"
+                rows="2"
+                placeholder="Ekstra ücretli hizmetler..."
+              ></textarea>
+            </div>
+            <div class="form-group">
+              <label class="form-label">İptal ve İade Koşulları</label>
+              <textarea
+                class="form-textarea"
+                id="iptalKosul"
+                rows="3"
+                placeholder="İptal politikası ve kesintiler..."
+              ></textarea>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Genel Notlar</label>
+              <textarea
+                class="form-textarea"
+                id="firmaNotlar"
+                rows="2"
+                placeholder="Ek bilgiler..."
+              ></textarea>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button class="btn-modern btn-secondary" onclick="closeFirmaModal()">
+            <span class="btn-icon">✖</span>
+            <span class="btn-text">Kapat</span>
+          </button>
+          <button class="btn-modern btn-success" onclick="firmaKaydet()">
+            <span class="btn-icon">✓</span>
+            <span class="btn-text">Firma Kaydet</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ÖDEME TAKİBİ MODALI -->
+    <div class="modal-overlay" id="odemeModal" style="display: none">
+      <div class="modal-container modal-extra-large">
+        <div
+          class="modal-header"
+          style="background: linear-gradient(135deg, #00b894 0%, #00cec9 100%)"
+        >
+          <h2
+            style="color: white; display: flex; align-items: center; gap: 12px"
+          >
+            <svg
+              width="28"
+              height="28"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <rect x="1" y="4" width="22" height="16" rx="2" ry="2" />
+              <line x1="1" y1="10" x2="23" y2="10" />
+            </svg>
+            <span id="odemeModalTitle">Ödeme Takibi</span>
+          </h2>
+          <button
+            class="modal-close"
+            onclick="closeOdemeModal()"
+            style="color: white"
+          >
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </button>
+        </div>
+
+        <div class="modal-body" style="max-height: 75vh; overflow-y: auto">
+          <!-- ÖDEME PLANI OLUŞTUR -->
+          <div class="form-section" id="odemePlaniSection">
+            <h3 class="form-section-title">
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path
+                  d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"
+                />
+              </svg>
+              Genel Ödeme Planı
+            </h3>
+
+            <div
+              class="odeme-plan-ozet"
+              id="odemePlaniOzet"
+              style="display: none"
+            >
+              <div class="plan-ozet-item">
+                <div class="plan-ozet-label">Kişi Başı Ücret</div>
+                <div class="plan-ozet-value" id="planKisiBasi">-</div>
+              </div>
+              <div class="plan-ozet-item">
+                <div class="plan-ozet-label">Taksit Sayısı</div>
+                <div class="plan-ozet-value" id="planTaksit">-</div>
+              </div>
+              <div class="plan-ozet-item">
+                <div class="plan-ozet-label">Peşinat Oranı</div>
+                <div class="plan-ozet-value" id="planPesinat">-</div>
+              </div>
+              <div class="plan-ozet-item">
+                <div class="plan-ozet-label">İlk Taksit Tarihi</div>
+                <div class="plan-ozet-value" id="planTarih">-</div>
+              </div>
+              <button
+                class="btn-modern btn-sm btn-warning"
+                onclick="odemePlaniDuzenle()"
+              >
+                <span class="btn-icon">✏️</span>
+                <span class="btn-text">Planı Düzenle</span>
+              </button>
+            </div>
+
+            <div class="odeme-plan-form" id="odemePlaniForm">
+              <div class="form-grid-3">
+                <div class="form-group">
+                  <label class="form-label">Kişi Başı Ücret *</label>
+                  <input
+                    type="number"
+                    class="form-input"
+                    id="kisiBasiUcret"
+                    placeholder="2000"
+                    step="0.01"
+                  />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Para Birimi</label>
+                  <select class="form-select" id="odemeParaBirimi">
+                    <option value="TL">TRY (₺)</option>
+                    <option value="USD">USD ($)</option>
+                    <option value="EUR">EUR (€)</option>
+                    <option value="GBP">GBP (£)</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Taksit Sayısı *</label>
+                  <input
+                    type="number"
+                    class="form-input"
+                    id="taksitSayisi"
+                    placeholder="3"
+                    min="1"
+                    max="12"
+                  />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Peşinat Oranı (%)</label>
+                  <input
+                    type="number"
+                    class="form-input"
+                    id="pesinatOrani"
+                    placeholder="30"
+                    min="0"
+                    max="100"
+                  />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">İlk Taksit Tarihi *</label>
+                  <input type="date" class="form-input" id="ilkTaksitTarih" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Taksit Aralığı (Gün)</label>
+                  <input
+                    type="number"
+                    class="form-input"
+                    id="taksitAraligi"
+                    placeholder="30"
+                    value="30"
+                  />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Hatırlatma (Gün Önce)</label>
+                  <input
+                    type="number"
+                    class="form-input"
+                    id="hatirlatmaGun"
+                    placeholder="7"
+                    value="7"
+                  />
+                </div>
+              </div>
+
+              <div style="margin-top: 16px">
+                <button
+                  class="btn-modern btn-success"
+                  onclick="odemePlaniKaydet()"
+                >
+                  <span class="btn-icon">✓</span>
+                  <span class="btn-text">Ödeme Planı Oluştur</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- KATİLİMCI ÜCRET DÜZENLEMESİ -->
+          <div
+            class="form-section"
+            id="katilimciUcretSection"
+            style="display: none"
+          >
+            <h3 class="form-section-title">
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                <circle cx="9" cy="7" r="4" />
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+              </svg>
+              Katılımcı Ücretleri
+            </h3>
+
+            <!-- ÖZET PANEL -->
+            <div class="ucret-ozet-panel">
+              <div class="ucret-ozet-item">
+                <div class="ozet-label">Toplam Katılımcı</div>
+                <div class="ozet-value" id="toplamKatilimci">0</div>
+              </div>
+              <div class="ucret-ozet-item">
+                <div class="ozet-label">Ücretli</div>
+                <div class="ozet-value" id="ucretliSayi">
+                  0 <span class="ozet-tutar" id="ucretliTutar">(0 TL)</span>
+                </div>
+              </div>
+              <div class="ucret-ozet-item">
+                <div class="ozet-label">Ücretsiz</div>
+                <div class="ozet-value" id="ucretsizSayi">0</div>
+              </div>
+              <div class="ucret-ozet-item">
+                <div class="ozet-label">İndirimli</div>
+                <div class="ozet-value" id="indirimliSayi">
+                  0 <span class="ozet-tutar" id="indirimliTutar">(0 TL)</span>
+                </div>
+              </div>
+              <div class="ucret-ozet-item toplam">
+                <div class="ozet-label">TOPLAM HASILAT</div>
+                <div class="ozet-value toplam-hasilat" id="toplamHasilat">
+                  0 TL
+                </div>
+              </div>
+            </div>
+
+            <!-- FİLTRELEME -->
+            <div class="ucret-filtre">
+              <button
+                class="filtre-btn active"
+                data-filtre="hepsi"
+                onclick="katilimciFiltrele('hepsi')"
+              >
+                Hepsi (<span id="filtreHepsi">0</span>)
+              </button>
+              <button
+                class="filtre-btn"
+                data-filtre="ogrenci"
+                onclick="katilimciFiltrele('ogrenci')"
+              >
+                Öğrenci (<span id="filtreOgrenci">0</span>)
+              </button>
+              <button
+                class="filtre-btn"
+                data-filtre="ogretmen"
+                onclick="katilimciFiltrele('ogretmen')"
+              >
+                Öğretmen (<span id="filtreOgretmen">0</span>)
+              </button>
+              <button
+                class="filtre-btn"
+                data-filtre="normal"
+                onclick="katilimciFiltrele('normal')"
+              >
+                Normal Ücret (<span id="filtreNormal">0</span>)
+              </button>
+              <button
+                class="filtre-btn"
+                data-filtre="ucretsiz"
+                onclick="katilimciFiltrele('ucretsiz')"
+              >
+                Ücretsiz (<span id="filtreUcretsiz">0</span>)
+              </button>
+              <button
+                class="filtre-btn"
+                data-filtre="indirimli"
+                onclick="katilimciFiltrele('indirimli')"
+              >
+                İndirimli (<span id="filtreIndirimli">0</span>)
+              </button>
+            </div>
+
+            <!-- KATİLİMCI LİSTESİ TABLOSU -->
+            <div class="ucret-tablo-container">
+              <table class="ucret-tablo">
+                <thead>
+                  <tr>
+                    <th>Katılımcı</th>
+                    <th>Tipi</th>
+                    <th>Ücret Durumu</th>
+                    <th>Tutar</th>
+                    <th>Taksit</th>
+                    <th>İşlemler</th>
+                  </tr>
+                </thead>
+                <tbody id="katilimciUcretListesi">
+                  <!-- JavaScript ile doldurulacak -->
+                </tbody>
+              </table>
+            </div>
+
+            <div style="margin-top: 16px">
+              <button
+                class="btn-modern btn-success"
+                onclick="katilimciUcretleriKaydet()"
+              >
+                <span class="btn-icon">✓</span>
+                <span class="btn-text">Ücretleri Kaydet</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- ÖDEME TAKİP EKRANI -->
+          <div
+            class="form-section"
+            id="odemeTakipSection"
+            style="display: none"
+          >
+            <h3 class="form-section-title">
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+              </svg>
+              Ödeme Takibi
+            </h3>
+
+            <!-- TAKİP FİLTRELERİ -->
+            <div class="takip-filtre">
+              <button
+                class="takip-filtre-btn active"
+                data-durum="hepsi"
+                onclick="odemeDurumFiltrele('hepsi')"
+              >
+                🔵 Hepsi (<span id="durumHepsi">0</span>)
+              </button>
+              <button
+                class="takip-filtre-btn"
+                data-durum="tamamlandi"
+                onclick="odemeDurumFiltrele('tamamlandi')"
+              >
+                🟢 Tamamlandı (<span id="durumTamamlandi">0</span>)
+              </button>
+              <button
+                class="takip-filtre-btn"
+                data-durum="kismi"
+                onclick="odemeDurumFiltrele('kismi')"
+              >
+                🟡 Kısmi (<span id="durumKismi">0</span>)
+              </button>
+              <button
+                class="takip-filtre-btn"
+                data-durum="odenmedi"
+                onclick="odemeDurumFiltrele('odenmedi')"
+              >
+                ⚪ Ödeme Yok (<span id="durumOdenmedi">0</span>)
+              </button>
+              <button
+                class="takip-filtre-btn"
+                data-durum="gecikti"
+                onclick="odemeDurumFiltrele('gecikti')"
+              >
+                🔴 Vadesi Geçmiş (<span id="durumGecikti">0</span>)
+              </button>
+            </div>
+
+            <!-- ÖDEME KARTLARI -->
+            <div id="odemeTakipKartlari" class="odeme-kartlari-grid">
+              <!-- JavaScript ile doldurulacak -->
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button class="btn-modern btn-secondary" onclick="closeOdemeModal()">
+            <span class="btn-icon">✖</span>
+            <span class="btn-text">Kapat</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ÖDEME AL MODALI -->
+    <div class="modal-overlay" id="odemeAlModal" style="display: none">
+      <div class="modal-container modal-medium">
+        <div
+          class="modal-header"
+          style="background: linear-gradient(135deg, #00b894 0%, #55efc4 100%)"
+        >
+          <h2
+            style="color: white; display: flex; align-items: center; gap: 12px"
+          >
+            <svg
+              width="28"
+              height="28"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <polyline points="20 6 9 17 4 12" />
+            </svg>
+            <span id="odemeAlTitle">Ödeme Al</span>
+          </h2>
+          <button
+            class="modal-close"
+            onclick="closeOdemeAlModal()"
+            style="color: white"
+          >
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </button>
+        </div>
+
+        <div class="modal-body">
+          <div class="form-section">
+            <div class="odeme-al-bilgi">
+              <div class="bilgi-satir">
+                <span class="bilgi-label">Katılımcı:</span>
+                <span class="bilgi-deger" id="odemeAlKisi">-</span>
+              </div>
+              <div class="bilgi-satir">
+                <span class="bilgi-label">Taksit No:</span>
+                <span class="bilgi-deger" id="odemeAlTaksit">-</span>
+              </div>
+              <div class="bilgi-satir">
+                <span class="bilgi-label">Taksit Tutarı:</span>
+                <span class="bilgi-deger" id="odemeAlTutar">-</span>
+              </div>
+            </div>
+
+            <div class="form-grid-2" style="margin-top: 20px">
+              <div class="form-group">
+                <label class="form-label" style="color: #ffffff !important">
+                  Ödeme Tarihi <span style="color: #ef4444">*</span>
+                </label>
+                <input type="date" class="form-input" id="odemeTarihi" />
+              </div>
+              <div class="form-group">
+                <label class="form-label" style="color: #ffffff !important">
+                  Ödeme Şekli
+                </label>
+                <select class="form-select" id="odemeSekli">
+                  <option value="nakit">Nakit</option>
+                  <option value="havale">Havale/EFT</option>
+                  <option value="kredi_karti">Kredi Kartı</option>
+                  <option value="pos">POS</option>
+                </select>
+              </div>
+              <div class="form-group full-width">
+                <label class="form-label" style="color: #ffffff !important">
+                  Makbuz/Fiş No
+                </label>
+                <input
+                  type="text"
+                  class="form-input"
+                  id="makbuzNo"
+                  placeholder="İsteğe bağlı"
+                />
+              </div>
+              <div class="form-group full-width">
+                <label class="form-label" style="color: #ffffff !important">
+                  Notlar
+                </label>
+                <textarea
+                  class="form-textarea"
+                  id="odemeNotlar"
+                  rows="2"
+                  placeholder="Ek bilgi..."
+                ></textarea>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button
+            class="btn-modern btn-secondary"
+            onclick="closeOdemeAlModal()"
+          >
+            <span class="btn-icon">✖</span>
+            <span class="btn-text">İptal</span>
+          </button>
+          <button class="btn-modern btn-success" onclick="odemeKaydet()">
+            <span class="btn-icon">✓</span>
+            <span class="btn-text">Ödemeyi Kaydet</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- KİŞİ DETAY MODALI -->
+    <div class="modal-overlay" id="kisiDetayModal" style="display: none">
+      <div class="modal-container modal-extra-large">
+        <div
+          class="modal-header"
+          style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
+        >
+          <h2
+            style="color: white; display: flex; align-items: center; gap: 12px"
+          >
+            <svg
+              width="28"
+              height="28"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+              <circle cx="12" cy="7" r="4" />
+            </svg>
+            <span id="detayModalTitle">Katılımcı Detayı</span>
+          </h2>
+          <button
+            class="modal-close"
+            onclick="closeKisiDetayModal()"
+            style="color: white"
+          >
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </button>
+        </div>
+
+        <div class="modal-body" style="max-height: 75vh; overflow-y: auto">
+          <!-- ÖZET KART -->
+          <div class="detay-ozet-kart">
+            <div class="ozet-kart-sol">
+              <div class="kisi-avatar" id="detayAvatar">
+                <svg
+                  width="48"
+                  height="48"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                  <circle cx="12" cy="7" r="4" />
+                </svg>
+              </div>
+              <div class="kisi-bilgi">
+                <h3 id="detayKisiAd">-</h3>
+                <span class="kisi-tip-badge" id="detayKisiTip">-</span>
+              </div>
+            </div>
+            <div class="ozet-kart-sag">
+              <div class="ozet-item">
+                <div class="ozet-baslik">Toplam Ücret</div>
+                <div class="ozet-deger toplam" id="detayToplamUcret">0 TL</div>
+              </div>
+              <div class="ozet-item">
+                <div class="ozet-baslik">Ödenen</div>
+                <div class="ozet-deger odenen" id="detayOdenen">0 TL</div>
+              </div>
+              <div class="ozet-item">
+                <div class="ozet-baslik">Kalan</div>
+                <div class="ozet-deger kalan" id="detayKalan">0 TL</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- İLERLEME ÇUBUĞU -->
+          <div class="detay-ilerleme">
+            <div class="ilerleme-baslik">
+              <span>Ödeme İlerlemesi</span>
+              <span id="detayIlerlemeyuzde">0%</span>
+            </div>
+            <div class="ilerleme-bar">
+              <div
+                class="ilerleme-dolgu"
+                id="detayIlerlemeDolgu"
+                style="width: 0%"
+              ></div>
+            </div>
+          </div>
+
+          <!-- TAKSİTLER LİSTESİ -->
+          <div class="form-section">
+            <h3 class="form-section-title">
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                <line x1="16" y1="2" x2="16" y2="6" />
+                <line x1="8" y1="2" x2="8" y2="6" />
+                <line x1="3" y1="10" x2="21" y2="10" />
+              </svg>
+              Taksit Detayları
+            </h3>
+
+            <div class="detay-taksitler" id="detayTaksitlerListesi">
+              <!-- JavaScript ile doldurulacak -->
+            </div>
+          </div>
+
+          <!-- ÖDEME GEÇMİŞİ -->
+          <div class="form-section">
+            <h3 class="form-section-title">
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path d="M12 8v4l3 3" />
+                <circle cx="12" cy="12" r="10" />
+              </svg>
+              Ödeme Geçmişi
+            </h3>
+
+            <div class="odeme-gecmisi-liste" id="detayOdemeGecmisi">
+              <!-- JavaScript ile doldurulacak -->
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button
+            class="btn-modern btn-secondary"
+            onclick="closeKisiDetayModal()"
+          >
+            <span class="btn-icon">✖</span>
+            <span class="btn-text">Kapat</span>
+          </button>
+          <button class="btn-modern btn-primary" onclick="detayYazdir()">
+            <span class="btn-icon">🖨️</span>
+            <span class="btn-text">Yazdır</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ÖDEME HATIRLATICI PANELİ (ANA SAYFA ÜST) -->
+    <div
+      class="odeme-hatirlatici-panel"
+      id="odemeHatirlaticiPanel"
+      style="display: none"
+    >
+      <div class="hatirlatici-header">
+        <h3>
+          <svg
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+            <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+          </svg>
+          Ödeme Hatırlatıcıları
+        </h3>
+        <button class="hatirlatici-kapat" onclick="hatirlaticiKapat()">
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        </button>
+      </div>
+
+      <div class="hatirlatici-content">
+        <!-- BUGÜN VADESİ DOLACAKLAR -->
+        <div
+          class="hatirlatici-grup"
+          id="hatirlaticiBugun"
+          style="display: none"
+        >
+          <div class="hatirlatici-grup-baslik acil">
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <circle cx="12" cy="12" r="10" />
+              <line x1="12" y1="8" x2="12" y2="12" />
+              <line x1="12" y1="16" x2="12.01" y2="16" />
+            </svg>
+            <span
+              >BUGÜN VADESI DOLACAK (<span id="bugunSayi">0</span> kişi)</span
+            >
+          </div>
+          <div class="hatirlatici-liste" id="bugunListe">
+            <!-- JavaScript ile doldurulacak -->
+          </div>
+        </div>
+
+        <!-- 7 GÜN İÇİNDE -->
+        <div
+          class="hatirlatici-grup"
+          id="hatirlaticiYakin"
+          style="display: none"
+        >
+          <div class="hatirlatici-grup-baslik yakin">
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+              <line x1="16" y1="2" x2="16" y2="6" />
+              <line x1="8" y1="2" x2="8" y2="6" />
+              <line x1="3" y1="10" x2="21" y2="10" />
+            </svg>
+            <span>7 GÜN İÇİNDE (<span id="yakinSayi">0</span> kişi)</span>
+          </div>
+          <div class="hatirlatici-liste" id="yakinListe">
+            <!-- JavaScript ile doldurulacak -->
+          </div>
+        </div>
+
+        <!-- VADESİ GEÇMİŞ -->
+        <div
+          class="hatirlatici-grup"
+          id="hatirlaticiGecmis"
+          style="display: none"
+        >
+          <div class="hatirlatici-grup-baslik gecmis">
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <circle cx="12" cy="12" r="10" />
+              <polyline points="12 6 12 12 16 14" />
+            </svg>
+            <span>VADESİ GEÇMİŞ (<span id="gecmisSayi">0</span> kişi)</span>
+          </div>
+          <div class="hatirlatici-liste" id="gecmisListe">
+            <!-- JavaScript ile doldurulacak -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PASAPORT YÖNETİMİ MODALI -->
+    <div class="modal-overlay" id="pasaportModal" style="display: none">
+      <div class="modal-container modal-extra-large">
+        <div
+          class="modal-header"
+          style="background: linear-gradient(135deg, #fd79a8 0%, #fdcb6e 100%)"
+        >
+          <h2
+            style="color: white; display: flex; align-items: center; gap: 12px"
+          >
+            <svg
+              width="28"
+              height="28"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
+              <line x1="8" y1="21" x2="16" y2="21" />
+              <line x1="12" y1="17" x2="12" y2="21" />
+            </svg>
+            <span id="pasaportModalTitle">Pasaport Yönetimi</span>
+          </h2>
+          <button
+            class="modal-close"
+            onclick="closePasaportModal()"
+            style="color: white"
+          >
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </button>
+        </div>
+
+        <div class="modal-body" style="max-height: 75vh; overflow-y: auto">
+          <!-- PASAPORT ÖZET -->
+          <div class="pasaport-ozet-panel">
+            <div class="pasaport-ozet-item">
+              <div
+                class="ozet-icon"
+                style="
+                  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                "
+              >
+                👑
+              </div>
+              <div class="ozet-bilgi">
+                <div class="ozet-sayi" id="pasaportKafSayi">0</div>
+                <div class="ozet-etiket">Kafİle Başkanı</div>
+              </div>
+            </div>
+            <div class="pasaport-ozet-item">
+              <div
+                class="ozet-icon"
+                style="
+                  background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+                "
+              >
+                👨‍🏫
+              </div>
+              <div class="ozet-bilgi">
+                <div class="ozet-sayi" id="pasaportOgrSayi">0</div>
+                <div class="ozet-etiket">Öğretmen</div>
+              </div>
+            </div>
+            <div class="pasaport-ozet-item">
+              <div
+                class="ozet-icon"
+                style="
+                  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+                "
+              >
+                👨‍🎓
+              </div>
+              <div class="ozet-bilgi">
+                <div class="ozet-sayi" id="pasaportOgrenciSayi">0</div>
+                <div class="ozet-etiket">Öğrenci</div>
+              </div>
+            </div>
+            <div class="pasaport-ozet-item">
+              <div
+                class="ozet-icon"
+                style="
+                  background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%);
+                "
+              >
+                👥
+              </div>
+              <div class="ozet-bilgi">
+                <div class="ozet-sayi" id="pasaportMisSayi">0</div>
+                <div class="ozet-etiket">Misafir</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- SEKMELER -->
+          <div class="pasaport-tabs">
+            <button
+              class="pasaport-tab active"
+              data-tab="kafile"
+              onclick="pasaportTabDegistir('kafile')"
+            >
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path
+                  d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"
+                />
+              </svg>
+              Kafİle Başkanları (<span id="tabKafSayi">0</span>)
+            </button>
+            <button
+              class="pasaport-tab"
+              data-tab="ogretmen"
+              onclick="pasaportTabDegistir('ogretmen')"
+            >
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                <circle cx="9" cy="7" r="4" />
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+              </svg>
+              Öğretmenler (<span id="tabOgrSayi">0</span>)
+            </button>
+            <button
+              class="pasaport-tab"
+              data-tab="ogrenci"
+              onclick="pasaportTabDegistir('ogrenci')"
+            >
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path d="M22 10v6M2 10l10-5 10 5-10 5z" />
+                <path d="M6 12v5c3 3 9 3 12 0v-5" />
+              </svg>
+              Öğrenciler (<span id="tabOgrenciSayi">0</span>)
+            </button>
+            <button
+              class="pasaport-tab"
+              data-tab="misafir"
+              onclick="pasaportTabDegistir('misafir')"
+            >
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                <circle cx="9" cy="7" r="4" />
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+              </svg>
+              Misafirler (<span id="tabMisSayi">0</span>)
+            </button>
+          </div>
+
+          <!-- TOPLU İŞLEM TOOLBAR -->
+          <div class="pasaport-toolbar">
+            <div class="toolbar-sol">
+              <button class="btn-toolbar" onclick="pasaportHepsiniSec()">
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <polyline points="20 6 9 17 4 12" />
+                </svg>
+                Hepsini Seç
+              </button>
+              <button class="btn-toolbar" onclick="pasaportSecimiTemizle()">
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                  <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+                Seçimi Temizle
+              </button>
+              <span class="secili-sayisi" id="seciliSayisi">0 kişi seçili</span>
+            </div>
+            <div class="toolbar-sag">
+              <button
+                class="btn-toolbar btn-primary"
+                onclick="topluPasaportKaydet()"
+              >
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <polyline points="20 6 9 17 4 12" />
+                </svg>
+                Seçilileri Kaydet
+              </button>
+            </div>
+          </div>
+
+          <!-- PASAPORT LİSTESİ TABLOSU -->
+          <div class="pasaport-tablo-container">
+            <table class="pasaport-tablo">
+              <thead>
+                <tr>
+                  <th width="50">
+                    <input
+                      type="checkbox"
+                      id="pasaportCheckAll"
+                      onchange="pasaportCheckAllToggle()"
+                    />
+                  </th>
+                  <th>Ad Soyad</th>
+                  <th width="150">TC Kimlik</th>
+                  <th width="80">Seri</th>
+                  <th width="120">Pasaport No</th>
+                  <th width="120">Tür</th>
+                  <th width="150">Geçerlilik</th>
+                  <th width="100">Çifte?</th>
+                  <th width="120">Vize</th>
+                  <th width="120">İşlemler</th>
+                </tr>
+              </thead>
+              <tbody id="pasaportListesi">
+                <!-- JavaScript ile doldurulacak -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button
+            class="btn-modern btn-secondary"
+            onclick="closePasaportModal()"
+          >
+            <span class="btn-icon">✖</span>
+            <span class="btn-text">Kapat</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- PASAPORT DÜZENLE MODALI -->
+    <div class="modal-overlay" id="pasaportDuzenleModal" style="display: none">
+      <div class="modal-container modal-large">
+        <div
+          class="modal-header"
+          style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
+        >
+          <h2
+            style="color: white; display: flex; align-items: center; gap: 12px"
+          >
+            <svg
+              width="28"
+              height="28"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path
+                d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"
+              />
+              <path
+                d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"
+              />
+            </svg>
+            <span id="pasaportDuzenleTitle">Pasaport Bilgileri</span>
+          </h2>
+          <button
+            class="modal-close"
+            onclick="closePasaportDuzenleModal()"
+            style="color: white"
+          >
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </button>
+        </div>
+
+        <div class="modal-body">
+          <!-- KİŞİ BİLGİLERİ -->
+          <div class="form-section">
+            <h3 class="form-section-title">
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                <circle cx="12" cy="7" r="4" />
+              </svg>
+              Kişi Bilgileri
+            </h3>
+            <div class="form-grid-2">
+              <div class="form-group">
+                <label class="form-label">Ad Soyad</label>
+                <input
+                  type="text"
+                  class="form-input"
+                  id="duzenleAdSoyad"
+                  readonly
+                />
+              </div>
+              <div class="form-group">
+                <label class="form-label">TC Kimlik No</label>
+                <input
+                  type="text"
+                  class="form-input"
+                  id="duzenleTcKimlik"
+                  maxlength="11"
+                  placeholder="12345678901"
+                />
+              </div>
+            </div>
+          </div>
+
+          <!-- BİRİNCİ PASAPORT -->
+          <div class="form-section">
+            <h3 class="form-section-title">
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
+                <line x1="8" y1="21" x2="16" y2="21" />
+                <line x1="12" y1="17" x2="12" y2="21" />
+              </svg>
+              Birinci Pasaport (Zorunlu)
+            </h3>
+            <div class="form-grid-3">
+              <div class="form-group">
+                <label class="form-label">Pasaport Seri *</label>
+                <input
+                  type="text"
+                  class="form-input"
+                  id="duzenlePasaportSeri"
+                  maxlength="1"
+                  placeholder="S"
+                  style="text-transform: uppercase"
+                />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Pasaport No *</label>
+                <input
+                  type="text"
+                  class="form-input"
+                  id="duzenlePasaportNo"
+                  maxlength="9"
+                  placeholder="123456"
+                />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Pasaport Türü *</label>
+                <select class="form-select" id="duzenlePasaportTuru">
+                  <option value="">Seçiniz</option>
+                  <option value="bordo">📕 Bordo Pasaport</option>
+                  <option value="gri">📘 Gri Pasaport</option>
+                  <option value="yesil">📗 Yeşil Pasaport</option>
+                </select>
+              </div>
+              <div class="form-group full-width">
+                <label class="form-label">Son Geçerlilik Tarihi *</label>
+                <input type="date" class="form-input" id="duzenleGecerlilik" />
+              </div>
+            </div>
+          </div>
+
+          <!-- İKİNCİ PASAPORT (ÇİFTE VATANDAŞLIK) -->
+          <div class="form-section">
+            <div
+              style="
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                margin-bottom: 20px;
+              "
+            >
+              <h3
+                class="form-section-title"
+                style="margin: 0; border: none; padding: 0"
+              >
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
+                  <line x1="8" y1="21" x2="16" y2="21" />
+                  <line x1="12" y1="17" x2="12" y2="21" />
+                </svg>
+                İkinci Pasaport (Çifte Vatandaşlık)
+              </h3>
+              <label
+                style="
+                  display: flex;
+                  align-items: center;
+                  gap: 8px;
+                  cursor: pointer;
+                "
+              >
+                <input
+                  type="checkbox"
+                  id="duzenleCifteVatandaslik"
+                  onchange="toggleIkinciPasaport()"
+                  style="width: 20px; height: 20px"
+                />
+                <span style="font-weight: 700; color: #1f2937"
+                  >Çifte Vatandaş</span
+                >
+              </label>
+            </div>
+
+            <div id="ikinciPasaportAlanlari" style="display: none">
+              <div class="form-grid-3">
+                <div class="form-group">
+                  <label class="form-label">2. Pasaport Seri</label>
+                  <input
+                    type="text"
+                    class="form-input"
+                    id="duzenleIkinciSeri"
+                    maxlength="1"
+                    placeholder="U"
+                    style="text-transform: uppercase"
+                  />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">2. Pasaport No</label>
+                  <input
+                    type="text"
+                    class="form-input"
+                    id="duzenleIkinciNo"
+                    maxlength="9"
+                    placeholder="789012"
+                  />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">2. Pasaport Türü</label>
+                  <select class="form-select" id="duzenleIkinciTuru">
+                    <option value="">Seçiniz</option>
+                    <option value="bordo">📕 Bordo Pasaport</option>
+                    <option value="gri">📘 Gri Pasaport</option>
+                    <option value="yesil">📗 Yeşil Pasaport</option>
+                  </select>
+                </div>
+                <div class="form-group full-width">
+                  <label class="form-label">2. Geçerlilik Tarihi</label>
+                  <input
+                    type="date"
+                    class="form-input"
+                    id="duzenleIkinciGecerlilik"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- VİZE BİLGİLERİ -->
+          <div class="form-section">
+            <h3 class="form-section-title">
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path
+                  d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
+                />
+                <polyline points="14 2 14 8 20 8" />
+                <line x1="16" y1="13" x2="8" y2="13" />
+                <line x1="16" y1="17" x2="8" y2="17" />
+                <polyline points="10 9 9 9 8 9" />
+              </svg>
+              Vize Bilgileri
+            </h3>
+            <div class="form-grid-2">
+              <div class="form-group">
+                <label class="form-label">Vize Durumu</label>
+                <select class="form-select" id="duzenleVizeDurum">
+                  <option value="bekliyor">⏳ Bekliyor</option>
+                  <option value="basvuruldu">📝 Başvuruldu</option>
+                  <option value="alindi">✅ Alındı</option>
+                  <option value="reddedildi">❌ Reddedildi</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Vize Tarihi</label>
+                <input type="date" class="form-input" id="duzenleVizeTarih" />
+              </div>
+              <div class="form-group full-width">
+                <label class="form-label">Vize Notları</label>
+                <textarea
+                  class="form-textarea"
+                  id="duzenleVizeNotlar"
+                  rows="2"
+                  placeholder="Başvuru detayları, randevu bilgileri..."
+                ></textarea>
+              </div>
+            </div>
+          </div>
+
+          <!-- GENEL NOTLAR -->
+          <div class="form-section">
+            <h3 class="form-section-title">
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path
+                  d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
+                />
+                <polyline points="14 2 14 8 20 8" />
+              </svg>
+              Notlar
+            </h3>
+            <div class="form-group">
+              <textarea
+                class="form-textarea"
+                id="duzenleNotlar"
+                rows="3"
+                placeholder="Ek bilgiler, özel durumlar..."
+              ></textarea>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button
+            class="btn-modern btn-secondary"
+            onclick="closePasaportDuzenleModal()"
+          >
+            <span class="btn-icon">✖</span>
+            <span class="btn-text">İptal</span>
+          </button>
+          <button class="btn-modern btn-success" onclick="pasaportKaydet()">
+            <span class="btn-icon">✓</span>
+            <span class="btn-text">Kaydet</span>
+          </button>
+        </div>
+      </div>
+    </div>
+    <!-- ============================================ -->
+    <!-- KOLTUK PLANI MODAL -->
+    <!-- ============================================ -->
+    <div class="modal-overlay" id="koltukPlaniModal" style="display: none">
+      <div class="modal-container" style="max-width: 95vw; max-height: 95vh">
+        <div
+          class="modal-header"
+          style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%)"
+        >
+          <h2
+            style="color: white; display: flex; align-items: center; gap: 12px"
+          >
+            <span>🚌</span>
+            <span id="koltukPlaniBaslik">Araç Koltuk Planı</span>
+          </h2>
+          <button
+            class="modal-close"
+            onclick="closeKoltukPlaniModal()"
+            style="color: white"
+          >
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </button>
+        </div>
+
+        <div
+          class="modal-body"
+          style="max-height: 85vh; overflow: hidden; padding: 0"
+        >
+          <!-- ÜST BAR -->
+          <div
+            style="
+              padding: 20px;
+              background: #f9fafb;
+              border-bottom: 2px solid #e5e7eb;
+            "
+          >
+            <div
+              style="
+                display: flex;
+                gap: 20px;
+                align-items: center;
+                flex-wrap: wrap;
+              "
+            >
+              <div>
+                <label
+                  style="font-weight: bold; margin-right: 10px; color: #1f2937"
+                  >📏 Kapasite:</label
+                >
+                <select
+                  id="koltukKapasite"
+                  onchange="changeKoltukKapasite()"
+                  style="
+                    padding: 8px 12px;
+                    border-radius: 6px;
+                    border: 2px solid #cbd5e1;
+                    color: #1f2937;
+                  "
+                >
+                  <option value="30">30 Kişilik (2+1)</option>
+                  <option value="40">40 Kişilik (2+2)</option>
+                  <option value="45">45 Kişilik (2+2)</option>
+                  <option value="50">50 Kişilik (2+2)</option>
+                  <option value="54" selected>54 Kişilik (2+2)</option>
+                </select>
+              </div>
+              <div style="flex: 1"></div>
+              <button
+                class="btn-modern btn-success"
+                onclick="otomatikKoltukAta()"
+                style="padding: 10px 20px"
+              >
+                <span>🤖 Otomatik Ata</span>
+              </button>
+              <button
+                class="btn-modern btn-danger"
+                onclick="tumKoltuklariTemizle()"
+                style="padding: 10px 20px"
+              >
+                <span>🗑️ Temizle</span>
+              </button>
+              <button
+                class="btn-modern btn-primary"
+                onclick="koltukPlaniPDFIndir()"
+                style="padding: 10px 20px"
+              >
+                <span>📄 PDF</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- ANA İÇERİK -->
+          <div
+            style="
+              display: grid;
+              grid-template-columns: 300px 1fr;
+              height: calc(85vh - 100px);
+            "
+          >
+            <!-- SOL: Katılımcılar -->
+            <div
+              style="
+                background: #f3f4f6;
+                border-right: 2px solid #e5e7eb;
+                overflow-y: auto;
+                padding: 20px;
+              "
+            >
+              <h3
+                style="
+                  font-size: 16px;
+                  font-weight: bold;
+                  margin-bottom: 12px;
+                  color: #1f2937;
+                "
+              >
+                👥 KATILIMCILAR (<span id="katilimciSayisi">0</span>)
+              </h3>
+              <input
+                type="search"
+                id="katilimciArama"
+                placeholder="🔍 Ara..."
+                oninput="filterKatilimcilar()"
+                style="
+                  width: 100%;
+                  padding: 10px;
+                  border: 2px solid #cbd5e1;
+                  border-radius: 8px;
+                  margin-bottom: 12px;
+                  color: #1f2937;
+                "
+              />
+
+              <div
+                style="
+                  display: flex;
+                  flex-direction: column;
+                  gap: 8px;
+                  font-size: 13px;
+                  margin-bottom: 15px;
+                "
+              >
+                <label
+                  style="
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                    color: #1f2937;
+                    cursor: pointer;
+                  "
+                >
+                  <input
+                    type="checkbox"
+                    checked
+                    onchange="filterKatilimcilar()"
+                    data-filter="kafile"
+                  />
+                  <span>👑 Kafile Başkanı</span>
+                </label>
+                <label
+                  style="
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                    color: #1f2937;
+                    cursor: pointer;
+                  "
+                >
+                  <input
+                    type="checkbox"
+                    checked
+                    onchange="filterKatilimcilar()"
+                    data-filter="ogretmen"
+                  />
+                  <span>👨‍🏫 Öğretmenler</span>
+                </label>
+                <label
+                  style="
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                    color: #1f2937;
+                    cursor: pointer;
+                  "
+                >
+                  <input
+                    type="checkbox"
+                    checked
+                    onchange="filterKatilimcilar()"
+                    data-filter="ogrenci"
+                  />
+                  <span>👨‍🎓 Öğrenciler</span>
+                </label>
+                <label
+                  style="
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                    color: #1f2937;
+                    cursor: pointer;
+                  "
+                >
+                  <input
+                    type="checkbox"
+                    checked
+                    onchange="filterKatilimcilar()"
+                    data-filter="misafir"
+                  />
+                  <span>👥 Misafirler</span>
+                </label>
+              </div>
+
+              <div id="katilimciListesiKoltuk"></div>
+            </div>
+
+            <!-- SAĞ: Otobüs -->
+            <div style="background: white; overflow-y: auto; padding: 30px">
+              <div
+                id="otobusKoltukPlani"
+                style="max-width: 600px; margin: 0 auto"
+              ></div>
+
+              <!-- İstatistik -->
+              <div
+                style="
+                  max-width: 600px;
+                  margin: 30px auto;
+                  background: #f0f9ff;
+                  border: 2px solid #3b82f6;
+                  border-radius: 12px;
+                  padding: 20px;
+                "
+              >
+                <h4
+                  style="font-weight: bold; margin-bottom: 15px; color: #1e40af"
+                >
+                  📊 DOLULUK
+                </h4>
+                <div
+                  style="
+                    display: grid;
+                    grid-template-columns: repeat(3, 1fr);
+                    gap: 15px;
+                    text-align: center;
+                  "
+                >
+                  <div>
+                    <div style="font-size: 12px; color: #6b7280">Toplam</div>
+                    <div
+                      style="font-size: 24px; font-weight: bold; color: #1e3a8a"
+                      id="statToplamKoltuk"
+                    >
+                      54
+                    </div>
+                  </div>
+                  <div>
+                    <div style="font-size: 12px; color: #6b7280">Dolu</div>
+                    <div
+                      style="font-size: 24px; font-weight: bold; color: #22c55e"
+                      id="statDoluKoltuk"
+                    >
+                      0
+                    </div>
+                  </div>
+                  <div>
+                    <div style="font-size: 12px; color: #6b7280">Boş</div>
+                    <div
+                      style="font-size: 24px; font-weight: bold; color: #ef4444"
+                      id="statBosKoltuk"
+                    >
+                      54
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <style>
+      .katilimci-kart-drag {
+        background: white;
+        border: 2px solid #cbd5e1;
+        border-radius: 8px;
+        padding: 10px;
+        margin-bottom: 8px;
+        cursor: grab;
+        transition: all 0.2s;
+        color: #1f2937;
+      }
+      .katilimci-kart-drag:hover {
+        background: #f0f9ff;
+        border-color: #3b82f6;
+        transform: translateX(5px);
+      }
+      .katilimci-kart-drag:active {
+        cursor: grabbing;
+      }
+      .katilimci-kart-drag.atandi {
+        opacity: 0.4;
+        cursor: not-allowed;
+      }
+
+      .otobus-container {
+        background: linear-gradient(180deg, #f1f5f9 0%, #e2e8f0 100%);
+        border: 3px solid #94a3b8;
+        border-radius: 30px;
+        padding: 20px;
+      }
+      .sofor-alan {
+        background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+        color: white;
+        padding: 15px;
+        border-radius: 12px;
+        text-align: center;
+        font-weight: bold;
+        margin-bottom: 20px;
+      }
+      .koltuk-satir {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 15px;
+        justify-content: center;
+      }
+      .koltuk {
+        width: 70px;
+        height: 90px;
+        border: 3px solid #cbd5e1;
+        border-radius: 15px 15px 8px 8px;
+        background: linear-gradient(180deg, #f8fafc 0%, #e2e8f0 100%);
+        position: relative;
+        cursor: pointer;
+        transition: all 0.3s;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        font-size: 10px;
+        padding: 5px;
+        text-align: center;
+        color: #22c55e;
+        font-weight: 600;
+      }
+      .koltuk:hover {
+        transform: scale(1.08);
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+      }
+      .koltuk.dolu {
+        background: linear-gradient(180deg, #86efac 0%, #22c55e 100%);
+        border-color: #16a34a;
+        color: white;
+        font-weight: bold;
+      }
+      .koltuk.erkek {
+        background: linear-gradient(180deg, #93c5fd 0%, #3b82f6 100%);
+        border-color: #1d4ed8;
+        color: white;
+      }
+      .koltuk.kiz {
+        background: linear-gradient(180deg, #fda4af 0%, #f43f5e 100%);
+        border-color: #be123c;
+        color: white;
+      }
+      .koltuk.ogretmen {
+        background: linear-gradient(180deg, #fde68a 0%, #fbbf24 100%);
+        border-color: #d97706;
+        color: #78350f;
+        font-weight: bold;
+      }
+      .koltuk.rezerve {
+        background: linear-gradient(180deg, #fbbf24 0%, #f59e0b 100%);
+        border-color: #d97706;
+        color: white;
+        font-weight: bold;
+        cursor: not-allowed;
+      }
+      .koltuk-no {
+        position: absolute;
+        top: 3px;
+        left: 5px;
+        font-size: 10px;
+        font-weight: bold;
+        color: #64748b;
+      }
+      .koltuk.dolu .koltuk-no,
+      .koltuk.erkek .koltuk-no,
+      .koltuk.kiz .koltuk-no,
+      .koltuk.ogretmen .koltuk-no,
+      .koltuk.rezerve .koltuk-no {
+        color: rgba(255, 255, 255, 0.7);
+      }
+      .koridor {
+        width: 30px;
+        height: 90px;
+        background: repeating-linear-gradient(
+          45deg,
+          #f1f5f9,
+          #f1f5f9 10px,
+          #e2e8f0 10px,
+          #e2e8f0 20px
+        );
+        border-radius: 4px;
+      }
+      .dragover {
+        border-color: #22c55e !important;
+        background: #dcfce7 !important;
+        transform: scale(1.1);
+      }
+    </style>
+
+    <script src="../bilesenler/bildirim-sistemi.js"></script>
+    <script src="gezi-planla.js"></script>
+  </body>
+</html>

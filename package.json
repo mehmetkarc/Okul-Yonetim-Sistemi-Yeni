@@ -1,13 +1,12 @@
 {
   "name": "okul-yonetim-sistemi",
-  "version": "1.0.0",
+  "version": "1.1.1",
   "description": "Okul Yönetim Sistemi - Profesyonel Çözüm",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
     "build": "electron-builder build --win --x64",
-    "build:portable": "electron-builder build --win portable",
-    "publish": "electron-builder build --win --x64 --publish always"
+    "build:portable": "electron-builder build --win portable"
   },
   "keywords": [
     "okul",
@@ -52,10 +51,8 @@
       "!.git"
     ],
     "publish": {
-      "provider": "github",
-      "owner": "mehmetkarc",
-      "repo": "Okul-Yonetim-Sistemi",
-      "releaseType": "release"
+      "provider": "generic",
+      "url": "https://your-update-server.com/updates"
     }
   }
 }

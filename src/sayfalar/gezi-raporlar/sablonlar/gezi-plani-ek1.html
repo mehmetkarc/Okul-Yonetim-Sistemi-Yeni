@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Gezi Planı Ek-1 (Resmi Format)</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Times New Roman", Times, serif;
+        font-size: 10pt;
+        line-height: 1.2;
+        color: #000;
+        background: #fff;
+        padding: 10mm;
+      }
+
+      @page {
+        size: A4 portrait;
+        margin: 10mm;
+      }
+
+      @media print {
+        body {
+          padding: 0;
+          -webkit-print-color-adjust: exact;
+          print-color-adjust: exact;
+        }
+        .no-print {
+          display: none !important;
+        }
+      }
+
+      h1 {
+        text-align: center;
+        font-size: 14pt;
+        font-weight: bold;
+        margin-bottom: 10px;
+        text-decoration: underline;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 5px;
+      }
+
+      table,
+      th,
+      td {
+        border: 1px solid #000;
+      }
+
+      th,
+      td {
+        padding: 3px 5px;
+        text-align: left;
+        vertical-align: middle;
+      }
+
+      .bg-blue {
+        background-color: #e6f2ff !important;
+      }
+      .bg-gray {
+        background-color: #eeeeee !important;
+      }
+      .text-center {
+        text-align: center;
+      }
+      .bold {
+        font-weight: bold;
+      }
+
+      /* Katılımcı Tablosu 3 Sütun */
+      .katilimcilar-table th {
+        text-align: center;
+        background-color: #f9f9f9;
+      }
+
+      /* Küçük Yazılar */
+      .note {
+        font-size: 8.5pt;
+        text-align: justify;
+        margin-top: 5px;
+      }
+      .yasal-notlar {
+        font-size: 8pt;
+        text-align: justify;
+        margin-top: 8px;
+        line-height: 1.1;
+      }
+
+      /* İmza Alanları */
+      .imza-row {
+        margin-top: 15px;
+      }
+      .imza-table td {
+        border: none;
+        text-align: center;
+        width: 33%;
+        padding-top: 10px;
+        vertical-align: top;
+      }
+
+      .action-buttons {
+        position: fixed;
+        top: 10px;
+        right: 10px;
+        z-index: 1000;
+        display: flex;
+        gap: 10px;
+      }
+
+      .btn {
+        padding: 8px 15px;
+        border-radius: 5px;
+        cursor: pointer;
+        border: none;
+        font-weight: bold;
+        color: white;
+      }
+      .btn-print {
+        background: #2ecc71;
+      }
+      .btn-close {
+        background: #e74c3c;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="action-buttons no-print">
+      <button class="btn btn-print" onclick="window.print()">
+        📄 YAZDIR / PDF
+      </button>
+      <button class="btn btn-close" onclick="window.close()">✖ KAPAT</button>
+    </div>
+
+    <h1>GEZİ PLANI</h1>
+
+    <table>
+      <tr>
+        <th class="bg-blue" style="width: 25%">Okul Adı</th>
+        <td id="okulAdi" colspan="3" class="bold"></td>
+      </tr>
+      <tr>
+        <th class="bg-blue">Gezi Tarihi ve Saati</th>
+        <td id="geziTarihSaat" style="width: 25%"></td>
+        <th class="bg-blue" style="width: 25%">Dönüş Tarihi ve Saati</th>
+        <td id="donusTarihSaat" style="width: 25%"></td>
+      </tr>
+      <tr>
+        <th class="bg-blue">Gezi Güzergahı (Gezi Yeri)</th>
+        <td id="guzergah" colspan="3"></td>
+      </tr>
+      <tr>
+        <th class="bg-blue">Gezinin Amacı</th>
+        <td id="geziAmaci" colspan="3"></td>
+      </tr>
+    </table>
+
+    <p class="bold" style="margin: 5px 0">
+      GEZİYE KATILACAKLAR (İdareci-Öğretmen-Personel)
+    </p>
+    <table class="katilimcilar-table">
+      <thead>
+        <tr>
+          <th>Adı Soyadı</th>
+          <th>Görevi</th>
+          <th>İmzası</th>
+          <th>Adı Soyadı</th>
+          <th>Görevi</th>
+          <th>İmzası</th>
+          <th>Adı Soyadı</th>
+          <th>Görevi</th>
+          <th>İmzası</th>
+        </tr>
+      </thead>
+      <tbody id="katilimcilarBody">
+        <tr>
+          <td>&nbsp;</td>
+          <td>&nbsp;</td>
+          <td>&nbsp;</td>
+          <td>&nbsp;</td>
+          <td>&nbsp;</td>
+          <td>&nbsp;</td>
+          <td>&nbsp;</td>
+          <td>&nbsp;</td>
+          <td>&nbsp;</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p class="bold">EKLER: Öğrenci Listesi</p>
+    <p class="note">
+      <strong>Not:</strong> Gezilerde 40 öğrenciye kadar 1 yönetici, her 15
+      öğrenciye 1 sorumlu öğretmen görevlendirilecektir. Geziler Eğitim-Öğretimi
+      aksatmayacak şekilde düzenlenecektir. Ancak onay verilirse dersler telafi
+      edilecektir. Gezi başında alınacak komisyon kararı ve sonrasında
+      değerlendirilmesi ile ilgili rapor Okul Müdürlüğünce muhafaza edilecektir.
+    </p>
+
+    <table style="margin-top: 10px">
+      <tr class="bg-gray text-center bold">
+        <td rowspan="2" style="width: 10%">Öğrenci Toplam Sayı</td>
+        <td rowspan="2" style="width: 10%">Bütün Katılımcıların Sayısı</td>
+        <td colspan="5">Gezinin Mali Yönü (Tahmini Bütçe)</td>
+        <td rowspan="2" style="width: 12%">Gezi Sonu Değerl. Gerç. Bütçe</td>
+      </tr>
+      <tr class="bg-gray text-center bold" style="font-size: 8.5pt">
+        <td>
+          Öğrenci Ücr. Kişi Başına<br /><span id="kisiBasiUcretLabel"></span>
+        </td>
+        <td>Toplam Gelir</td>
+        <td>Toplam Gider</td>
+        <td>Kalan</td>
+        <td>Değerlendirme</td>
+      </tr>
+      <tr class="text-center">
+        <td id="ogrenciSayi" class="bold"></td>
+        <td id="toplamKatilimci"></td>
+        <td id="kisiBasiUcret"></td>
+        <td id="toplamGelir"></td>
+        <td id="toplamGider"></td>
+        <td id="kalanBakiye"></td>
+        <td style="font-size: 8pt">Değerlendirme Gezi Sonunda Yapılacaktır.</td>
+        <td id="gercButce"></td>
+      </tr>
+    </table>
+    <p class="note" style="font-size: 8pt; margin-bottom: 10px">
+      <strong>Not:</strong> Harcamalar, Devlet Harcama Yönetmeliğine göre
+      yapılacak, belgeler muhafaza edilecektir. Gezi Planın değerlendirme ve
+      gerçekleşen bütçe sütunu gezi sonunda ve diğer sütunlar eksiksiz mutlaka
+      doldurulacaktır.
+    </p>
+
+    <!-- ULAŞIM BÖLÜMÜ (Otobüs veya Uçak) -->
+    <div id="ulasimBolumu">
+      <p class="bold" id="ulasimBaslik">
+        Aracın (Araç otobüsse tek katlı olacaktır)
+      </p>
+
+      <!-- KARA YOLU TABLOSU (Otobüs) -->
+      <table id="karaYoluTablosu" style="font-size: 9pt">
+        <tr class="bg-gray text-center bold">
+          <td>Araç Plakası</td>
+          <td>Modeli</td>
+          <td>Trafiğe Çıkış Tarihi</td>
+          <td>Son Muayene Tarihi</td>
+          <td colspan="2">Zorunlu Mali Sorumluluk Sigortası</td>
+          <td colspan="2">Koltuk Ferdi Kaza Sigortası</td>
+        </tr>
+        <tr class="text-center">
+          <td id="aracPlaka"></td>
+          <td id="aracModel"></td>
+          <td id="aracTrafik"></td>
+          <td id="aracMuayene"></td>
+          <td style="font-size: 8pt"><span id="maliSigortaNo"></span></td>
+          <td style="font-size: 8pt">
+            <span id="maliSigortaBitis"></span>
+          </td>
+          <td style="font-size: 8pt"><span id="kazaSigortaNo"></span></td>
+          <td style="font-size: 8pt">
+            <span id="kazaSigortaBitis"></span>
+          </td>
+        </tr>
+        <tr class="bg-gray">
+          <td colspan="8" class="text-center bold">Araç Sürücüsünün</td>
+        </tr>
+        <tr>
+          <td colspan="2">
+            <strong>1. Adı Soyadı:</strong> <span id="sofor1Ad"></span>
+          </td>
+          <td colspan="2">
+            <strong>T.C. No:</strong> <span id="sofor1Tc"></span>
+          </td>
+          <td colspan="2">
+            <strong>2. Adı Soyadı:</strong> <span id="sofor2Ad"></span>
+          </td>
+          <td colspan="2">
+            <strong>T.C. No:</strong> <span id="sofor2Tc"></span>
+          </td>
+        </tr>
+      </table>
+
+      <!-- HAVA YOLU TABLOSU (Uçak) -->
+      <table id="havaYoluTablosu" style="font-size: 9pt; display: none">
+        <tr class="bg-gray text-center bold">
+          <td>Havayolu Şirketi</td>
+          <td>Uçuş No / Sefer No</td>
+          <td>Kalkış Havaalanı</td>
+          <td>Varış Havaalanı</td>
+          <td>Kalkış Tarihi</td>
+          <td>Varış Tarihi</td>
+          <td>PNR Kodu</td>
+        </tr>
+        <tr class="text-center">
+          <td id="havayoluSirketi">-</td>
+          <td id="ucusNo">-</td>
+          <td id="kalkisHavaalani">-</td>
+          <td id="varisHavaalani">-</td>
+          <td id="kalkisTarihiUcak">-</td>
+          <td id="varisTarihiUcak">-</td>
+          <td id="pnrKodu">-</td>
+        </tr>
+      </table>
+
+      <!-- EKLER (Sadece Kara Yolu için) -->
+      <table id="karaYoluEkler" style="font-size: 8pt; margin-top: 5px">
+        <tr>
+          <td style="width: 20%">
+            <strong>1- EKLER</strong><br />☐ Ruhsat Örneği
+          </td>
+          <td style="width: 20%">
+            <strong>2- EKLER</strong><br />☐ KTK Zorunlu Mali Sorumluluk
+            Poliçesi
+          </td>
+          <td style="width: 25%">
+            <strong>3- EKLER</strong><br />☐ KTK Zorunlu Koltuk Ferdi Kaza
+            Sigortası
+          </td>
+          <td style="width: 35%">
+            <strong>4- EKLER</strong><br />☐ Nüfus Cüzdan Örneği / Sürücü
+            Belgesi<br />☐ Sabıkalı Olmadığına Dair Kayıt (Acentaya bağlı
+            çalışıyorsa belgelendirmek kaydıyla istenmeyecek)<br />☐ Psikoteknik
+            / SRC Belgeleri
+          </td>
+        </tr>
+      </table>
+    </div>
+
+    <div class="yasal-notlar">
+      <p>
+        <strong>Not:</strong> 100 (yüz) kilometrenin üzerinde yapılacak
+        taşımalarda, D2 taşıt kartını haiz otobüsler, 100 kilometreye kadar olan
+        taşımalarda ise Valilikçe uygun görülecek araçlar kullanılır. (Genelge:
+        2008/03)
+      </p>
+      <p>
+        <strong>*</strong> Otobüs yola çıkmadan önce "Araç Uygunluk Tespit
+        Belgesi" doldurulacaktır. (Genelge: 2007/46, Mad.10)
+      </p>
+      <p>
+        <strong>*</strong> (2918 s. KTK 49. Md): Şoförler 24 saatlik süre içinde
+        toplam 9 saatten fazla araç süremezler. Gidilecek yerin uzaklığına göre
+        yedek şoför bulundurulacaktır.
+      </p>
+      <p>
+        <strong>*</strong> Otobüslerde takoğraf bulundurulması zorunludur.
+        Yolculuk gündüz saatlerinde başlatılacaktır.
+      </p>
+    </div>
+
+    <p
+      class="note text-center bold"
+      style="border: 1px solid #000; padding: 5px; margin-top: 10px"
+    >
+      Geziye ilişkin tüm evraklar usulüne uygun hazırlanmış olup, Müdürlüğümüzce
+      muhafaza edilmektedir. Gezinin amaca ve plana uygun gerçekleşmesinden,
+      öğrencilerin güvenliğinden Geziyi Düzenleyenler ile Okul Müdürlüğümüz
+      sorumludur.
+    </p>
+
+    <div class="imza-row">
+      <table class="imza-table">
+        <tr>
+          <td style="vertical-align: top">
+            <strong>Geziyi Düzenleyen/Hazırlayan</strong><br />
+            <div
+              id="geziDuzenleyen"
+              class="bold"
+              style="white-space: pre-line; margin: 10px 0"
+            ></div>
+            <small>Adı Soyadı/İmza</small>
+          </td>
+          <td>
+            <strong>Kafile Başkanı</strong><br />
+            <span id="kafileBaskan" class="bold"></span><br />
+            <small>Adı Soyadı/İmza</small>
+          </td>
+          <td>
+            <strong>Okul Müdürü</strong><br />
+            <span id="okulMuduru" class="bold"></span><br />
+            <small>Adı Soyadı/İmza/Mühür</small>
+          </td>
+        </tr>
+      </table>
+    </div>
+
+    <script>
+      window.addEventListener("load", function () {
+        console.log("✅ Gezi Planı Ek-1 HTML yüklendi");
+      });
+    </script>
+  </body>
+</html>

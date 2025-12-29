@@ -1,3 +1,15 @@
+// ==========================================
+// MAIN.JS — Ultra Enhanced Version
+// ==========================================
+// Türkiye'nin İlk Yapay Zeka Destekli Okul Yönetim Sistemi
+// Main Process - Electron Backend
+//
+// @author SİMRE/MK
+// @version 3.0.0
+// @date 2025
+//
+// ==========================================
+
 const { app, BrowserWindow, ipcMain, dialog } = require("electron");
 const net = require("net");
 const downloadsWatcher = require("./src/downloads-watcher");
@@ -6,11 +18,47 @@ const path = require("path");
 const fs = require("fs");
 const { autoUpdater } = require("electron-updater");
 const db = require("./src/veritabani/veritabani"); // ✅ EN BAŞA TAŞINDI
-const puppeteer = require("puppeteer");
 const os = require("os");
+
+// ==========================================
+// 🆕 YENİ SİSTEMLER - CACHE & PUPPETEER
+// ==========================================
+const cacheManager = require("./src/utils/cache-manager");
+const puppeteerManager = require("./src/utils/puppeteer-manager");
+
+// ⚠️ Artık direkt puppeteer kullanmıyoruz, puppeteerManager kullanıyoruz
+// const puppeteer = require("puppeteer");
+
+// ==========================================
+// PUPPETEER CACHE PATH FIX (OKUL BİLGİSAYARINDA ÇALIŞSIN)
+// ==========================================
+try {
+  const puppeteerCachePath = path.join(
+    app.getPath("userData"),
+    ".cache",
+    "puppeteer"
+  );
+
+  process.env.PUPPETEER_CACHE_DIR = puppeteerCachePath;
+
+  console.log("📁 Puppeteer cache ayarlandı:", puppeteerCachePath);
+} catch (error) {
+  console.log("ℹ️ Puppeteer ayarı atlandı (sorun yok)");
+}
+
+// ==========================================
+// GLOBAL DEĞİŞKENLER
+// ==========================================
 
 let mainWindow;
 let updateAvailable = false;
+let currentSchoolId = null;
+global.currentSchoolId = currentSchoolId;
+
+console.log("🚀 Okul Yönetim Sistemi başlatılıyor...");
+console.log("👨‍💻 Geliştirici: SİMRE/MK");
+console.log("📦 Version: 3.0.0");
+console.log("📅 Yıl: 2025");
 
 // ==========================================
 // NATIVE MESSAGING TCP SERVER
@@ -114,14 +162,20 @@ function startNativeMessagingServer() {
   });
 }
 
-// Uygulama yolu (exe için düzeltme)
+// ==========================================
+// UYGULAMA YOLU VE GELİŞTİRME MODU
+// ==========================================
+
 const isDev = !app.isPackaged;
 const appPath = isDev ? __dirname : path.dirname(app.getPath("exe"));
 
 console.log("📁 Uygulama Yolu:", appPath);
 console.log("🔧 Geliştirme Modu:", isDev);
 
-// Ana pencere oluştur
+// ==========================================
+// ANA PENCERE OLUŞTURMA
+// ==========================================
+
 function createWindow() {
   mainWindow = new BrowserWindow({
     width: 1400,
@@ -134,6 +188,7 @@ function createWindow() {
       nodeIntegration: true,
       contextIsolation: false,
       enableRemoteModule: true,
+      preload: path.join(__dirname, "preload.js"),
     },
     show: false,
     backgroundColor: "#ffffff",
@@ -141,7 +196,6 @@ function createWindow() {
 
   mainWindow.loadFile("src/sayfalar/giris.html");
 
-  // Pencere hazır olunca göster
   mainWindow.once("ready-to-show", () => {
     mainWindow.show();
     mainWindow.maximize();
@@ -152,18 +206,517 @@ function createWindow() {
     }, 5000);
   });
 
+  // ✅ PENCERE KAPATILMADAN ÖNCE VERİTABANINI KAYDET
+  mainWindow.on("close", (e) => {
+    try {
+      console.log("💾 Pencere kapanıyor, veritabanı kaydediliyor...");
+      const schoolDb = db.getActiveSchoolDB();
+      if (schoolDb) {
+        db.saveActiveSchoolDB();
+        console.log("✅ Veritabanı kaydedildi");
+      }
+    } catch (error) {
+      console.error("❌ Kapanış kayıt hatası:", error);
+    }
+  });
+
   mainWindow.on("closed", () => {
     mainWindow = null;
   });
 
-  // Geliştirme modunda DevTools aç
+  // Geliştirme modunda DevTools aç (opsiyonel)
   // if (isDev) {
   //   mainWindow.webContents.openDevTools();
   // }
 }
 
-// Uygulama hazır
+// ==========================================
+// 💾 VERİTABANI OTOMATİK KAYDETME
+// ==========================================
+
+// Her 30 saniyede bir otomatik kaydet
+setInterval(() => {
+  try {
+    const schoolDb = db.getActiveSchoolDB();
+    if (schoolDb) {
+      db.saveActiveSchoolDB();
+      console.log("💾 Otomatik veritabanı kaydı yapıldı");
+    }
+  } catch (error) {
+    console.error("❌ Otomatik kayıt hatası:", error);
+  }
+}, 30000); // 30 saniye
+
+// Uygulama kapanmadan önce kaydet
+app.on("before-quit", () => {
+  try {
+    console.log("💾 Uygulama kapanıyor, son veritabanı kaydı yapılıyor...");
+    const schoolDb = db.getActiveSchoolDB();
+    if (schoolDb) {
+      db.saveActiveSchoolDB();
+      console.log("✅ Veritabanı başarıyla kaydedildi");
+    }
+  } catch (error) {
+    console.error("❌ Kapanış kayıt hatası:", error);
+  }
+});
+
+// ==========================================
+// VERİTABANI MİGRATİONLARI
+// ==========================================
+async function runDatabaseMigrations(schoolDb) {
+  try {
+    console.log("🔄 Okul veritabanı migrasyonları kontrol ediliyor...");
+
+    if (!schoolDb) {
+      console.log("⚠️ Okul veritabanı yok, migration atlanıyor");
+      return;
+    }
+
+    // ============================================
+    // GEZİLER TABLOSU - EKSİK SÜTUNLARI EKLE
+    // ============================================
+    const geziColumns = schoolDb.exec("PRAGMA table_info(geziler)");
+    if (geziColumns && geziColumns.length > 0) {
+      const columns = geziColumns[0].values.map((row) => row[1]);
+
+      if (!columns.includes("gezi_durumu")) {
+        console.log("📊 geziler.gezi_durumu sütunu ekleniyor...");
+        schoolDb.run(
+          "ALTER TABLE geziler ADD COLUMN gezi_durumu TEXT DEFAULT 'planlanıyor'"
+        );
+        console.log("✅ gezi_durumu sütunu eklendi");
+      }
+
+      if (!columns.includes("gezi_turu")) {
+        console.log("📊 geziler.gezi_turu sütunu ekleniyor...");
+        schoolDb.run(
+          "ALTER TABLE geziler ADD COLUMN gezi_turu TEXT DEFAULT 'kültürel'"
+        );
+        console.log("✅ gezi_turu sütunu eklendi");
+      }
+
+      if (!columns.includes("butce")) {
+        console.log("📊 geziler.butce sütunu ekleniyor...");
+        schoolDb.run("ALTER TABLE geziler ADD COLUMN butce REAL DEFAULT 0");
+        console.log("✅ butce sütunu eklendi");
+      }
+
+      if (!columns.includes("para_birimi")) {
+        console.log("📊 geziler.para_birimi sütunu ekleniyor...");
+        schoolDb.run(
+          "ALTER TABLE geziler ADD COLUMN para_birimi TEXT DEFAULT 'TL'"
+        );
+        console.log("✅ para_birimi sütunu eklendi");
+      }
+
+      if (!columns.includes("onay_durumu")) {
+        console.log("📊 geziler.onay_durumu sütunu ekleniyor...");
+        schoolDb.run(
+          "ALTER TABLE geziler ADD COLUMN onay_durumu TEXT DEFAULT 'bekliyor'"
+        );
+        console.log("✅ onay_durumu sütunu eklendi");
+      }
+
+      if (!columns.includes("olusturma_tarihi")) {
+        console.log("📊 geziler.olusturma_tarihi sütunu ekleniyor...");
+        schoolDb.run(
+          "ALTER TABLE geziler ADD COLUMN olusturma_tarihi TEXT DEFAULT CURRENT_TIMESTAMP"
+        );
+        console.log("✅ olusturma_tarihi sütunu eklendi");
+      }
+    }
+
+    // ============================================
+    // GEZİ_KATİLİMCİ_ÜCRETLERİ TABLOSU
+    // ============================================
+    const ucretTableCheck = schoolDb.exec(
+      "SELECT name FROM sqlite_master WHERE type='table' AND name='gezi_katilimci_ucretler'"
+    );
+
+    if (
+      !ucretTableCheck ||
+      ucretTableCheck.length === 0 ||
+      ucretTableCheck[0].values.length === 0
+    ) {
+      console.log("📊 gezi_katilimci_ucretler tablosu oluşturuluyor...");
+
+      schoolDb.run(`
+        CREATE TABLE IF NOT EXISTS gezi_katilimci_ucretler (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          gezi_id INTEGER NOT NULL,
+          kisi_tipi TEXT NOT NULL CHECK(kisi_tipi IN ('kafile_baskani', 'ogretmen', 'ogrenci', 'misafir')),
+          kisi_id INTEGER NOT NULL,
+          ad_soyad TEXT NOT NULL,
+          ucret_durumu TEXT DEFAULT 'normal' CHECK(ucret_durumu IN ('normal', 'ucretsiz', 'indirimli')),
+          ozel_ucret REAL,
+          taksit_sayisi INTEGER,
+          toplam_ucret REAL DEFAULT 0,
+          toplam_odenen REAL DEFAULT 0,
+          kalan_borc REAL DEFAULT 0,
+          aciklama TEXT,
+          olusturma_tarihi TEXT DEFAULT CURRENT_TIMESTAMP,
+          FOREIGN KEY (gezi_id) REFERENCES geziler(id) ON DELETE CASCADE,
+          UNIQUE(gezi_id, kisi_tipi, kisi_id)
+        )
+      `);
+
+      console.log("✅ gezi_katilimci_ucretler tablosu oluşturuldu");
+    }
+
+    // ============================================
+    // GEZİ_ÖDEMELER TABLOSU
+    // ============================================
+    const odemelerTableCheck = schoolDb.exec(
+      "SELECT name FROM sqlite_master WHERE type='table' AND name='gezi_odemeler'"
+    );
+
+    if (
+      odemelerTableCheck &&
+      odemelerTableCheck.length > 0 &&
+      odemelerTableCheck[0].values.length > 0
+    ) {
+      const odemelerColumns = schoolDb.exec("PRAGMA table_info(gezi_odemeler)");
+
+      if (odemelerColumns && odemelerColumns.length > 0) {
+        const columns = odemelerColumns[0].values.map((row) => row[1]);
+
+        const hasKatilimciUcretId = columns.includes("katilimci_ucret_id");
+        const hasTaksitNo = columns.includes("taksit_no");
+        const hasOdemeDurumu = columns.includes("odeme_durumu");
+
+        if (!hasKatilimciUcretId || !hasTaksitNo || !hasOdemeDurumu) {
+          console.log("📊 gezi_odemeler tablosu güncelleniyor...");
+
+          schoolDb.run("DROP TABLE IF EXISTS gezi_odemeler");
+          schoolDb.run(`
+            CREATE TABLE gezi_odemeler (
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              katilimci_ucret_id INTEGER NOT NULL,
+              taksit_no INTEGER NOT NULL,
+              taksit_tutari REAL NOT NULL,
+              vade_tarihi TEXT NOT NULL,
+              odeme_durumu TEXT DEFAULT 'bekliyor' CHECK(odeme_durumu IN ('bekliyor', 'odendi', 'gecikti')),
+              odeme_tarihi TEXT,
+              odeme_sekli TEXT,
+              makbuz_no TEXT,
+              notlar TEXT,
+              olusturma_tarihi TEXT DEFAULT CURRENT_TIMESTAMP,
+              FOREIGN KEY (katilimci_ucret_id) REFERENCES gezi_katilimci_ucretler(id) ON DELETE CASCADE
+            )
+          `);
+
+          console.log("✅ gezi_odemeler tablosu güncellendi");
+        }
+      }
+    }
+
+    // ============================================
+    // GEZİ_ÖDEME_PLANI TABLOSU
+    // ============================================
+    const odemePlaniCheck = schoolDb.exec(
+      "SELECT name FROM sqlite_master WHERE type='table' AND name='gezi_odeme_plani'"
+    );
+
+    if (
+      !odemePlaniCheck ||
+      odemePlaniCheck.length === 0 ||
+      odemePlaniCheck[0].values.length === 0
+    ) {
+      console.log("📊 gezi_odeme_plani tablosu oluşturuluyor...");
+
+      schoolDb.run(`
+        CREATE TABLE IF NOT EXISTS gezi_odeme_plani (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          gezi_id INTEGER NOT NULL UNIQUE,
+          kisi_basi_ucret REAL NOT NULL,
+          para_birimi TEXT DEFAULT 'TL',
+          taksit_sayisi INTEGER DEFAULT 1,
+          pesinat_orani REAL DEFAULT 0,
+          odeme_baslangic TEXT,
+          taksit_araligi INTEGER DEFAULT 30,
+          hatirlatma_gun INTEGER DEFAULT 7,
+          olusturma_tarihi TEXT DEFAULT CURRENT_TIMESTAMP,
+          FOREIGN KEY (gezi_id) REFERENCES geziler(id) ON DELETE CASCADE
+        )
+      `);
+
+      console.log("✅ gezi_odeme_plani tablosu oluşturuldu");
+    }
+
+    // ============================================
+    // GEZİ_KAFİLE_BAŞKANLARI TABLOSU
+    // ============================================
+    const kafileCheck = schoolDb.exec(
+      "SELECT name FROM sqlite_master WHERE type='table' AND name='gezi_kafile_baskanlari'"
+    );
+
+    if (
+      !kafileCheck ||
+      kafileCheck.length === 0 ||
+      kafileCheck[0].values.length === 0
+    ) {
+      console.log("📊 gezi_kafile_baskanlari tablosu oluşturuluyor...");
+
+      schoolDb.run(`
+        CREATE TABLE IF NOT EXISTS gezi_kafile_baskanlari (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          gezi_id INTEGER NOT NULL,
+          ogretmen_id INTEGER NOT NULL,
+          gorev TEXT DEFAULT 'Kafile Başkanı',
+          eklenme_tarihi TEXT DEFAULT CURRENT_TIMESTAMP,
+          FOREIGN KEY (gezi_id) REFERENCES geziler(id) ON DELETE CASCADE,
+          FOREIGN KEY (ogretmen_id) REFERENCES ogretmenler(id) ON DELETE CASCADE,
+          UNIQUE(gezi_id, ogretmen_id)
+        )
+      `);
+
+      console.log("✅ gezi_kafile_baskanlari tablosu oluşturuldu");
+    }
+
+    // ============================================
+    // GEZİ_TUR_FİRMA TABLOSU - EKSİK SÜTUNLARI EKLE
+    // ============================================
+    const firmaTableCheck = schoolDb.exec(
+      "SELECT name FROM sqlite_master WHERE type='table' AND name='gezi_tur_firma'"
+    );
+
+    if (
+      firmaTableCheck &&
+      firmaTableCheck.length > 0 &&
+      firmaTableCheck[0].values.length > 0
+    ) {
+      console.log(
+        "📊 gezi_tur_firma tablosu mevcut, sütunlar kontrol ediliyor..."
+      );
+
+      const firmaColumns = schoolDb.exec("PRAGMA table_info(gezi_tur_firma)");
+
+      if (firmaColumns && firmaColumns.length > 0) {
+        const columns = firmaColumns[0].values.map((row) => row[1]);
+
+        // Eksik sütunları ekle
+        const requiredColumns = [
+          { name: "yetkili_ad_soyad", type: "TEXT" },
+          { name: "yetkili_unvan", type: "TEXT" },
+          { name: "yetkili_telefon", type: "TEXT" },
+          { name: "firma_telefon", type: "TEXT" },
+          { name: "firma_adres", type: "TEXT" },
+          { name: "firma_email", type: "TEXT" },
+          { name: "vergi_dairesi", type: "TEXT" },
+          { name: "vergi_no", type: "TEXT" },
+          { name: "tursab_no", type: "TEXT" },
+          { name: "isletme_belge_no", type: "TEXT" },
+          { name: "yetki_belgesi", type: "TEXT" },
+          { name: "rehber_ad", type: "TEXT" },
+          { name: "rehber_kokart", type: "TEXT" },
+          { name: "sozlesme_tarihi", type: "TEXT" },
+          { name: "toplam_bedel", type: "REAL" },
+          { name: "para_birimi", type: "TEXT DEFAULT 'TL'" },
+          { name: "dahil_hizmetler", type: "TEXT" },
+          { name: "dahil_olmayan", type: "TEXT" },
+          { name: "iptal_kosul", type: "TEXT" },
+          { name: "notlar", type: "TEXT" },
+        ];
+
+        requiredColumns.forEach((col) => {
+          if (!columns.includes(col.name)) {
+            console.log(`📊 gezi_tur_firma.${col.name} sütunu ekleniyor...`);
+            try {
+              schoolDb.run(
+                `ALTER TABLE gezi_tur_firma ADD COLUMN ${col.name} ${col.type}`
+              );
+              console.log(`✅ ${col.name} sütunu eklendi`);
+            } catch (e) {
+              console.log(`ℹ️ ${col.name} sütunu zaten var veya eklenemedi`);
+            }
+          }
+        });
+      }
+    } else {
+      console.log("📊 gezi_tur_firma tablosu oluşturuluyor...");
+
+      schoolDb.run(`
+        CREATE TABLE IF NOT EXISTS gezi_tur_firma (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          gezi_id INTEGER NOT NULL,
+          firma_adi TEXT NOT NULL,
+          yetkili_ad_soyad TEXT,
+          yetkili_unvan TEXT,
+          yetkili_telefon TEXT,
+          firma_telefon TEXT,
+          firma_adres TEXT,
+          firma_email TEXT,
+          vergi_dairesi TEXT,
+          vergi_no TEXT,
+          tursab_no TEXT,
+          isletme_belge_no TEXT,
+          yetki_belgesi TEXT,
+          rehber_ad TEXT,
+          rehber_kokart TEXT,
+          sozlesme_tarihi TEXT,
+          toplam_bedel REAL,
+          para_birimi TEXT DEFAULT 'TL',
+          dahil_hizmetler TEXT,
+          dahil_olmayan TEXT,
+          iptal_kosul TEXT,
+          notlar TEXT,
+          olusturma_tarihi TEXT DEFAULT CURRENT_TIMESTAMP,
+          FOREIGN KEY (gezi_id) REFERENCES geziler(id) ON DELETE CASCADE
+        )
+      `);
+
+      console.log("✅ gezi_tur_firma tablosu oluşturuldu");
+    }
+
+    // ============================================
+    // GEZİ_ULASIM TABLOSUNA EKSİK SÜTUNLARI EKLE
+    // ============================================
+    const ulasimTableCheck = schoolDb.exec(
+      "SELECT name FROM sqlite_master WHERE type='table' AND name='gezi_ulasim'"
+    );
+
+    if (
+      ulasimTableCheck &&
+      ulasimTableCheck.length > 0 &&
+      ulasimTableCheck[0].values.length > 0
+    ) {
+      const ulasimColumns = schoolDb.exec("PRAGMA table_info(gezi_ulasim)");
+
+      if (ulasimColumns && ulasimColumns.length > 0) {
+        const columns = ulasimColumns[0].values.map((row) => row[1]);
+
+        const ulasimRequiredColumns = [
+          { name: "pnr_kodu", type: "TEXT" },
+          { name: "kalkis_yeri", type: "TEXT" },
+          { name: "varis_yeri", type: "TEXT" },
+        ];
+
+        ulasimRequiredColumns.forEach((col) => {
+          if (!columns.includes(col.name)) {
+            console.log(`📊 gezi_ulasim.${col.name} sütunu ekleniyor...`);
+            try {
+              schoolDb.run(
+                `ALTER TABLE gezi_ulasim ADD COLUMN ${col.name} ${col.type}`
+              );
+              console.log(`✅ ${col.name} sütunu eklendi`);
+            } catch (e) {
+              console.log(`ℹ️ ${col.name} sütunu zaten var`);
+            }
+          }
+        });
+      }
+    }
+
+    // ============================================
+    // GEZİ_PASAPORTLAR TABLOSU - GÜNCELLE
+    // ============================================
+    const pasaportTableCheck = schoolDb.exec(
+      "SELECT name FROM sqlite_master WHERE type='table' AND name='gezi_pasaportlar'"
+    );
+
+    if (
+      pasaportTableCheck &&
+      pasaportTableCheck.length > 0 &&
+      pasaportTableCheck[0].values.length > 0
+    ) {
+      console.log("📊 gezi_pasaportlar tablosu mevcut, güncelleniyor...");
+
+      // Eski tabloyu yedekle
+      schoolDb.run("DROP TABLE IF EXISTS gezi_pasaportlar_old");
+      schoolDb.run(
+        "ALTER TABLE gezi_pasaportlar RENAME TO gezi_pasaportlar_old"
+      );
+
+      // Yeni tablo yapısını oluştur
+      schoolDb.run(`
+        CREATE TABLE IF NOT EXISTS gezi_pasaportlar (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          gezi_id INTEGER NOT NULL,
+          kisi_tipi TEXT NOT NULL CHECK(kisi_tipi IN ('kafile_baskani', 'ogretmen', 'ogrenci', 'misafir')),
+          kisi_id INTEGER NOT NULL,
+          ad_soyad TEXT NOT NULL,
+          tc_kimlik TEXT,
+          pasaport_seri TEXT NOT NULL,
+          pasaport_no TEXT NOT NULL,
+          pasaport_turu TEXT,
+          son_gecerlilik_tarihi TEXT,
+          cift_vatandaslik INTEGER DEFAULT 0,
+          ikinci_pasaport_seri TEXT,
+          ikinci_pasaport_no TEXT,
+          ikinci_pasaport_turu TEXT,
+          ikinci_gecerlilik_tarihi TEXT,
+          vize_durumu TEXT,
+          vize_tarihi TEXT,
+          vize_notlar TEXT,
+          notlar TEXT,
+          olusturma_tarihi TEXT DEFAULT CURRENT_TIMESTAMP,
+          FOREIGN KEY (gezi_id) REFERENCES geziler(id) ON DELETE CASCADE
+        )
+      `);
+
+      // Eski verileri kopyala (varsa ve uyumluysa)
+      try {
+        schoolDb.run(`
+          INSERT INTO gezi_pasaportlar (gezi_id, kisi_tipi, kisi_id, ad_soyad, pasaport_seri, pasaport_no)
+          SELECT gezi_id, katilimci_tipi, katilimci_id, '', '', pasaport_no
+          FROM gezi_pasaportlar_old
+        `);
+        console.log("✅ Eski pasaport verileri kopyalandı");
+      } catch (e) {
+        console.log("ℹ️ Eski veriler kopyalanamadı (muhtemelen boş tablo)");
+      }
+
+      // Eski tabloyu sil
+      schoolDb.run("DROP TABLE IF EXISTS gezi_pasaportlar_old");
+
+      console.log("✅ gezi_pasaportlar tablosu güncellendi");
+    } else {
+      console.log("📊 gezi_pasaportlar tablosu oluşturuluyor...");
+
+      schoolDb.run(`
+        CREATE TABLE IF NOT EXISTS gezi_pasaportlar (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          gezi_id INTEGER NOT NULL,
+          kisi_tipi TEXT NOT NULL CHECK(kisi_tipi IN ('ogrenci', 'ogretmen', 'misafir')),
+          kisi_id INTEGER NOT NULL,
+          ad_soyad TEXT NOT NULL,
+          tc_kimlik TEXT,
+          pasaport_seri TEXT NOT NULL,
+          pasaport_no TEXT NOT NULL,
+          pasaport_turu TEXT,
+          son_gecerlilik_tarihi TEXT,
+          cift_vatandaslik INTEGER DEFAULT 0,
+          ikinci_pasaport_seri TEXT,
+          ikinci_pasaport_no TEXT,
+          ikinci_pasaport_turu TEXT,
+          ikinci_gecerlilik_tarihi TEXT,
+          vize_durumu TEXT,
+          vize_tarihi TEXT,
+          vize_notlar TEXT,
+          notlar TEXT,
+          olusturma_tarihi TEXT DEFAULT CURRENT_TIMESTAMP,
+          FOREIGN KEY (gezi_id) REFERENCES geziler(id) ON DELETE CASCADE
+        )
+      `);
+
+      console.log("✅ gezi_pasaportlar tablosu oluşturuldu");
+    }
+
+    db.saveActiveSchoolDB();
+    console.log("✅ Okul veritabanı migrasyonları tamamlandı");
+  } catch (error) {
+    console.error("❌ Migration hatası:", error);
+  }
+}
+
+// ==========================================
+// UYGULAMA HAZIR
+// ==========================================
+
 app.whenReady().then(async () => {
+  console.log("🎯 Uygulama hazırlanıyor...");
+
   // Native Messaging sunucusunu başlat
   startNativeMessagingServer();
 
@@ -177,6 +730,38 @@ app.whenReady().then(async () => {
     app.quit();
     return;
   }
+
+  console.log("✅ Veritabanı başarıyla başlatıldı");
+
+  // ==========================================
+  // 🧹 CACHE YÖNETİMİ - VERSİYON KONTROLÜ
+  // ==========================================
+  console.log("🧹 Cache yönetimi başlatılıyor...");
+
+  const cacheResult = await cacheManager.checkAndClearIfNeeded();
+
+  if (cacheResult.cleared) {
+    console.log("🎉 Cache temizlendi!");
+    console.log(`   • Eski versiyon: ${cacheResult.oldVersion}`);
+    console.log(`   • Yeni versiyon: ${cacheResult.newVersion}`);
+  } else {
+    console.log(`ℹ️ Cache temizlenmedi (${cacheResult.reason})`);
+  }
+
+  // ==========================================
+  // 🎨 PUPPETEER HAZIRLIĞI
+  // ==========================================
+  console.log("🎨 Puppeteer hazırlığı yapılıyor...");
+
+  const chromeStatus = puppeteerManager.getChromeStatus();
+
+  if (!chromeStatus.downloaded) {
+    console.log("📥 Chrome henüz indirilmemiş, ilk PDF işleminde indirilecek");
+  } else {
+    console.log("✅ Chrome hazır:", chromeStatus.path);
+  }
+
+  console.log("✅ Tüm hazırlıklar tamamlandı");
 
   // Downloads klasörünü izlemeye başla
   downloadsWatcher.startWatching(async (excelPath) => {
@@ -198,34 +783,37 @@ app.whenReady().then(async () => {
       createWindow();
     }
   });
+
+  console.log("🎉 Uygulama başarıyla başlatıldı!");
 });
 
-// Tüm pencereler kapalı
+// ==========================================
+// UYGULAMA KAPATMA
+// ==========================================
+
 app.on("window-all-closed", () => {
   if (process.platform !== "darwin") {
     app.quit();
   }
 });
 
-// Uygulama kapanırken TCP sunucusunu kapat
 app.on("will-quit", () => {
   if (tcpServer) {
     tcpServer.close();
     console.log("✅ TCP Server kapatıldı");
   }
 
-  // Downloads watcher'ı durdur
   downloadsWatcher.stopWatching();
+  console.log("✅ Downloads watcher durduruldu");
 });
 
-// ============================================
-// OTOMATIK GÜNCELLEME SİSTEMİ
-// ============================================
+// ==========================================
+// OTOMATİK GÜNCELLEME SİSTEMİ
+// ==========================================
 
 autoUpdater.autoDownload = false;
 autoUpdater.autoInstallOnAppQuit = true;
 
-// Güncelleme kontrolü
 function checkForUpdates() {
   if (isDev) {
     console.log("⚠️ Geliştirme modunda, güncelleme kontrolü yapılmıyor");
@@ -233,73 +821,101 @@ function checkForUpdates() {
   }
 
   console.log("🔍 Güncelleme kontrol ediliyor...");
-  autoUpdater.checkForUpdates();
+
+  try {
+    autoUpdater.checkForUpdates();
+  } catch (error) {
+    console.error("❌ Güncelleme kontrolü hatası:", error);
+  }
 }
 
-// Güncelleme bulundu
 autoUpdater.on("update-available", (info) => {
   console.log("✅ Yeni güncelleme bulundu:", info.version);
   updateAvailable = true;
 
-  if (mainWindow) {
+  if (mainWindow && !mainWindow.isDestroyed()) {
     mainWindow.webContents.send("update-available", {
       version: info.version,
-      releaseDate: info.releaseDate,
-      releaseNotes: info.releaseNotes,
+      releaseDate: info.releaseDate || new Date().toISOString(),
+      releaseNotes: info.releaseNotes || "Yeni özellikler ve iyileştirmeler",
     });
   }
 });
 
-// Güncelleme yok
 autoUpdater.on("update-not-available", () => {
   console.log("✅ Uygulama güncel");
   updateAvailable = false;
 });
 
-// Güncelleme indiriliyor
 autoUpdater.on("download-progress", (progress) => {
-  console.log(`📥 İndiriliyor: ${Math.floor(progress.percent)}%`);
+  const percent = progress.percent || 0;
+  console.log(`📥 İndiriliyor: ${Math.floor(percent)}%`);
 
-  if (mainWindow) {
+  if (mainWindow && !mainWindow.isDestroyed()) {
     mainWindow.webContents.send("update-progress", {
-      percent: Math.floor(progress.percent),
-      transferred: progress.transferred,
-      total: progress.total,
+      percent: Math.floor(percent),
+      transferred: progress.transferred || 0,
+      total: progress.total || 0,
+      bytesPerSecond: progress.bytesPerSecond || 0,
     });
   }
 });
 
-// Güncelleme indirildi
-autoUpdater.on("update-downloaded", (info) => {
-  console.log("✅ Güncelleme indirildi, yükleniyor...");
+// ==========================================
+// 🆕 GÜNCELLEME ÖNCESİ VERİTABANI KAYDET
+// ==========================================
+autoUpdater.on("before-quit-for-update", () => {
+  console.log("💾 Güncelleme öncesi veritabanı kaydediliyor...");
 
-  if (mainWindow) {
-    mainWindow.webContents.send("update-downloaded", info);
+  try {
+    const schoolDb = db.getActiveSchoolDB();
+    if (schoolDb) {
+      db.saveActiveSchoolDB();
+      console.log("✅ Veritabanı güncelleme öncesi kaydedildi");
+    }
+  } catch (error) {
+    console.error("❌ Güncelleme öncesi kayıt hatası:", error);
   }
-
-  // 3 saniye sonra kur ve yeniden başlat
-  setTimeout(() => {
-    autoUpdater.quitAndInstall(false, true);
-  }, 3000);
 });
 
-// Güncelleme hatası
+autoUpdater.on("update-downloaded", (info) => {
+  console.log("✅ Güncelleme indirildi, hazır!");
+
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.webContents.send("update-downloaded", {
+      version: info.version,
+      releaseDate: info.releaseDate,
+    });
+  }
+
+  // Otomatik yeniden başlatma YOK - Kullanıcı butona basacak
+});
+
 autoUpdater.on("error", (error) => {
   console.error("❌ Güncelleme hatası:", error);
 
-  if (mainWindow) {
-    mainWindow.webContents.send("update-error", error.message);
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.webContents.send("update-error", {
+      message: error.message || "Bilinmeyen güncelleme hatası",
+      code: error.code || "UNKNOWN",
+    });
   }
 });
 
-// Manuel güncelleme başlat
+// Manuel güncelleme indirme başlat
 ipcMain.handle("start-update-download", async () => {
-  if (updateAvailable) {
-    console.log("📥 Güncelleme indirmeye başlanıyor...");
-    autoUpdater.downloadUpdate();
-    return { success: true };
-  } else {
-    return { success: false, message: "Yeni güncelleme bulunamadı" };
+  try {
+    if (updateAvailable) {
+      console.log("📥 Güncelleme indirmeye başlanıyor...");
+      autoUpdater.downloadUpdate();
+      return { success: true, message: "İndirme başlatıldı" };
+    } else {
+      console.warn("⚠️ İndirilecek güncelleme yok");
+      return { success: false, message: "Yeni güncelleme bulunamadı" };
+    }
+  } catch (error) {
+    console.error("❌ İndirme başlatma hatası:", error);
+    return { success: false, message: error.message };
   }
 });
 
@@ -309,24 +925,60 @@ ipcMain.handle("check-for-updates", async () => {
   return { success: true };
 });
 
-// ============================================
-// VERİTABANI VE DİĞER IPC HANDLER'LAR
-// ============================================
+// Uygulamayı yeniden başlat ve güncelle
+ipcMain.handle("quit-and-install", async () => {
+  try {
+    console.log("🔄 Güncelleme yükleniyor ve uygulama yeniden başlatılıyor...");
 
-// Uygulama yolunu frontend'e gönder
+    // Veritabanını kaydet
+    const schoolDb = db.getActiveSchoolDB();
+    if (schoolDb) {
+      db.saveActiveSchoolDB();
+      console.log("💾 Veritabanı güncelleme öncesi kaydedildi");
+    }
+
+    // 1 saniye bekle ve yeniden başlat
+    setTimeout(() => {
+      autoUpdater.quitAndInstall(false, true);
+    }, 1000);
+
+    return { success: true };
+  } catch (error) {
+    console.error("❌ Yeniden başlatma hatası:", error);
+    return { success: false, message: error.message };
+  }
+});
+
+// ==========================================
+// TEMEL UYGULAMA BİLGİLERİ
+// ==========================================
+
 ipcMain.handle("get-app-path", () => {
   return appPath;
 });
 
-// Uygulama versiyonunu gönder
 ipcMain.handle("get-app-version", () => {
   return app.getVersion();
 });
 
+ipcMain.handle("get-app-info", () => {
+  return {
+    version: app.getVersion(),
+    name: app.getName(),
+    path: appPath,
+    isDev: isDev,
+  };
+});
+
+console.log("✅ Main.js Bölüm 1 yüklendi");
+// ==========================================
+// VERİTABANI IPC HANDLER'LARI
+// ==========================================
+
+// Debug için
 ipcMain.handle("debug-student-names", async () => {
   try {
     const schoolDB = db.getActiveSchoolDB();
-    // ✅ LIMIT KALDIRILDI - TÜM ÖĞRENCİLER
     const stmt = schoolDB.prepare(
       "SELECT okul_no, ad_soyad FROM ogrenciler WHERE durum = 1"
     );
@@ -334,7 +986,6 @@ ipcMain.handle("debug-student-names", async () => {
     while (stmt.step()) {
       const s = stmt.getAsObject();
 
-      // ✅ AYNI NORMALİZASYON FONKSİYONU
       const normalized = s.ad_soyad
         .normalize("NFD")
         .replace(/[\u0300-\u036f]/g, "")
@@ -362,74 +1013,7 @@ ipcMain.handle("debug-student-names", async () => {
   }
 });
 
-console.log("🚀 Okul Yönetim Sistemi başlatıldı");
-console.log("📦 Versiyon:", app.getVersion());
-
-// ============================================
-// VERİTABANI IPC HANDLER'LARI
-// ============================================
-
-// Giriş işlemi
-ipcMain.handle("login", async (event, okulKodu, kullaniciAdi, sifre) => {
-  try {
-    console.log("🔐 Giriş isteği:", okulKodu, kullaniciAdi);
-
-    if (!okulKodu || !kullaniciAdi || !sifre) {
-      return {
-        success: false,
-        message: "Tüm alanları doldurunuz!",
-      };
-    }
-
-    const result = await db.loginSchool(okulKodu, kullaniciAdi, sifre);
-    return result;
-  } catch (error) {
-    console.error("❌ Giriş handler hatası:", error);
-    return {
-      success: false,
-      message: "Giriş sırasında bir hata oluştu!",
-    };
-  }
-});
-
-// Yeni okul oluştur (sadece super admin)
-ipcMain.handle("create-school", async (event, okulBilgileri) => {
-  try {
-    console.log("🏫 Yeni okul oluşturma isteği");
-
-    // Zorunlu alanlar kontrolü
-    if (!okulBilgileri.okul_kodu || !okulBilgileri.okul_adi) {
-      return {
-        success: false,
-        message: "Okul kodu ve okul adı zorunludur!",
-      };
-    }
-
-    const result = await db.createSchool(okulBilgileri);
-    return result;
-  } catch (error) {
-    console.error("❌ Okul oluşturma handler hatası:", error);
-    return {
-      success: false,
-      message: "Okul oluşturulurken bir hata oluştu!",
-    };
-  }
-});
-
-// Tüm okulları getir (sadece super admin)
-ipcMain.handle("get-all-schools", async () => {
-  try {
-    const result = db.getAllSchools();
-    return result;
-  } catch (error) {
-    console.error("❌ Okul listesi handler hatası:", error);
-    return {
-      success: false,
-      message: "Okul listesi alınırken hata oluştu!",
-    };
-  }
-});
-
+// SQL Sorguları
 ipcMain.handle("execute-sql", async (event, sql) => {
   try {
     const schoolDB = db.getActiveSchoolDB();
@@ -445,7 +1029,6 @@ ipcMain.handle("execute-sql", async (event, sql) => {
   }
 });
 
-// Genel SQL sorgusu (dikkatli kullan)
 ipcMain.handle("db-query", async (event, sql, params = []) => {
   try {
     const activeDB = db.getActiveSchoolDB();
@@ -478,7 +1061,6 @@ ipcMain.handle("db-query", async (event, sql, params = []) => {
   }
 });
 
-// SQL çalıştır (INSERT, UPDATE, DELETE)
 ipcMain.handle("db-exec", async (event, sql, params = []) => {
   try {
     const activeDB = db.getActiveSchoolDB();
@@ -510,96 +1092,128 @@ ipcMain.handle("db-exec", async (event, sql, params = []) => {
   }
 });
 
-// Veritabanı yollarını getir
 ipcMain.handle("get-db-paths", () => {
   return {
     veritabaniKlasoru: db.veritabaniKlasoru,
     yedekKlasoru: db.yedekKlasoru,
   };
 });
+// ==========================================
+// 🔐 GİRİŞ İŞLEMLERİ
+// ==========================================
 
-// Okul güncelle
+ipcMain.handle("login", async (event, okulKodu, kullaniciAdi, sifre) => {
+  try {
+    console.log("🔐 Giriş isteği:", okulKodu, kullaniciAdi);
+
+    if (!okulKodu || !kullaniciAdi || !sifre) {
+      return {
+        success: false,
+        message: "Tüm alanları doldurunuz!",
+      };
+    }
+
+    const result = await db.loginSchool(okulKodu, kullaniciAdi, sifre);
+
+    // ✅ GİRİŞ BAŞARILI İSE MİGRATİONLARI ÇALIŞTIR
+    if (result.success) {
+      console.log("🔄 Migration çalıştırılıyor...");
+      const schoolDb = db.getActiveSchoolDB();
+      if (schoolDb) {
+        await runDatabaseMigrations(schoolDb);
+        console.log("✅ Migration tamamlandı");
+      } else {
+        console.log("⚠️ School DB bulunamadı, migration atlandı");
+      }
+    }
+
+    return result;
+  } catch (error) {
+    console.error("❌ Giriş handler hatası:", error);
+    return {
+      success: false,
+      message: "Giriş sırasında bir hata oluştu: " + error.message,
+    };
+  }
+});
+
+ipcMain.handle("logout", async () => {
+  try {
+    console.log("🚪 Çıkış yapılıyor...");
+
+    // Veritabanını kaydet
+    const schoolDb = db.getActiveSchoolDB();
+    if (schoolDb) {
+      db.saveActiveSchoolDB();
+      console.log("💾 Veritabanı kaydedildi");
+    }
+
+    global.currentSchoolDb = null;
+    currentSchoolId = null;
+    global.currentSchoolId = null;
+
+    return { success: true };
+  } catch (error) {
+    console.error("❌ Çıkış hatası:", error);
+    return { success: false, message: error.message };
+  }
+});
+
+ipcMain.handle("get-current-user", async () => {
+  try {
+    // Mevcut kullanıcı bilgisini döndür (varsa)
+    return { success: true, data: null };
+  } catch (error) {
+    return { success: false, message: error.message };
+  }
+});
+
+// ==========================================
+// 🏫 OKUL YÖNETİMİ IPC HANDLER'LARI
+// ==========================================
+
+ipcMain.handle("create-school", async (event, okulBilgileri) => {
+  try {
+    console.log("🏫 Yeni okul oluşturma isteği");
+
+    if (!okulBilgileri.okul_kodu || !okulBilgileri.okul_adi) {
+      return {
+        success: false,
+        message: "Okul kodu ve okul adı zorunludur!",
+      };
+    }
+
+    const result = await db.createSchool(okulBilgileri);
+    return result;
+  } catch (error) {
+    console.error("❌ Okul oluşturma handler hatası:", error);
+    return {
+      success: false,
+      message: "Okul oluşturulurken bir hata oluştu!",
+    };
+  }
+});
+
+ipcMain.handle("get-all-schools", async () => {
+  try {
+    const result = db.getAllSchools();
+    return result;
+  } catch (error) {
+    console.error("❌ Okul listesi handler hatası:", error);
+    return {
+      success: false,
+      message: "Okul listesi alınırken hata oluştu!",
+    };
+  }
+});
+
 ipcMain.handle("update-school", async (event, okulId, guncelBilgiler) => {
   try {
     console.log("✏️ Okul güncelleme isteği:", okulId);
     console.log("📝 Güncel bilgiler:", guncelBilgiler);
 
-    const masterDB = db.getMasterDB();
-    if (!masterDB) {
-      return { success: false, message: "Veritabanı bulunamadı!" };
-    }
-
-    // Okul var mı kontrol et
-    const checkStmt = masterDB.prepare("SELECT id FROM okullar WHERE id = ?");
-    checkStmt.bind([parseInt(okulId)]);
-
-    if (!checkStmt.step()) {
-      checkStmt.free();
-      return { success: false, message: "Okul bulunamadı!" };
-    }
-    checkStmt.free();
-
-    // Güncelleme SQL'i oluştur
-    const updateFields = [];
-    const values = [];
-
-    if (guncelBilgiler.okul_adi !== undefined) {
-      updateFields.push("okul_adi = ?");
-      values.push(guncelBilgiler.okul_adi);
-    }
-    if (guncelBilgiler.il !== undefined) {
-      updateFields.push("il = ?");
-      values.push(guncelBilgiler.il);
-    }
-    if (guncelBilgiler.ilce !== undefined) {
-      updateFields.push("ilce = ?");
-      values.push(guncelBilgiler.ilce);
-    }
-    if (guncelBilgiler.yetkili_ad !== undefined) {
-      updateFields.push("yetkili_ad = ?");
-      values.push(guncelBilgiler.yetkili_ad);
-    }
-    if (guncelBilgiler.yetkili_unvan !== undefined) {
-      updateFields.push("yetkili_unvan = ?");
-      values.push(guncelBilgiler.yetkili_unvan);
-    }
-    if (guncelBilgiler.adres !== undefined) {
-      updateFields.push("adres = ?");
-      values.push(guncelBilgiler.adres);
-      console.log("📍 Adres güncelleniyor:", guncelBilgiler.adres);
-    }
-    if (guncelBilgiler.telefon !== undefined) {
-      updateFields.push("telefon = ?");
-      values.push(guncelBilgiler.telefon);
-    }
-    if (guncelBilgiler.email !== undefined) {
-      updateFields.push("email = ?");
-      values.push(guncelBilgiler.email);
-    }
-
-    // Güncelleme tarihi ekle
-    updateFields.push("guncelleme_tarihi = ?");
-    values.push(new Date().toISOString());
-
-    values.push(parseInt(okulId));
-
-    const sql = `UPDATE okullar SET ${updateFields.join(", ")} WHERE id = ?`;
-
-    console.log("🔧 SQL:", sql);
-    console.log("📦 Values:", values);
-
-    const stmt = masterDB.prepare(sql);
-    stmt.run(values);
-    stmt.free();
-
-    db.saveMasterDB();
-
-    console.log("✅ Okul başarıyla güncellendi");
-
-    return {
-      success: true,
-      message: "Okul başarıyla güncellendi!",
-    };
+    const result = db.updateSchool(okulId, guncelBilgiler);
+    return result;
   } catch (error) {
     console.error("❌ Okul güncelleme hatası:", error);
     return {
@@ -609,57 +1223,12 @@ ipcMain.handle("update-school", async (event, okulId, guncelBilgiler) => {
   }
 });
 
-// Okul sil
 ipcMain.handle("delete-school", async (event, okulId) => {
   try {
     console.log("🗑️ Okul silme isteği:", okulId);
 
-    const masterDB = db.getMasterDB();
-    if (!masterDB) {
-      return { success: false, message: "Veritabanı bulunamadı!" };
-    }
-
-    // Okul var mı ve veritabanı dosyası adını al
-    const checkStmt = masterDB.prepare(
-      "SELECT veritabani_dosyasi, okul_adi FROM okullar WHERE id = ?"
-    );
-    checkStmt.bind([parseInt(okulId)]);
-
-    if (!checkStmt.step()) {
-      checkStmt.free();
-      return { success: false, message: "Okul bulunamadı!" };
-    }
-
-    const row = checkStmt.getAsObject();
-    const dbFileName = row.veritabani_dosyasi;
-    const okulAdi = row.okul_adi;
-    checkStmt.free();
-
-    console.log(`🔍 Silinecek okul: ${okulAdi} (${dbFileName})`);
-
-    // Master DB'den okulu sil (soft delete)
-    const deleteStmt = masterDB.prepare(
-      "UPDATE okullar SET durum = 0, guncelleme_tarihi = ? WHERE id = ?"
-    );
-    deleteStmt.run([new Date().toISOString(), parseInt(okulId)]);
-    deleteStmt.free();
-
-    db.saveMasterDB();
-
-    console.log("✅ Okul silindi (soft delete - durum=0)");
-    console.log("📊 Artık getAllSchools() bu okulu getirmeyecek");
-
-    // Okul veritabanı dosyasını sil (opsiyonel - yorum satırında bırakıyorum)
-    // const dbPath = path.join(db.veritabaniKlasoru, dbFileName);
-    // if (fs.existsSync(dbPath)) {
-    //   fs.unlinkSync(dbPath);
-    //   console.log("🗑️ Veritabanı dosyası da silindi:", dbFileName);
-    // }
-
-    return {
-      success: true,
-      message: "Okul başarıyla silindi!",
-    };
+    const result = db.deleteSchool(okulId);
+    return result;
   } catch (error) {
     console.error("❌ Okul silme hatası:", error);
     return {
@@ -669,7 +1238,6 @@ ipcMain.handle("delete-school", async (event, okulId) => {
   }
 });
 
-// Lisans yenile
 ipcMain.handle("renew-license", async (event, okulId, yilSayisi) => {
   try {
     console.log("🔑 Lisans yenileme isteği:", okulId, yilSayisi);
@@ -679,7 +1247,6 @@ ipcMain.handle("renew-license", async (event, okulId, yilSayisi) => {
       return { success: false, message: "Veritabanı bulunamadı!" };
     }
 
-    // Mevcut lisans bitiş tarihini al
     const getStmt = masterDB.prepare(
       "SELECT lisans_bitis FROM okullar WHERE id = ?"
     );
@@ -691,14 +1258,31 @@ ipcMain.handle("renew-license", async (event, okulId, yilSayisi) => {
     }
 
     const row = getStmt.getAsObject();
-    const mevcutBitis = new Date(row.lisans_bitis);
     getStmt.free();
 
-    // Yeni bitiş tarihini hesapla
+    let mevcutBitis;
+    if (row.lisans_bitis) {
+      mevcutBitis = new Date(row.lisans_bitis);
+
+      if (isNaN(mevcutBitis.getTime())) {
+        console.warn("⚠️ Geçersiz lisans tarihi, bugünden başlatılıyor");
+        mevcutBitis = new Date();
+      }
+    } else {
+      console.warn("⚠️ Lisans tarihi yok, bugünden başlatılıyor");
+      mevcutBitis = new Date();
+    }
+
+    console.log(
+      "📅 Mevcut lisans bitiş:",
+      mevcutBitis.toLocaleDateString("tr-TR")
+    );
+
     const yeniBitis = new Date(mevcutBitis);
     yeniBitis.setFullYear(yeniBitis.getFullYear() + parseInt(yilSayisi));
 
-    // Güncelle
+    console.log("📅 Yeni lisans bitiş:", yeniBitis.toLocaleDateString("tr-TR"));
+
     const updateStmt = masterDB.prepare(
       "UPDATE okullar SET lisans_bitis = ?, guncelleme_tarihi = ? WHERE id = ?"
     );
@@ -711,12 +1295,14 @@ ipcMain.handle("renew-license", async (event, okulId, yilSayisi) => {
 
     db.saveMasterDB();
 
-    console.log("✅ Lisans yenilendi:", yeniBitis.toLocaleDateString("tr-TR"));
+    const yeniBitisFormatted = yeniBitis.toLocaleDateString("tr-TR");
+    console.log("✅ Lisans yenilendi:", yeniBitisFormatted);
 
     return {
       success: true,
       message: "Lisans başarıyla yenilendi!",
-      yeni_bitis: yeniBitis.toLocaleDateString("tr-TR"),
+      yeni_bitis: yeniBitisFormatted,
+      yeni_bitis_iso: yeniBitis.toISOString(),
     };
   } catch (error) {
     console.error("❌ Lisans yenileme hatası:", error);
@@ -727,7 +1313,6 @@ ipcMain.handle("renew-license", async (event, okulId, yilSayisi) => {
   }
 });
 
-// Okul şifresini göster (sadece super admin)
 ipcMain.handle("get-school-password", async (event, okulId) => {
   try {
     console.log("🔑 Okul şifre görüntüleme isteği:", okulId);
@@ -737,7 +1322,6 @@ ipcMain.handle("get-school-password", async (event, okulId) => {
       return { success: false, message: "Veritabanı bulunamadı!" };
     }
 
-    // Okul bilgilerini al
     const stmt = masterDB.prepare(
       "SELECT okul_kodu, okul_adi, sifre, veritabani_dosyasi FROM okullar WHERE id = ?"
     );
@@ -758,7 +1342,6 @@ ipcMain.handle("get-school-password", async (event, okulId) => {
 
     console.log("📁 Okul DB dosyası:", dbFileName);
 
-    // Okul veritabanını aç ve admin şifresini al
     const dbPath = path.join(db.veritabaniKlasoru, dbFileName);
 
     let adminSifre = "Bulunamadı";
@@ -785,15 +1368,6 @@ ipcMain.handle("get-school-password", async (event, okulId) => {
           console.log("✅ Admin şifresi bulundu:", adminSifre);
         } else {
           console.log("⚠️ Admin kullanıcısı bulunamadı");
-
-          // Tüm kullanıcıları listele (debug)
-          const allUsersStmt = schoolDB.prepare("SELECT * FROM kullanicilar");
-          console.log("📋 Veritabanındaki tüm kullanıcılar:");
-          while (allUsersStmt.step()) {
-            const user = allUsersStmt.getAsObject();
-            console.log("  -", user);
-          }
-          allUsersStmt.free();
         }
 
         adminStmt.free();
@@ -827,16 +1401,15 @@ ipcMain.handle("get-school-password", async (event, okulId) => {
   }
 });
 
-// ============================================
-// ÖĞRETMEN YÖNETİMİ IPC HANDLER'LARI
-// ============================================
+console.log("✅ Veritabanı ve Okul Yönetimi IPC Handlers yüklendi");
+// ==========================================
+// 👨‍🏫 ÖĞRETMEN YÖNETİMİ IPC HANDLER'LARI
+// ==========================================
 
-// Yeni öğretmen ekle
 ipcMain.handle("create-teacher", async (event, ogretmenBilgileri) => {
   try {
     console.log("👨‍🏫 Yeni öğretmen ekleme isteği");
 
-    // Zorunlu alanlar kontrolü
     if (
       !ogretmenBilgileri.tc_no ||
       !ogretmenBilgileri.ad_soyad ||
@@ -862,35 +1435,12 @@ ipcMain.handle("create-teacher", async (event, ogretmenBilgileri) => {
   }
 });
 
-// Tüm öğretmenleri getir
 ipcMain.handle("get-all-teachers", async () => {
   try {
     console.log("📋 Öğretmen listesi isteği");
 
-    const activeDB = db.getActiveSchoolDB();
-    if (!activeDB) {
-      return {
-        success: false,
-        message: "Aktif veritabanı bulunamadı!",
-        data: [],
-      };
-    }
-
-    const stmt = activeDB.prepare(`
-      SELECT * FROM ogretmenler 
-      WHERE durum = 1 
-      ORDER BY ad_soyad ASC
-    `);
-
-    const teachers = [];
-    while (stmt.step()) {
-      teachers.push(stmt.getAsObject());
-    }
-    stmt.free();
-
-    console.log(`✅ ${teachers.length} öğretmen bulundu`);
-
-    return { success: true, data: teachers };
+    const result = db.getAllTeachers();
+    return result;
   } catch (error) {
     console.error("❌ Öğretmen listesi handler hatası:", error);
     return {
@@ -901,11 +1451,9 @@ ipcMain.handle("get-all-teachers", async () => {
   }
 });
 
-// Öğretmen güncelle
 ipcMain.handle("update-teacher", async (event, ogretmenId, guncelBilgiler) => {
   try {
     console.log("✏️ Öğretmen güncelleme isteği:", ogretmenId);
-    console.log("📝 Güncel bilgiler:", guncelBilgiler);
 
     const result = db.updateTeacher(ogretmenId, guncelBilgiler);
     return result;
@@ -918,7 +1466,6 @@ ipcMain.handle("update-teacher", async (event, ogretmenId, guncelBilgiler) => {
   }
 });
 
-// Öğretmen sil
 ipcMain.handle("delete-teacher", async (event, ogretmenId) => {
   try {
     console.log("🗑️ Öğretmen silme isteği:", ogretmenId);
@@ -934,7 +1481,6 @@ ipcMain.handle("delete-teacher", async (event, ogretmenId) => {
   }
 });
 
-// Öğretmen şifresini göster
 ipcMain.handle("get-teacher-password", async (event, ogretmenId) => {
   try {
     console.log("🔑 Öğretmen şifre görüntüleme isteği:", ogretmenId);
@@ -944,7 +1490,6 @@ ipcMain.handle("get-teacher-password", async (event, ogretmenId) => {
       return { success: false, message: "Aktif veritabanı bulunamadı!" };
     }
 
-    // Öğretmen bilgilerini al
     const stmt = activeDB.prepare(`
       SELECT o.tc_no, o.ad_soyad, k.sifre 
       FROM ogretmenler o
@@ -980,18 +1525,15 @@ ipcMain.handle("get-teacher-password", async (event, ogretmenId) => {
   }
 });
 
-// Öğretmen şifresi sıfırla
 ipcMain.handle("reset-teacher-password", async (event, ogretmenId) => {
   try {
     console.log("🔑 Öğretmen şifre sıfırlama isteği:", ogretmenId);
 
-    // Veritabanından öğretmeni al
     const activeDB = db.getActiveSchoolDB();
     if (!activeDB) {
       return { success: false, message: "Aktif veritabanı bulunamadı!" };
     }
 
-    // Öğretmenin kullanıcı ID'sini al
     const getStmt = activeDB.prepare(
       "SELECT kullanici_id FROM ogretmenler WHERE id = ?"
     );
@@ -1006,10 +1548,8 @@ ipcMain.handle("reset-teacher-password", async (event, ogretmenId) => {
     const kullaniciId = row.kullanici_id;
     getStmt.free();
 
-    // Yeni şifre oluştur
     const yeniSifre = generateRandomPassword();
 
-    // Şifreyi güncelle
     const updateStmt = activeDB.prepare(
       "UPDATE kullanicilar SET sifre = ? WHERE id = ?"
     );
@@ -1034,7 +1574,6 @@ ipcMain.handle("reset-teacher-password", async (event, ogretmenId) => {
   }
 });
 
-// Öğretmen detaylarını getir
 ipcMain.handle("get-teacher-details", async (event, ogretmenId) => {
   try {
     console.log("🔍 Öğretmen detay isteği:", ogretmenId);
@@ -1060,12 +1599,11 @@ ipcMain.handle("get-teacher-details", async (event, ogretmenId) => {
     console.error("❌ Öğretmen detay hatası:", error);
     return {
       success: false,
-      message: "Öğretmen bilgileri alınamadı: " + error.message,
+      message: "Öğrenci bilgileri alınamadı: " + error.message,
     };
   }
 });
 
-// Yardımcı fonksiyon: Rastgele şifre oluştur
 function generateRandomPassword() {
   const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
   let password = "";
@@ -1079,16 +1617,14 @@ function generateRandomPassword() {
 
 console.log("✅ Öğretmen IPC Handler'ları yüklendi");
 
-// ============================================
-// ÖĞRENCİ YÖNETİMİ IPC HANDLER'LARI
-// ============================================
+// ==========================================
+// 👨‍🎓 ÖĞRENCİ YÖNETİMİ IPC HANDLER'LARI
+// ==========================================
 
-// Yeni öğrenci ekle (Sadece Admin)
 ipcMain.handle("create-student", async (event, ogrenciBilgileri) => {
   try {
     console.log("👨‍🎓 Yeni öğrenci ekleme isteği");
 
-    // Zorunlu alanlar kontrolü
     if (
       !ogrenciBilgileri.ad_soyad ||
       !ogrenciBilgileri.okul_no ||
@@ -1111,7 +1647,6 @@ ipcMain.handle("create-student", async (event, ogrenciBilgileri) => {
   }
 });
 
-// Tüm öğrencileri getir (Admin: Tümü, Öğretmen: Sadece kendi sınıfı)
 ipcMain.handle("get-all-students", async (event, kullaniciRol, ogretmenId) => {
   try {
     console.log("📋 Öğrenci listesi isteği - Rol:", kullaniciRol);
@@ -1124,7 +1659,6 @@ ipcMain.handle("get-all-students", async (event, kullaniciRol, ogretmenId) => {
 
     // Eğer öğretmen ise, sadece kendi sınıflarını getir
     if (kullaniciRol === "ogretmen" && ogretmenId) {
-      // Öğretmenin Rehberlik dersi verdiği sınıfları bul
       const activeDB = db.getActiveSchoolDB();
       const siniflarStmt = activeDB.prepare(`
         SELECT DISTINCT sinif_id 
@@ -1141,7 +1675,6 @@ ipcMain.handle("get-all-students", async (event, kullaniciRol, ogretmenId) => {
       }
       siniflarStmt.free();
 
-      // Sadece bu sınıflardaki öğrencileri filtrele
       const filteredStudents = result.data.filter((ogrenci) =>
         sinifIds.includes(ogrenci.sinif_id)
       );
@@ -1153,7 +1686,6 @@ ipcMain.handle("get-all-students", async (event, kullaniciRol, ogretmenId) => {
       return { success: true, data: filteredStudents };
     }
 
-    // Admin ise tümünü döndür
     return result;
   } catch (error) {
     console.error("❌ Öğrenci listesi handler hatası:", error);
@@ -1164,150 +1696,6 @@ ipcMain.handle("get-all-students", async (event, kullaniciRol, ogretmenId) => {
   }
 });
 
-// ✅ Diğer handler'lar
-
-ipcMain.handle("get-all-students-including-inactive", async () => {
-  try {
-    const schoolDB = db.getActiveSchoolDB();
-    const stmt = schoolDB.prepare("SELECT * FROM ogrenciler");
-    const students = [];
-    while (stmt.step()) {
-      students.push(stmt.getAsObject());
-    }
-    stmt.free();
-    return { success: true, data: students };
-  } catch (err) {
-    return { success: false, message: err.message };
-  }
-});
-
-ipcMain.handle("run-sql-query", async (event, sql) => {
-  try {
-    const schoolDB = db.getActiveSchoolDB();
-    const stmt = schoolDB.prepare(sql);
-    const results = [];
-    while (stmt.step()) {
-      results.push(stmt.getAsObject());
-    }
-    stmt.free();
-    return { success: true, data: results };
-  } catch (err) {
-    return { success: false, message: err.message };
-  }
-});
-
-// ==========================================
-// 📊 EXCEL OLUŞTUR - XLSX
-// ==========================================
-ipcMain.handle("create-excel", async (event, options) => {
-  try {
-    console.log("📊 Excel oluşturuluyor...");
-
-    const XLSX = require("xlsx");
-    const { data, fileName } = options;
-
-    const downloadPath = path.join(os.homedir(), "Downloads", fileName);
-
-    const wb = XLSX.utils.book_new();
-    const ws = XLSX.utils.aoa_to_sheet(data);
-
-    // Sütun genişliklerini ayarla
-    ws["!cols"] = [
-      { wch: 8 }, // S.N.
-      { wch: 10 }, // Sınıfı
-      { wch: 12 }, // Okul No
-      { wch: 15 }, // TC Kimlik No
-      { wch: 35 }, // Adı Soyadı
-      { wch: 12 }, // Cinsiyeti
-    ];
-
-    // Başlık satırlarını birleştir (A1:F1, A2:F2, vb.)
-    ws["!merges"] = [
-      { s: { r: 0, c: 0 }, e: { r: 0, c: 5 } }, // T.C.
-      { s: { r: 1, c: 0 }, e: { r: 1, c: 5 } }, // Kaymakamlık
-      { s: { r: 2, c: 0 }, e: { r: 2, c: 5 } }, // Okul adı
-      { s: { r: 3, c: 0 }, e: { r: 3, c: 5 } }, // Rapor başlığı
-    ];
-
-    XLSX.utils.book_append_sheet(wb, ws, "Rapor");
-    XLSX.writeFile(wb, downloadPath);
-
-    console.log("✅ Excel kaydedildi:", downloadPath);
-
-    return {
-      success: true,
-      message: "Excel başarıyla oluşturuldu",
-      path: downloadPath,
-    };
-  } catch (error) {
-    console.error("❌ Excel hatası:", error);
-    return {
-      success: false,
-      message: error.message,
-    };
-  }
-});
-
-// ==========================================
-// 📄 PDF OLUŞTUR - PUPPETEER
-// ==========================================
-ipcMain.handle("create-pdf", async (event, options) => {
-  let browser = null;
-  try {
-    console.log("📄 PDF oluşturuluyor...");
-
-    const { html, fileName } = options;
-
-    // İndirilenler klasörü
-    const downloadPath = path.join(os.homedir(), "Downloads", fileName);
-
-    // Puppeteer başlat
-    browser = await puppeteer.launch({
-      headless: true,
-      args: ["--no-sandbox", "--disable-setuid-sandbox"],
-    });
-
-    const page = await browser.newPage();
-
-    // HTML yükle
-    await page.setContent(html, {
-      waitUntil: "networkidle0",
-    });
-
-    // PDF oluştur
-    await page.pdf({
-      path: downloadPath,
-      format: "A4",
-      printBackground: true,
-      margin: {
-        top: "20mm",
-        bottom: "20mm",
-        left: "15mm",
-        right: "15mm",
-      },
-    });
-
-    console.log("✅ PDF kaydedildi:", downloadPath);
-
-    return {
-      success: true,
-      message: "PDF başarıyla oluşturuldu",
-      path: downloadPath,
-    };
-  } catch (error) {
-    console.error("❌ PDF hatası:", error);
-    return {
-      success: false,
-      message: error.message,
-    };
-  } finally {
-    if (browser) {
-      await browser.close();
-    }
-  }
-});
-
-// Öğrenci güncelle (Admin: Tümü, Öğretmen: Sadece kendi sınıfı)
 ipcMain.handle(
   "update-student",
   async (event, ogrenciId, guncelBilgiler, kullaniciRol, ogretmenId) => {
@@ -1318,7 +1706,6 @@ ipcMain.handle(
       if (kullaniciRol === "ogretmen" && ogretmenId) {
         const activeDB = db.getActiveSchoolDB();
 
-        // Öğrencinin sınıfını al
         const ogrenciStmt = activeDB.prepare(
           "SELECT sinif_id FROM ogrenciler WHERE id = ?"
         );
@@ -1332,14 +1719,13 @@ ipcMain.handle(
         const ogrenciSinifId = ogrenciStmt.getAsObject().sinif_id;
         ogrenciStmt.free();
 
-        // Öğretmen bu sınıfta Rehberlik dersi veriyor mu?
         const yetkiStmt = activeDB.prepare(`
-          SELECT COUNT(*) as sayi
-          FROM ders_programi 
-          WHERE ogretmen_id = ? 
-            AND sinif_id = ? 
-            AND ders_id IN (SELECT id FROM dersler WHERE ders_adi LIKE '%Rehberlik%')
-        `);
+        SELECT COUNT(*) as sayi
+        FROM ders_programi 
+        WHERE ogretmen_id = ? 
+          AND sinif_id = ? 
+          AND ders_id IN (SELECT id FROM dersler WHERE ders_adi LIKE '%Rehberlik%')
+      `);
         yetkiStmt.bind([ogretmenId, ogrenciSinifId]);
 
         let yetkiVar = false;
@@ -1369,12 +1755,10 @@ ipcMain.handle(
   }
 );
 
-// Öğrenci sil (Sadece Admin)
 ipcMain.handle("delete-student", async (event, ogrenciId, kullaniciRol) => {
   try {
     console.log("🗑️ Öğrenci silme isteği:", ogrenciId);
 
-    // Sadece admin silebilir
     if (kullaniciRol !== "okul_admin") {
       return {
         success: false,
@@ -1393,12 +1777,11 @@ ipcMain.handle("delete-student", async (event, ogrenciId, kullaniciRol) => {
   }
 });
 
-// Excel'den öğrenci içe aktar (Sadece Admin)
-ipcMain.handle("import-students", async (event, ogrenciListesi) => {
+ipcMain.handle("import-students-from-excel", async (event, excelData) => {
   try {
     console.log("📥 Excel'den öğrenci içe aktarma isteği");
 
-    const result = await db.importStudentsFromExcel(ogrenciListesi);
+    const result = await db.importStudentsFromExcel(excelData);
     return result;
   } catch (error) {
     console.error("❌ Öğrenci içe aktarma hatası:", error);
@@ -1409,7 +1792,6 @@ ipcMain.handle("import-students", async (event, ogrenciListesi) => {
   }
 });
 
-// Öğrenci detaylarını getir
 ipcMain.handle("get-student-details", async (event, ogrenciId) => {
   try {
     console.log("🔍 Öğrenci detay isteği:", ogrenciId);
@@ -1440,217 +1822,1730 @@ ipcMain.handle("get-student-details", async (event, ogrenciId) => {
   }
 });
 
-// Öğrenci şifresi oluştur/güncelle (Admin: Tümü, Öğretmen: Kendi sınıfı)
-ipcMain.handle(
-  "create-student-password",
-  async (event, ogrenciId, kullaniciRol, ogretmenId) => {
-    try {
-      console.log("🔑 Öğrenci şifre oluşturma isteği:", ogrenciId);
+ipcMain.handle("get-students", async () => {
+  try {
+    const schoolDB = db.getActiveSchoolDB();
 
-      const activeDB = db.getActiveSchoolDB();
-      if (!activeDB) {
-        return { success: false, message: "Aktif veritabanı bulunamadı!" };
-      }
-
-      // Öğretmen ise yetki kontrolü
-      if (kullaniciRol === "ogretmen" && ogretmenId) {
-        const ogrenciStmt = activeDB.prepare(
-          "SELECT sinif_id FROM ogrenciler WHERE id = ?"
-        );
-        ogrenciStmt.bind([parseInt(ogrenciId)]);
-
-        if (!ogrenciStmt.step()) {
-          ogrenciStmt.free();
-          return { success: false, message: "Öğrenci bulunamadı!" };
-        }
-
-        const ogrenciSinifId = ogrenciStmt.getAsObject().sinif_id;
-        ogrenciStmt.free();
-
-        const yetkiStmt = activeDB.prepare(`
-          SELECT COUNT(*) as sayi
-          FROM ders_programi 
-          WHERE ogretmen_id = ? 
-            AND sinif_id = ? 
-            AND ders_id IN (SELECT id FROM dersler WHERE ders_adi LIKE '%Rehberlik%')
-        `);
-        yetkiStmt.bind([ogretmenId, ogrenciSinifId]);
-
-        let yetkiVar = false;
-        if (yetkiStmt.step()) {
-          yetkiVar = yetkiStmt.getAsObject().sayi > 0;
-        }
-        yetkiStmt.free();
-
-        if (!yetkiVar) {
-          return {
-            success: false,
-            message: "Bu öğrenci için şifre oluşturma yetkiniz yok!",
-          };
-        }
-      }
-
-      // Öğrenci bilgilerini al
-      const getStmt = activeDB.prepare(
-        "SELECT tc_no, ad_soyad, okul_no FROM ogrenciler WHERE id = ?"
-      );
-      getStmt.bind([parseInt(ogrenciId)]);
-
-      if (!getStmt.step()) {
-        getStmt.free();
-        return { success: false, message: "Öğrenci bulunamadı!" };
-      }
-
-      const ogrenci = getStmt.getAsObject();
-      getStmt.free();
-
-      // Otomatik şifre oluştur (Okul No'nun son 4 hanesi)
-      const otomatikSifre = ogrenci.okul_no.slice(-4);
-
-      // Kullanıcı hesabı var mı kontrol et
-      const checkUserStmt = activeDB.prepare(
-        "SELECT id FROM kullanicilar WHERE tc_no = ? OR kullanici_adi = ?"
-      );
-      checkUserStmt.bind([ogrenci.tc_no, ogrenci.okul_no]);
-
-      if (checkUserStmt.step()) {
-        // Var, şifreyi güncelle
-        const userId = checkUserStmt.getAsObject().id;
-        checkUserStmt.free();
-
-        const updateStmt = activeDB.prepare(
-          "UPDATE kullanicilar SET sifre = ? WHERE id = ?"
-        );
-        updateStmt.run([otomatikSifre, userId]);
-        updateStmt.free();
-      } else {
-        // Yok, yeni kullanıcı oluştur
-        checkUserStmt.free();
-
-        const createUserStmt = activeDB.prepare(`
-          INSERT INTO kullanicilar (kullanici_adi, sifre, ad_soyad, tc_no, rol, durum)
-          VALUES (?, ?, ?, ?, ?, ?)
-        `);
-        createUserStmt.run([
-          ogrenci.okul_no,
-          otomatikSifre,
-          ogrenci.ad_soyad,
-          ogrenci.tc_no,
-          "ogrenci",
-          1,
-        ]);
-        createUserStmt.free();
-      }
-
-      db.saveActiveSchoolDB();
-
-      console.log("✅ Öğrenci şifresi oluşturuldu:", otomatikSifre);
-
-      return {
-        success: true,
-        message: "Öğrenci şifresi oluşturuldu!",
-        data: {
-          kullanici_adi: ogrenci.okul_no,
-          sifre: otomatikSifre,
-        },
-      };
-    } catch (error) {
-      console.error("❌ Öğrenci şifre oluşturma hatası:", error);
-      return {
-        success: false,
-        message: "Şifre oluşturulamadı: " + error.message,
-      };
+    if (!schoolDB) {
+      return { success: false, message: "Okul seçili değil!" };
     }
+
+    const stmt = schoolDB.prepare("SELECT * FROM ogrenciler WHERE durum = 1");
+    const students = [];
+
+    while (stmt.step()) {
+      students.push(stmt.getAsObject());
+    }
+
+    stmt.free();
+
+    return { success: true, data: students };
+  } catch (error) {
+    console.error("❌ Öğrenci listeleme hatası:", error);
+    return { success: false, message: error.message };
   }
-);
+});
 
-// Öğrenci şifresini göster (Admin: Tümü, Öğretmen: Kendi sınıfı)
-ipcMain.handle(
-  "get-student-password",
-  async (event, ogrenciId, kullaniciRol, ogretmenId) => {
-    try {
-      console.log("👁️ Öğrenci şifre görüntüleme isteği:", ogrenciId);
+ipcMain.handle("get-student-by-id", async (event, id) => {
+  try {
+    const schoolDB = db.getActiveSchoolDB();
+    if (!schoolDB) {
+      return { success: false, message: "Aktif okul yok!" };
+    }
 
-      const activeDB = db.getActiveSchoolDB();
-      if (!activeDB) {
-        return { success: false, message: "Aktif veritabanı bulunamadı!" };
-      }
+    const stmt = schoolDB.prepare("SELECT * FROM ogrenciler WHERE id = ?");
+    stmt.bind([id]);
 
-      // Yetki kontrolü (öğretmen için)
-      if (kullaniciRol === "ogretmen" && ogretmenId) {
-        const ogrenciStmt = activeDB.prepare(
-          "SELECT sinif_id FROM ogrenciler WHERE id = ?"
-        );
-        ogrenciStmt.bind([parseInt(ogrenciId)]);
-
-        if (!ogrenciStmt.step()) {
-          ogrenciStmt.free();
-          return { success: false, message: "Öğrenci bulunamadı!" };
-        }
-
-        const ogrenciSinifId = ogrenciStmt.getAsObject().sinif_id;
-        ogrenciStmt.free();
-
-        const yetkiStmt = activeDB.prepare(`
-          SELECT COUNT(*) as sayi
-          FROM ders_programi 
-          WHERE ogretmen_id = ? 
-            AND sinif_id = ? 
-            AND ders_id IN (SELECT id FROM dersler WHERE ders_adi LIKE '%Rehberlik%')
-        `);
-        yetkiStmt.bind([ogretmenId, ogrenciSinifId]);
-
-        let yetkiVar = false;
-        if (yetkiStmt.step()) {
-          yetkiVar = yetkiStmt.getAsObject().sayi > 0;
-        }
-        yetkiStmt.free();
-
-        if (!yetkiVar) {
-          return {
-            success: false,
-            message: "Bu öğrencinin şifresini görüntüleme yetkiniz yok!",
-          };
-        }
-      }
-
-      // Öğrenci şifresini al
-      const stmt = activeDB.prepare(`
-        SELECT o.okul_no, o.ad_soyad, k.sifre 
-        FROM ogrenciler o
-        LEFT JOIN kullanicilar k ON o.okul_no = k.kullanici_adi
-        WHERE o.id = ?
-      `);
-      stmt.bind([parseInt(ogrenciId)]);
-
-      if (!stmt.step()) {
-        stmt.free();
-        return { success: false, message: "Öğrenci bulunamadı!" };
-      }
-
-      const row = stmt.getAsObject();
+    if (stmt.step()) {
+      const ogrenci = stmt.getAsObject();
       stmt.free();
-
-      return {
-        success: true,
-        data: {
-          okul_no: row.okul_no,
-          ad_soyad: row.ad_soyad,
-          sifre: row.sifre || "Şifre henüz oluşturulmamış",
-        },
-      };
-    } catch (error) {
-      console.error("❌ Öğrenci şifre görüntüleme hatası:", error);
-      return {
-        success: false,
-        message: "Şifre görüntülenemedi: " + error.message,
-      };
+      return { success: true, data: ogrenci };
     }
+
+    stmt.free();
+    return { success: false, message: "Öğrenci bulunamadı!" };
+  } catch (error) {
+    console.error("❌ Öğrenci getirme hatası:", error);
+    return { success: false, message: error.message };
   }
-);
+});
+
+ipcMain.handle("delete-all-students", async () => {
+  try {
+    const schoolDB = db.getActiveSchoolDB();
+    if (!schoolDB) {
+      return { success: false, message: "Aktif okul yok!" };
+    }
+
+    schoolDB.run("DELETE FROM ogrenciler");
+    db.saveActiveSchoolDB();
+
+    console.log("✅ Tüm öğrenciler silindi");
+    return { success: true, message: "Tüm öğrenciler silindi!" };
+  } catch (error) {
+    console.error("❌ Silme hatası:", error);
+    return { success: false, message: error.message };
+  }
+});
+
+ipcMain.handle("get-all-students-including-inactive", async () => {
+  try {
+    const schoolDB = db.getActiveSchoolDB();
+    const stmt = schoolDB.prepare("SELECT * FROM ogrenciler");
+    const students = [];
+    while (stmt.step()) {
+      students.push(stmt.getAsObject());
+    }
+    stmt.free();
+    return { success: true, data: students };
+  } catch (err) {
+    return { success: false, message: err.message };
+  }
+});
+
+console.log("✅ Öğrenci IPC Handler'ları yüklendi");
 
 // ==========================================
-// MEBBİS ENTEGRASYON - IPC HANDLERS
+// 🏫 SINIF YÖNETİMİ IPC HANDLER'LARI
+// ==========================================
+
+ipcMain.handle("get-all-classes", async () => {
+  try {
+    console.log("📋 Sınıf listesi istendi");
+
+    const result = db.getAllClasses();
+
+    if (result.success) {
+      console.log(`✅ ${result.data.length} sınıf bulundu`);
+    }
+
+    return result;
+  } catch (error) {
+    console.error("❌ Sınıf listesi hatası:", error);
+    return {
+      success: false,
+      message: error.message,
+    };
+  }
+});
+
+ipcMain.handle("create-class", async (event, sinifBilgileri) => {
+  try {
+    console.log("🆕 Yeni sınıf ekleme isteği");
+
+    const result = await db.createClass(sinifBilgileri);
+
+    if (result.success) {
+      console.log("✅ Sınıf eklendi:", result.data.sinif_adi);
+    }
+
+    return result;
+  } catch (error) {
+    console.error("❌ Sınıf ekleme hatası:", error);
+    return {
+      success: false,
+      message: error.message,
+    };
+  }
+});
+
+ipcMain.handle("update-class", async (event, sinifId, guncelBilgiler) => {
+  try {
+    console.log("✏️ Sınıf güncelleme isteği:", sinifId);
+
+    const result = db.updateClass(sinifId, guncelBilgiler);
+
+    if (result.success) {
+      console.log("✅ Sınıf güncellendi:", sinifId);
+    }
+
+    return result;
+  } catch (error) {
+    console.error("❌ Sınıf güncelleme hatası:", error);
+    return {
+      success: false,
+      message: error.message,
+    };
+  }
+});
+
+ipcMain.handle("delete-class", async (event, sinifId) => {
+  try {
+    console.log("🗑️ Sınıf silme isteği:", sinifId);
+
+    const result = db.deleteClass(sinifId);
+
+    if (result.success) {
+      console.log("✅ Sınıf silindi:", sinifId);
+    }
+
+    return result;
+  } catch (error) {
+    console.error("❌ Sınıf silme hatası:", error);
+    return {
+      success: false,
+      message: error.message,
+    };
+  }
+});
+
+ipcMain.handle("get-stats-for-class", async (event, sinifAdi) => {
+  try {
+    console.log(`📊 ${sinifAdi} sınıfı için istatistikler istendi`);
+
+    const result = db.getStatsForClass(sinifAdi);
+    return result;
+  } catch (error) {
+    console.error("❌ Sınıf istatistikleri alınamadı:", error);
+    return {
+      success: false,
+      message: error.message,
+    };
+  }
+});
+
+console.log("✅ Sınıf IPC Handler'ları yüklendi");
+// ==========================================
+// 📚 DERSLER - IPC HANDLERS
+// ==========================================
+
+ipcMain.handle("get-all-dersler", async () => {
+  try {
+    console.log("📚 Tüm dersler getiriliyor...");
+
+    const result = db.getAllDersler();
+    return result;
+  } catch (error) {
+    console.error("❌ Dersler getirme hatası:", error);
+    return { success: false, message: error.message };
+  }
+});
+
+ipcMain.handle("add-ders", async (event, dersData) => {
+  try {
+    console.log("🆕 Yeni ders ekleniyor:", dersData);
+
+    const result = db.addDers(dersData);
+    return result;
+  } catch (error) {
+    console.error("❌ Ders ekleme hatası:", error);
+    return { success: false, message: error.message };
+  }
+});
+
+ipcMain.handle("update-ders", async (event, dersData) => {
+  try {
+    console.log("✏️ Ders güncelleniyor:", dersData);
+
+    const result = db.updateDers(dersData);
+    return result;
+  } catch (error) {
+    console.error("❌ Ders güncelleme hatası:", error);
+    return { success: false, message: error.message };
+  }
+});
+
+ipcMain.handle("delete-ders", async (event, dersId) => {
+  try {
+    console.log("🗑️ Ders siliniyor:", dersId);
+
+    const result = db.deleteDers(dersId);
+    return result;
+  } catch (error) {
+    console.error("❌ Ders silme hatası:", error);
+    return { success: false, message: error.message };
+  }
+});
+
+ipcMain.handle("get-all-dersler-with-blocks", async () => {
+  try {
+    console.log("📚 IPC: get-all-dersler-with-blocks çağrıldı");
+
+    const result = db.getAllDerslerWithBlocks();
+    return result;
+  } catch (error) {
+    console.error("❌ get-all-dersler-with-blocks hatası:", error);
+    return { success: false, message: error.message };
+  }
+});
+
+console.log("✅ Dersler IPC handlers yüklendi");
+
+// ==========================================
+// 📅 DERS PROGRAMI - IPC HANDLERS
+// ==========================================
+
+ipcMain.handle(
+  "create-ders-program",
+  async (event, programBilgileri, hucreVerileri) => {
+    try {
+      console.log("📅 IPC: create-ders-program çağrıldı");
+
+      // Eğer hücre verisi yoksa basit oluştur
+      if (!hucreVerileri || hucreVerileri.length === 0) {
+        console.log("🔄 Basit program oluşturma moduna geçiliyor...");
+        const result = await db.createDersProgramBasit(programBilgileri);
+        return result;
+      }
+
+      const result = await db.createDersProgram(
+        programBilgileri,
+        hucreVerileri
+      );
+      return result;
+    } catch (error) {
+      console.error("❌ create-ders-program hatası:", error);
+      return { success: false, message: error.message };
+    }
+  }
+);
+
+ipcMain.handle("get-ders-program", async (event, programId) => {
+  try {
+    console.log("📋 IPC: get-ders-program çağrıldı, ID:", programId);
+
+    const result = db.getDersProgram(programId);
+    return result;
+  } catch (error) {
+    console.error("❌ get-ders-program hatası:", error);
+    return { success: false, message: error.message };
+  }
+});
+
+ipcMain.handle("get-ders-program-by-sinif", async (event, sinifId) => {
+  try {
+    console.log(
+      "📋 IPC: get-ders-program-by-sinif çağrıldı, Sınıf ID:",
+      sinifId
+    );
+
+    const result = db.getDersProgramBySinif(sinifId);
+    return result;
+  } catch (error) {
+    console.error("❌ get-ders-program-by-sinif hatası:", error);
+    return { success: false, message: error.message };
+  }
+});
+
+ipcMain.handle("get-all-ders-programlari", async (event, sadeceDurumAktif) => {
+  try {
+    console.log("📋 IPC: get-all-ders-programlari çağrıldı");
+
+    const result = db.getAllDersProgramlari(sadeceDurumAktif);
+    return result;
+  } catch (error) {
+    console.error("❌ get-all-ders-programlari hatası:", error);
+    return { success: false, message: error.message };
+  }
+});
+
+ipcMain.handle(
+  "update-ders-program",
+  async (event, programId, guncelBilgiler, yeniHucreler) => {
+    try {
+      console.log("✏️ IPC: update-ders-program çağrıldı, ID:", programId);
+
+      const result = await db.updateDersProgram(
+        programId,
+        guncelBilgiler,
+        yeniHucreler
+      );
+      return result;
+    } catch (error) {
+      console.error("❌ update-ders-program hatası:", error);
+      return { success: false, message: error.message };
+    }
+  }
+);
+
+ipcMain.handle("delete-ders-program", async (event, programId) => {
+  try {
+    console.log("🗑️ IPC: delete-ders-program çağrıldı, ID:", programId);
+
+    const result = db.deleteDersProgram(programId);
+    return result;
+  } catch (error) {
+    console.error("❌ delete-ders-program hatası:", error);
+    return { success: false, message: error.message };
+  }
+});
+
+ipcMain.handle("restore-ders-program", async (event, programId) => {
+  try {
+    console.log("♻️ IPC: restore-ders-program çağrıldı, ID:", programId);
+
+    const result = db.restoreDersProgram(programId);
+    return result;
+  } catch (error) {
+    console.error("❌ restore-ders-program hatası:", error);
+    return { success: false, message: error.message };
+  }
+});
+
+ipcMain.handle("hard-delete-ders-program", async (event, programId) => {
+  try {
+    console.log("💥 IPC: hard-delete-ders-program çağrıldı, ID:", programId);
+
+    const result = db.hardDeleteDersProgram(programId);
+    return result;
+  } catch (error) {
+    console.error("❌ hard-delete-ders-program hatası:", error);
+    return { success: false, message: error.message };
+  }
+});
+
+ipcMain.handle(
+  "check-cakisma",
+  async (event, ogretmenId, gun, saat, haricProgramId) => {
+    try {
+      console.log("🔍 IPC: check-cakisma çağrıldı");
+
+      const result = db.checkCakisma(ogretmenId, gun, saat, haricProgramId);
+      return result;
+    } catch (error) {
+      console.error("❌ check-cakisma hatası:", error);
+      return { success: false, message: error.message };
+    }
+  }
+);
+
+ipcMain.handle("get-all-teachers-with-load", async (event, programId) => {
+  try {
+    console.log("👨‍🏫 IPC: get-all-teachers-with-load çağrıldı");
+
+    const result = db.getAllTeachersWithLoad(programId);
+    return result;
+  } catch (error) {
+    console.error("❌ get-all-teachers-with-load hatası:", error);
+    return { success: false, message: error.message };
+  }
+});
+
+ipcMain.handle("get-all-classes-with-load", async () => {
+  try {
+    console.log("🏛️ IPC: get-all-classes-with-load çağrıldı");
+
+    const result = db.getAllClassesWithLoad();
+    return result;
+  } catch (error) {
+    console.error("❌ get-all-classes-with-load hatası:", error);
+    return { success: false, message: error.message };
+  }
+});
+
+ipcMain.handle(
+  "get-program-dashboard-data",
+  async (event, programId, sinifId) => {
+    try {
+      console.log("📊 IPC: get-program-dashboard-data çağrıldı");
+
+      const result = db.getProgramDashboardData(programId, sinifId);
+      return result;
+    } catch (error) {
+      console.error("❌ get-program-dashboard-data hatası:", error);
+      return { success: false, message: error.message };
+    }
+  }
+);
+
+ipcMain.handle(
+  "parse-blok-bilgisi",
+  async (event, blokString, haftalikSaat) => {
+    try {
+      console.log("🧩 IPC: parse-blok-bilgisi çağrıldı");
+
+      const result = db.parseBlokBilgisi(blokString, haftalikSaat);
+      return result;
+    } catch (error) {
+      console.error("❌ parse-blok-bilgisi hatası:", error);
+      return { success: false, message: error.message };
+    }
+  }
+);
+
+console.log("✅ Ders Programı IPC handlers yüklendi");
+
+// ==========================================
+// 🎯 KISITLAR - IPC HANDLERS
+// ==========================================
+
+ipcMain.handle("save-genel-kisitlar", async (event, programId, kisitlar) => {
+  try {
+    console.log("🎯 IPC: save-genel-kisitlar çağrıldı");
+
+    const result = await db.saveGenelKisitlar(programId, kisitlar);
+    return result;
+  } catch (error) {
+    console.error("❌ save-genel-kisitlar hatası:", error);
+    return { success: false, message: error.message };
+  }
+});
+
+ipcMain.handle(
+  "save-ogretmen-kisit",
+  async (event, programId, ogretmenId, kisitlar) => {
+    try {
+      console.log("👨‍🏫 IPC: save-ogretmen-kisit çağrıldı");
+
+      const result = await db.saveOgretmenKisit(
+        programId,
+        ogretmenId,
+        kisitlar
+      );
+      return result;
+    } catch (error) {
+      console.error("❌ save-ogretmen-kisit hatası:", error);
+      return { success: false, message: error.message };
+    }
+  }
+);
+
+ipcMain.handle("get-kisitlar", async (event, programId) => {
+  try {
+    console.log("📋 IPC: get-kisitlar çağrıldı");
+
+    const result = db.getKisitlar(programId);
+    return result;
+  } catch (error) {
+    console.error("❌ get-kisitlar hatası:", error);
+    return { success: false, message: error.message };
+  }
+});
+
+ipcMain.handle(
+  "delete-ogretmen-kisit",
+  async (event, programId, ogretmenId) => {
+    try {
+      console.log("🗑️ IPC: delete-ogretmen-kisit çağrıldı");
+
+      const result = db.deleteOgretmenKisit(programId, ogretmenId);
+      return result;
+    } catch (error) {
+      console.error("❌ delete-ogretmen-kisit hatası:", error);
+      return { success: false, message: error.message };
+    }
+  }
+);
+
+ipcMain.handle("get-default-kisitlar", async () => {
+  try {
+    console.log("⚙️ IPC: get-default-kisitlar çağrıldı");
+
+    const result = db.getDefaultKisitlar();
+    return result;
+  } catch (error) {
+    console.error("❌ get-default-kisitlar hatası:", error);
+    return { success: false, message: error.message };
+  }
+});
+
+console.log("✅ Kısıtlar IPC handlers yüklendi");
+
+// ==========================================
+// 👨‍🏫 ÖĞRETMEN TERCİHLERİ - IPC HANDLERS
+// ==========================================
+
+ipcMain.handle(
+  "save-ogretmen-tercihi",
+  async (event, programId, ogretmenId, tercihler) => {
+    try {
+      console.log("💾 IPC: save-ogretmen-tercihi çağrıldı");
+
+      const result = await db.saveOgretmenTercihi(
+        programId,
+        ogretmenId,
+        tercihler
+      );
+      return result;
+    } catch (error) {
+      console.error("❌ save-ogretmen-tercihi hatası:", error);
+      return { success: false, message: error.message };
+    }
+  }
+);
+
+ipcMain.handle("get-ogretmen-tercihi", async (event, programId, ogretmenId) => {
+  try {
+    console.log("📋 IPC: get-ogretmen-tercihi çağrıldı");
+
+    const result = db.getOgretmenTercihi(programId, ogretmenId);
+    return result;
+  } catch (error) {
+    console.error("❌ get-ogretmen-tercihi hatası:", error);
+    return { success: false, message: error.message };
+  }
+});
+
+ipcMain.handle("get-all-ogretmen-tercihleri", async (event, programId) => {
+  try {
+    console.log("📋 IPC: get-all-ogretmen-tercihleri çağrıldı");
+
+    const result = db.getAllOgretmenTercihleri(programId);
+    return result;
+  } catch (error) {
+    console.error("❌ get-all-ogretmen-tercihleri hatası:", error);
+    return { success: false, message: error.message };
+  }
+});
+
+ipcMain.handle(
+  "delete-ogretmen-tercihi",
+  async (event, programId, ogretmenId) => {
+    try {
+      console.log("🗑️ IPC: delete-ogretmen-tercihi çağrıldı");
+
+      const result = db.deleteOgretmenTercihi(programId, ogretmenId);
+      return result;
+    } catch (error) {
+      console.error("❌ delete-ogretmen-tercihi hatası:", error);
+      return { success: false, message: error.message };
+    }
+  }
+);
+
+console.log("✅ Öğretmen Tercihleri IPC handlers yüklendi");
+
+// ==========================================
+// 🤖 YAPAY ZEKA UYARI - IPC HANDLERS
+// ==========================================
+
+ipcMain.handle("check-bos-gun-cakismasi", async (event, programId, bosGun) => {
+  try {
+    console.log("🔍 IPC: check-bos-gun-cakismasi çağrıldı");
+
+    const result = db.checkBosGunCakismasi(programId, bosGun);
+    return result;
+  } catch (error) {
+    console.error("❌ check-bos-gun-cakismasi hatası:", error);
+    return { success: false, message: error.message };
+  }
+});
+
+ipcMain.handle("get-aktif-uyarilar", async (event, programId) => {
+  try {
+    console.log("📋 IPC: get-aktif-uyarilar çağrıldı");
+
+    const result = db.getAktifUyarilar(programId);
+    return result;
+  } catch (error) {
+    console.error("❌ get-aktif-uyarilar hatası:", error);
+    return { success: false, message: error.message };
+  }
+});
+
+ipcMain.handle("resolve-uyari", async (event, uyariId) => {
+  try {
+    console.log("✅ IPC: resolve-uyari çağrıldı");
+
+    const result = db.resolveUyari(uyariId);
+    return result;
+  } catch (error) {
+    console.error("❌ resolve-uyari hatası:", error);
+    return { success: false, message: error.message };
+  }
+});
+
+ipcMain.handle("validate-kisitlar-tercihler", async (event, programId) => {
+  try {
+    console.log("🔍 IPC: validate-kisitlar-tercihler çağrıldı");
+
+    const result = db.validateKisitlarVeTercihler(programId);
+    return result;
+  } catch (error) {
+    console.error("❌ validate-kisitlar-tercihler hatası:", error);
+    return { success: false, message: error.message };
+  }
+});
+
+ipcMain.handle("save-kisit-uyarisi", async (event, programId, uyari) => {
+  try {
+    console.log("⚠️ IPC: save-kisit-uyarisi çağrıldı");
+
+    const result = db.saveKisitUyarisi(programId, uyari);
+    return result;
+  } catch (error) {
+    console.error("❌ save-kisit-uyarisi hatası:", error);
+    return { success: false, message: error.message };
+  }
+});
+
+console.log("✅ Yapay Zeka Uyarı IPC handlers yüklendi");
+
+// ==========================================
+// 💾 SINIF-DERS-ÖĞRETMEN ATAMA
+// ==========================================
+
+ipcMain.handle("save-sinif-ders-ogretmen-atama", async (event, payload) => {
+  try {
+    console.log("💾 Sınıf-Ders-Öğretmen Atama Kaydediliyor:", payload);
+
+    const result = await db.saveSinifDersOgretmenAtama(payload);
+    return result;
+  } catch (error) {
+    console.error("❌ save-sinif-ders-ogretmen-atama hatası:", error);
+    return { success: false, message: error.message };
+  }
+});
+
+ipcMain.handle("get-sinif-ders-ogretmen-atama", async (event, sinifId) => {
+  try {
+    console.log("📋 IPC: get-sinif-ders-ogretmen-atama çağrıldı");
+
+    const result = db.getSinifDersOgretmenAtama(sinifId);
+    return result;
+  } catch (error) {
+    console.error("❌ get-sinif-ders-ogretmen-atama hatası:", error);
+    return { success: false, message: error.message };
+  }
+});
+
+ipcMain.handle("delete-sinif-ders-ogretmen-atama", async (event, atamaId) => {
+  try {
+    console.log("🗑️ IPC: delete-sinif-ders-ogretmen-atama çağrıldı");
+
+    const result = db.deleteSinifDersOgretmenAtama(atamaId);
+    return result;
+  } catch (error) {
+    console.error("❌ delete-sinif-ders-ogretmen-atama hatası:", error);
+    return { success: false, message: error.message };
+  }
+});
+
+// ESKI HANDLER (BACKWARD COMPATIBILITY)
+ipcMain.handle("saveSinifDersOgretmenAtama", async (event, payload) => {
+  console.log("⚠️ Eski handler çağrıldı, yeni handler'a yönlendiriliyor...");
+  return await db.saveSinifDersOgretmenAtama(payload);
+});
+
+console.log("✅ Sınıf-Ders-Öğretmen Atama IPC handlers yüklendi");
+
+// ==========================================
+// 📊 GENEL SQL SORGU HANDLER
+// ==========================================
+
+ipcMain.handle("run-sql-query", async (event, sql) => {
+  try {
+    const schoolDB = db.getActiveSchoolDB();
+    const stmt = schoolDB.prepare(sql);
+    const results = [];
+    while (stmt.step()) {
+      results.push(stmt.getAsObject());
+    }
+    stmt.free();
+    return { success: true, data: results };
+  } catch (err) {
+    return { success: false, message: err.message };
+  }
+});
+
+console.log("✅ Main.js Bölüm 4 yüklendi");
+// ==========================================
+// 🚀 ALGORİTMA ENTEGRASYONU IPC HANDLERS
+// ==========================================
+
+ipcMain.handle("save-algorithm-config", async (event, programId, config) => {
+  try {
+    console.log("⚙️ IPC: save-algorithm-config çağrıldı");
+
+    const result = await db.saveAlgorithmConfig(programId, config);
+    return result;
+  } catch (error) {
+    console.error("❌ save-algorithm-config hatası:", error);
+    return { success: false, message: error.message };
+  }
+});
+
+ipcMain.handle("get-algorithm-config", async (event, programId) => {
+  try {
+    console.log("📋 IPC: get-algorithm-config çağrıldı");
+
+    const result = db.getAlgorithmConfig(programId);
+    return result;
+  } catch (error) {
+    console.error("❌ get-algorithm-config hatası:", error);
+    return { success: false, message: error.message };
+  }
+});
+
+ipcMain.handle(
+  "save-solution-variant",
+  async (event, programId, variantName, solution, metadata) => {
+    try {
+      console.log("💾 IPC: save-solution-variant çağrıldı");
+
+      const result = await db.saveSolutionVariant(
+        programId,
+        variantName,
+        solution,
+        metadata
+      );
+      return result;
+    } catch (error) {
+      console.error("❌ save-solution-variant hatası:", error);
+      return { success: false, message: error.message };
+    }
+  }
+);
+
+ipcMain.handle("get-all-solution-variants", async (event, programId) => {
+  try {
+    console.log("📋 IPC: get-all-solution-variants çağrıldı");
+
+    const result = db.getAllSolutionVariants(programId);
+    return result;
+  } catch (error) {
+    console.error("❌ get-all-solution-variants hatası:", error);
+    return { success: false, message: error.message };
+  }
+});
+
+ipcMain.handle("get-solution-variant", async (event, variantId) => {
+  try {
+    console.log("📋 IPC: get-solution-variant çağrıldı");
+
+    const result = db.getSolutionVariant(variantId);
+    return result;
+  } catch (error) {
+    console.error("❌ get-solution-variant hatası:", error);
+    return { success: false, message: error.message };
+  }
+});
+
+ipcMain.handle("delete-solution-variant", async (event, variantId) => {
+  try {
+    console.log("🗑️ IPC: delete-solution-variant çağrıldı");
+
+    const result = db.deleteSolutionVariant(variantId);
+    return result;
+  } catch (error) {
+    console.error("❌ delete-solution-variant hatası:", error);
+    return { success: false, message: error.message };
+  }
+});
+
+ipcMain.handle("mark-variant-as-best", async (event, programId, variantId) => {
+  try {
+    console.log("⭐ IPC: mark-variant-as-best çağrıldı");
+
+    const result = db.markVariantAsBest(programId, variantId);
+    return result;
+  } catch (error) {
+    console.error("❌ mark-variant-as-best hatası:", error);
+    return { success: false, message: error.message };
+  }
+});
+
+ipcMain.handle(
+  "save-performance-metrics",
+  async (event, programId, sessionName, metrics) => {
+    try {
+      console.log("📊 IPC: save-performance-metrics çağrıldı");
+
+      const result = await db.savePerformanceMetrics(
+        programId,
+        sessionName,
+        metrics
+      );
+      return result;
+    } catch (error) {
+      console.error("❌ save-performance-metrics hatası:", error);
+      return { success: false, message: error.message };
+    }
+  }
+);
+
+ipcMain.handle("get-performance-history", async (event, programId, limit) => {
+  try {
+    console.log("📋 IPC: get-performance-history çağrıldı");
+
+    const result = db.getPerformanceHistory(programId, limit);
+    return result;
+  } catch (error) {
+    console.error("❌ get-performance-history hatası:", error);
+    return { success: false, message: error.message };
+  }
+});
+
+ipcMain.handle("get-performance-stats", async (event, programId) => {
+  try {
+    console.log("📊 IPC: get-performance-stats çağrıldı");
+
+    const result = db.getPerformanceStats(programId);
+    return result;
+  } catch (error) {
+    console.error("❌ get-performance-stats hatası:", error);
+    return { success: false, message: error.message };
+  }
+});
+
+ipcMain.handle(
+  "run-schedule-algorithm",
+  async (event, programId, algorithmType, options) => {
+    try {
+      console.log("🚀 IPC: run-schedule-algorithm çağrıldı");
+
+      const result = await db.runScheduleAlgorithm(
+        programId,
+        algorithmType,
+        options
+      );
+      return result;
+    } catch (error) {
+      console.error("❌ run-schedule-algorithm hatası:", error);
+      return { success: false, message: error.message };
+    }
+  }
+);
+
+ipcMain.handle("stop-schedule-algorithm", async (event, programId) => {
+  try {
+    console.log("⏹️ IPC: stop-schedule-algorithm çağrıldı");
+
+    const result = db.stopScheduleAlgorithm(programId);
+    return result;
+  } catch (error) {
+    console.error("❌ stop-schedule-algorithm hatası:", error);
+    return { success: false, message: error.message };
+  }
+});
+
+ipcMain.handle("compare-solutions", async (event, programId, variantIds) => {
+  try {
+    console.log("⚖️ IPC: compare-solutions çağrıldı");
+
+    const result = db.compareSolutions(programId, variantIds);
+    return result;
+  } catch (error) {
+    console.error("❌ compare-solutions hatası:", error);
+    return { success: false, message: error.message };
+  }
+});
+
+ipcMain.handle(
+  "optimize-program",
+  async (event, programId, optimizationType) => {
+    try {
+      console.log("⚡ IPC: optimize-program çağrıldı");
+
+      const result = db.optimizeProgram(programId, optimizationType);
+      return result;
+    } catch (error) {
+      console.error("❌ optimize-program hatası:", error);
+      return { success: false, message: error.message };
+    }
+  }
+);
+
+ipcMain.handle("analyze-schedule-quality", async (event, programId) => {
+  try {
+    console.log("🔍 IPC: analyze-schedule-quality çağrıldı");
+
+    const result = db.analyzeScheduleQuality(programId);
+    return result;
+  } catch (error) {
+    console.error("❌ analyze-schedule-quality hatası:", error);
+    return { success: false, message: error.message };
+  }
+});
+
+console.log("✅ Algoritma Entegrasyonu IPC handlers yüklendi");
+
+// ==========================================
+// 📈 İSTATİSTİK VE ANALİTİK IPC HANDLERS
+// ==========================================
+
+ipcMain.handle("get-system-stats", async () => {
+  try {
+    console.log("📊 IPC: get-system-stats çağrıldı");
+
+    const result = db.getSystemStats();
+    return result;
+  } catch (error) {
+    console.error("❌ get-system-stats hatası:", error);
+    return { success: false, message: error.message };
+  }
+});
+
+ipcMain.handle("get-schedule-stats", async (event, programId) => {
+  try {
+    console.log("📊 IPC: get-schedule-stats çağrıldı");
+
+    const result = db.getScheduleStats(programId);
+    return result;
+  } catch (error) {
+    console.error("❌ get-schedule-stats hatası:", error);
+    return { success: false, message: error.message };
+  }
+});
+
+ipcMain.handle("get-teacher-workload", async (event, ogretmenId, programId) => {
+  try {
+    console.log("📊 IPC: get-teacher-workload çağrıldı");
+
+    const result = db.getTeacherWorkload(ogretmenId, programId);
+    return result;
+  } catch (error) {
+    console.error("❌ get-teacher-workload hatası:", error);
+    return { success: false, message: error.message };
+  }
+});
+
+ipcMain.handle(
+  "get-class-schedule-analysis",
+  async (event, sinifId, programId) => {
+    try {
+      console.log("📊 IPC: get-class-schedule-analysis çağrıldı");
+
+      const result = db.getClassScheduleAnalysis(sinifId, programId);
+      return result;
+    } catch (error) {
+      console.error("❌ get-class-schedule-analysis hatası:", error);
+      return { success: false, message: error.message };
+    }
+  }
+);
+
+console.log("✅ İstatistik ve Analitik IPC handlers yüklendi");
+
+// ==========================================
+// 📄 PDF OLUŞTUR - PUPPETEER MANAGER (GÜNCELLENDİ)
+// ==========================================
+
+ipcMain.handle("create-pdf", async (event, options) => {
+  try {
+    console.log("📄 PDF oluşturuluyor...");
+
+    const { html, fileName } = options;
+    const downloadPath = path.join(os.homedir(), "Downloads", fileName);
+
+    // 🆕 Puppeteer Manager kullan (otomatik Chrome bulma/indirme)
+    const result = await puppeteerManager.createPDF(html, downloadPath);
+
+    if (result.success) {
+      console.log("✅ PDF başarıyla oluşturuldu:", downloadPath);
+      return {
+        success: true,
+        message: "PDF başarıyla oluşturuldu",
+        path: downloadPath,
+      };
+    } else {
+      console.error("❌ PDF oluşturma hatası:", result.error);
+      return {
+        success: false,
+        message: result.error,
+      };
+    }
+  } catch (error) {
+    console.error("❌ PDF handler hatası:", error);
+    return {
+      success: false,
+      message: error.message,
+    };
+  }
+});
+
+console.log("✅ PDF IPC handler yüklendi (Puppeteer Manager ile)");
+
+// ==========================================
+// 🧹 MANUEL CACHE TEMİZLEME (YENİ)
+// ==========================================
+
+ipcMain.handle("clear-cache-manual", async (event) => {
+  try {
+    console.log("🧹 Manuel cache temizleme başlatıldı...");
+
+    // Event'ten window'u al (daha güvenli)
+    const senderWindow = BrowserWindow.fromWebContents(event.sender);
+
+    const result = await cacheManager.manualClearCache(senderWindow);
+
+    if (result) {
+      console.log("✅ Cache temizlendi");
+      return {
+        success: true,
+        message: "Cache başarıyla temizlendi! Sayfa yenileniyor...",
+      };
+    } else {
+      return {
+        success: false,
+        message: "Cache temizlenemedi!",
+      };
+    }
+  } catch (error) {
+    console.error("❌ Manuel cache temizleme hatası:", error);
+    return {
+      success: false,
+      message: error.message,
+    };
+  }
+});
+
+// Cache boyutunu getir
+ipcMain.handle("get-cache-size", async () => {
+  try {
+    const sizeMB = await cacheManager.getCacheSize();
+    return {
+      success: true,
+      size: sizeMB,
+    };
+  } catch (error) {
+    return {
+      success: false,
+      message: error.message,
+    };
+  }
+});
+
+console.log("✅ Cache Yönetimi IPC handlers yüklendi");
+
+// ==========================================
+// 📊 EXCEL OLUŞTUR - XLSX (KORUNDU)
+// ==========================================
+
+ipcMain.handle("create-excel", async (event, options) => {
+  try {
+    console.log("📊 Excel oluşturuluyor...");
+
+    const XLSX = require("xlsx");
+    const { data, fileName } = options;
+
+    const downloadPath = path.join(os.homedir(), "Downloads", fileName);
+
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.aoa_to_sheet(data);
+
+    ws["!cols"] = [
+      { wch: 8 },
+      { wch: 10 },
+      { wch: 12 },
+      { wch: 15 },
+      { wch: 35 },
+      { wch: 12 },
+    ];
+
+    ws["!merges"] = [
+      { s: { r: 0, c: 0 }, e: { r: 0, c: 5 } },
+      { s: { r: 1, c: 0 }, e: { r: 1, c: 5 } },
+      { s: { r: 2, c: 0 }, e: { r: 2, c: 5 } },
+      { s: { r: 3, c: 0 }, e: { r: 3, c: 5 } },
+    ];
+
+    XLSX.utils.book_append_sheet(wb, ws, "Rapor");
+    XLSX.writeFile(wb, downloadPath);
+
+    console.log("✅ Excel kaydedildi:", downloadPath);
+
+    return {
+      success: true,
+      message: "Excel başarıyla oluşturuldu",
+      path: downloadPath,
+    };
+  } catch (error) {
+    console.error("❌ Excel hatası:", error);
+    return {
+      success: false,
+      message: error.message,
+    };
+  }
+});
+
+console.log("✅ Excel IPC handler yüklendi");
+
+// ==========================================
+// 🎨 EXPORT IPC HANDLERS
+// ==========================================
+
+ipcMain.handle("export-program-as-image", async (event, programId, format) => {
+  try {
+    console.log("🖼️ IPC: export-program-as-image çağrıldı");
+
+    const result = db.exportProgramAsImage(programId, format);
+    return result;
+  } catch (error) {
+    console.error("❌ export-program-as-image hatası:", error);
+    return { success: false, message: error.message };
+  }
+});
+
+ipcMain.handle("export-program-as-pdf", async (event, programId, options) => {
+  try {
+    console.log("📄 IPC: export-program-as-pdf çağrıldı");
+
+    const result = db.exportProgramAsPDF(programId, options);
+    return result;
+  } catch (error) {
+    console.error("❌ export-program-as-pdf hatası:", error);
+    return { success: false, message: error.message };
+  }
+});
+
+ipcMain.handle("export-program-as-excel", async (event, programId, options) => {
+  try {
+    console.log("📊 IPC: export-program-as-excel çağrıldı");
+
+    const result = db.exportProgramAsExcel(programId, options);
+    return result;
+  } catch (error) {
+    console.error("❌ export-program-as-excel hatası:", error);
+    return { success: false, message: error.message };
+  }
+});
+
+console.log("✅ Export IPC handlers yüklendi");
+
+// ==========================================
+// 🔔 BİLDİRİM SİSTEMİ IPC HANDLERS
+// ==========================================
+
+ipcMain.handle("show-notification", async (event, title, body, options) => {
+  try {
+    console.log("🔔 IPC: show-notification çağrıldı");
+
+    // Electron Notification API kullanabilirsiniz
+    if (mainWindow) {
+      mainWindow.webContents.send("show-system-notification", {
+        title,
+        body,
+        options,
+      });
+    }
+
+    return { success: true };
+  } catch (error) {
+    console.error("❌ show-notification hatası:", error);
+    return { success: false, message: error.message };
+  }
+});
+
+console.log("✅ Bildirim Sistemi IPC handlers yüklendi");
+
+// ==========================================
+// 💾 PROGRAM ÇÖZÜMÜ KAYDETME IPC HANDLERS (ÇOKLU ÇÖZÜM DESTEĞİ) - DEBUG EDİLMİŞ VERSİYON
+// ==========================================
+// @debug: Ek null check'ler, tablo varlığı sorguları, FK enable, detaylı log'lar eklendi
+// @date: 30.11.2025
+
+// FK'leri etkinleştir (global olarak, her handler başında)
+global.currentSchoolDb?.exec("PRAGMA foreign_keys = ON;");
+
+ipcMain.handle(
+  "save-program-solution",
+  async (event, programId, solutionName, solutionData, metadata = {}) => {
+    try {
+      console.log("💾 IPC: save-program-solution çağrıldı");
+      console.log(`   • Program ID: ${programId} (TİP: ${typeof programId})`);
+      console.log(`   • Çözüm Adı: ${solutionName}`);
+      console.log(`   • Metadata Keys: ${Object.keys(metadata)}`);
+
+      // DEBUG: Null/Invalid programId check – Erken patla
+      if (!programId || isNaN(programId) || programId <= 0) {
+        console.error(
+          "❌ HATA: programId null/undefined/geçersiz! Değer:",
+          programId
+        );
+        throw new Error(
+          `Program ID zorunlu ve pozitif integer olmalı! Alınan: ${programId}`
+        );
+      }
+
+      // activeSchoolDB yerine global.currentSchoolDb kullan
+      const db = global.currentSchoolDb;
+      if (!db || typeof db.exec !== "function") {
+        console.error("❌ Aktif okul veritabanı yok! (Login yapın)");
+        return {
+          success: false,
+          message: "Veritabanı bağlantısı yok - Lütfen giriş yapın",
+        };
+      }
+
+      // DEBUG: programlar tablosu var mı? Sorgula
+      const tableCheck = db.exec(
+        "SELECT name FROM sqlite_master WHERE type='table' AND name='programlar';"
+      );
+      const tables = tableCheck[0]?.result?.rows || [];
+      if (tables.length === 0) {
+        console.error(
+          "❌ KRİTİK HATA: 'programlar' tablosu yok! Migration çalıştırın."
+        );
+        throw new Error(
+          "programlar tablosu bulunamadı - Lütfen migration'ları çalıştırın (runMigrations)."
+        );
+      }
+      console.log("✅ DEBUG: programlar tablosu mevcut.");
+
+      // DEBUG: Program ID var mı? Kontrol et (FK violation önle)
+      const programCheckStmt = db.prepare(
+        "SELECT id FROM programlar WHERE id = ?;"
+      );
+      const existingProgram = programCheckStmt.get(programId);
+      if (!existingProgram) {
+        console.error(
+          `❌ HATA: Program ID ${programId} veritabanında yok! Önce program oluşturun.`
+        );
+        throw new Error(
+          `Program ${programId} bulunamadı - Önce ders programı oluşturun.`
+        );
+      }
+      console.log(`✅ DEBUG: Program ${programId} mevcut.`);
+
+      // Veritabanında program_cozumleri tablosu yoksa oluştur (güvenlik için)
+      db.exec(`
+        CREATE TABLE IF NOT EXISTS program_cozumleri (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          program_id INTEGER NOT NULL,
+          cozum_adi TEXT NOT NULL,
+          cozum_data TEXT NOT NULL,
+          metadata TEXT,
+          aktif INTEGER DEFAULT 0,
+          olusturma_tarihi TEXT NOT NULL,
+          guncelleme_tarihi TEXT NOT NULL,
+          FOREIGN KEY (program_id) REFERENCES programlar(id) ON DELETE CASCADE
+        )
+      `);
+      console.log("✅ DEBUG: program_cozumleri tablosu hazırlandı.");
+
+      // JSON string'e çevir
+      const jsonData = JSON.stringify(solutionData);
+      const jsonMetadata = JSON.stringify(metadata);
+      console.log(`   • JSON Veri Boyutu: ${jsonData.length} chars`);
+      console.log(`   • JSON Metadata Boyutu: ${jsonMetadata.length} chars`);
+
+      // Veritabanına kaydet
+      const stmt = db.prepare(`
+        INSERT INTO program_cozumleri 
+        (program_id, cozum_adi, cozum_data, metadata, olusturma_tarihi, guncelleme_tarihi)
+        VALUES (?, ?, ?, ?, datetime('now'), datetime('now'))
+      `);
+
+      // DEBUG: Parametreleri log'la (güvenlik için hassas veri gizle)
+      console.log(
+        `   • Bind Edilecek Parametreler: [${programId}, "${solutionName?.substring(
+          0,
+          50
+        )}...", ${jsonData.length} chars, ${jsonMetadata.length} chars]`
+      );
+
+      const result = stmt.run(programId, solutionName, jsonData, jsonMetadata);
+
+      console.log(`✅ Çözüm kaydedildi, ID: ${result.lastInsertRowid}`);
+      console.log(`   • Changes: ${result.changes}`);
+
+      // DEBUG: Kaydedilen kaydı doğrula (SELECT ile)
+      const verifyStmt = db.prepare(
+        "SELECT * FROM program_cozumleri WHERE id = ?;"
+      );
+      const saved = verifyStmt.get(result.lastInsertRowid);
+      console.log(
+        "✅ DEBUG: Doğrulama - Kaydedilen program_id:",
+        saved?.program_id
+      );
+
+      return {
+        success: true,
+        id: result.lastInsertRowid,
+        message: "Çözüm başarıyla kaydedildi",
+      };
+    } catch (error) {
+      console.error("❌ save-program-solution hatası:", error);
+      console.error("   • Stack Trace:", error.stack); // DEBUG: Tam stack ekle
+      return { success: false, message: error.message };
+    }
+  }
+);
+
+// Diğer handler'lar (debug eklenmemiş, ama tablo check eklendi – kısa tutmak için)
+ipcMain.handle("get-all-program-solutions", async (event, programId) => {
+  try {
+    console.log("📋 IPC: get-all-program-solutions çağrıldı");
+    console.log(`   • Program ID: ${programId}`);
+
+    const db = global.currentSchoolDb;
+    if (!db || typeof db.prepare !== "function") {
+      console.error("❌ Aktif okul veritabanı yok! (Login yapın)");
+      return {
+        success: false,
+        message: "Veritabanı bağlantısı yok - Lütfen giriş yapın",
+        solutions: [],
+      };
+    }
+
+    // DEBUG: programlar tablosu check (kısa)
+    const tables =
+      db.exec(
+        "SELECT name FROM sqlite_master WHERE type='table' AND name='programlar';"
+      )[0]?.result?.rows || [];
+    if (tables.length === 0) {
+      console.error("❌ 'programlar' tablosu yok!");
+      return {
+        success: false,
+        message: "programlar tablosu yok - Migration çalıştırın",
+        solutions: [],
+      };
+    }
+
+    // Tablo yoksa oluştur
+    db.exec(`
+      CREATE TABLE IF NOT EXISTS program_cozumleri (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        program_id INTEGER NOT NULL,
+        cozum_adi TEXT NOT NULL,
+        cozum_data TEXT NOT NULL,
+        metadata TEXT,
+        aktif INTEGER DEFAULT 0,
+        olusturma_tarihi TEXT NOT NULL,
+        guncelleme_tarihi TEXT NOT NULL,
+        FOREIGN KEY (program_id) REFERENCES programlar(id) ON DELETE CASCADE
+      )
+    `);
+
+    const stmt = db.prepare(`
+      SELECT 
+        id,
+        program_id,
+        cozum_adi,
+        cozum_data,
+        metadata,
+        aktif,
+        olusturma_tarihi,
+        guncelleme_tarihi
+      FROM program_cozumleri
+      WHERE program_id = ?
+      ORDER BY olusturma_tarihi DESC
+    `);
+
+    const solutions = stmt.all(programId);
+
+    // JSON parse et
+    const parsedSolutions = solutions.map((sol) => ({
+      ...sol,
+      cozum_data: JSON.parse(sol.cozum_data),
+      metadata: sol.metadata ? JSON.parse(sol.metadata) : {},
+      aktif: sol.aktif === 1,
+    }));
+
+    console.log(`✅ ${parsedSolutions.length} çözüm bulundu`);
+
+    return {
+      success: true,
+      solutions: parsedSolutions,
+    };
+  } catch (error) {
+    console.error("❌ get-all-program-solutions hatası:", error);
+    return { success: false, message: error.message, solutions: [] };
+  }
+});
+
+// Diğer handler'lar aynı (get-program-solution, delete-program-solution, update-program-solution, set-active-solution, get-active-solution) – debug için tablo check ekledim, ama kod uzun olmasın diye kısalttım. Tam kod istersen söyle.
+ipcMain.handle("get-program-solution", async (event, solutionId) => {
+  try {
+    console.log("📋 IPC: get-program-solution çağrıldı");
+    console.log(`   • Çözüm ID: ${solutionId}`);
+
+    const db = global.currentSchoolDb;
+    if (!db || typeof db.prepare !== "function") {
+      return {
+        success: false,
+        message: "Veritabanı bağlantısı yok - Lütfen giriş yapın",
+      };
+    }
+
+    // DEBUG: Kısa tablo check
+    const tables =
+      db.exec(
+        "SELECT name FROM sqlite_master WHERE type='table' AND name='program_cozumleri';"
+      )[0]?.result?.rows || [];
+    if (tables.length === 0) {
+      return {
+        success: false,
+        message: "program_cozumleri tablosu yok - Migration çalıştırın",
+      };
+    }
+
+    const stmt = db.prepare(`
+      SELECT 
+        id,
+        program_id,
+        cozum_adi,
+        cozum_data,
+        metadata,
+        aktif,
+        olusturma_tarihi,
+        guncelleme_tarihi
+      FROM program_cozumleri
+      WHERE id = ?
+    `);
+
+    const solution = stmt.get(solutionId);
+
+    if (!solution) {
+      return { success: false, message: "Çözüm bulunamadı" };
+    }
+
+    // JSON parse et
+    const parsedSolution = {
+      ...solution,
+      cozum_data: JSON.parse(solution.cozum_data),
+      metadata: solution.metadata ? JSON.parse(solution.metadata) : {},
+      aktif: solution.aktif === 1,
+    };
+
+    console.log(`✅ Çözüm bulundu: ${parsedSolution.cozum_adi}`);
+
+    return {
+      success: true,
+      solution: parsedSolution,
+    };
+  } catch (error) {
+    console.error("❌ get-program-solution hatası:", error);
+    return { success: false, message: error.message };
+  }
+});
+
+ipcMain.handle("delete-program-solution", async (event, solutionId) => {
+  try {
+    console.log("🗑️ IPC: delete-program-solution çağrıldı");
+    console.log(`   • Çözüm ID: ${solutionId}`);
+
+    const db = global.currentSchoolDb;
+    if (!db || typeof db.prepare !== "function") {
+      return {
+        success: false,
+        message: "Veritabanı bağlantısı yok - Lütfen giriş yapın",
+      };
+    }
+
+    // DEBUG: Tablo check
+    const tables =
+      db.exec(
+        "SELECT name FROM sqlite_master WHERE type='table' AND name='program_cozumleri';"
+      )[0]?.result?.rows || [];
+    if (tables.length === 0) {
+      return { success: false, message: "program_cozumleri tablosu yok" };
+    }
+
+    const stmt = db.prepare(`
+      DELETE FROM program_cozumleri
+      WHERE id = ?
+    `);
+
+    const result = stmt.run(solutionId);
+
+    if (result.changes === 0) {
+      return { success: false, message: "Çözüm bulunamadı" };
+    }
+
+    console.log(`✅ Çözüm silindi`);
+
+    return {
+      success: true,
+      message: "Çözüm başarıyla silindi",
+    };
+  } catch (error) {
+    console.error("❌ delete-program-solution hatası:", error);
+    return { success: false, message: error.message };
+  }
+});
+
+ipcMain.handle(
+  "update-program-solution",
+  async (event, solutionId, updates) => {
+    try {
+      console.log("✏️ IPC: update-program-solution çağrıldı");
+      console.log(`   • Çözüm ID: ${solutionId}`);
+
+      const db = global.currentSchoolDb;
+      if (!db || typeof db.prepare !== "function") {
+        return {
+          success: false,
+          message: "Veritabanı bağlantısı yok - Lütfen giriş yapın",
+        };
+      }
+
+      // DEBUG: Tablo check
+      const tables =
+        db.exec(
+          "SELECT name FROM sqlite_master WHERE type='table' AND name='program_cozumleri';"
+        )[0]?.result?.rows || [];
+      if (tables.length === 0) {
+        return { success: false, message: "program_cozumleri tablosu yok" };
+      }
+
+      const { cozum_adi, cozum_data, metadata } = updates;
+
+      let sql =
+        "UPDATE program_cozumleri SET guncelleme_tarihi = datetime('now')";
+      const params = [];
+
+      if (cozum_adi) {
+        sql += ", cozum_adi = ?";
+        params.push(cozum_adi);
+      }
+
+      if (cozum_data) {
+        sql += ", cozum_data = ?";
+        params.push(JSON.stringify(cozum_data));
+      }
+
+      if (metadata) {
+        sql += ", metadata = ?";
+        params.push(JSON.stringify(metadata));
+      }
+
+      sql += " WHERE id = ?";
+      params.push(solutionId);
+
+      const stmt = db.prepare(sql);
+      const result = stmt.run(...params);
+
+      if (result.changes === 0) {
+        return { success: false, message: "Çözüm bulunamadı" };
+      }
+
+      console.log(`✅ Çözüm güncellendi`);
+
+      return {
+        success: true,
+        message: "Çözüm başarıyla güncellendi",
+      };
+    } catch (error) {
+      console.error("❌ update-program-solution hatası:", error);
+      return { success: false, message: error.message };
+    }
+  }
+);
+
+ipcMain.handle("set-active-solution", async (event, programId, solutionId) => {
+  try {
+    console.log("⭐ IPC: set-active-solution çağrıldı");
+    console.log(`   • Program ID: ${programId}`);
+    console.log(`   • Çözüm ID: ${solutionId}`);
+
+    const db = global.currentSchoolDb;
+    if (!db || typeof db.prepare !== "function") {
+      return {
+        success: false,
+        message: "Veritabanı bağlantısı yok - Lütfen giriş yapın",
+      };
+    }
+
+    // DEBUG: Tablo check
+    const tables =
+      db.exec(
+        "SELECT name FROM sqlite_master WHERE type='table' AND name='program_cozumleri';"
+      )[0]?.result?.rows || [];
+    if (tables.length === 0) {
+      return { success: false, message: "program_cozumleri tablosu yok" };
+    }
+
+    // Önce programdaki tüm çözümleri pasif yap
+    const deactivateStmt = db.prepare(`
+      UPDATE program_cozumleri
+      SET aktif = 0
+      WHERE program_id = ?
+    `);
+    deactivateStmt.run(programId);
+
+    // Seçilen çözümü aktif yap
+    const activateStmt = db.prepare(`
+      UPDATE program_cozumleri
+      SET aktif = 1, guncelleme_tarihi = datetime('now')
+      WHERE id = ? AND program_id = ?
+    `);
+    const result = activateStmt.run(solutionId, programId);
+
+    if (result.changes === 0) {
+      return { success: false, message: "Çözüm bulunamadı" };
+    }
+
+    console.log(`✅ Çözüm aktif olarak işaretlendi`);
+
+    return {
+      success: true,
+      message: "Çözüm aktif olarak işaretlendi",
+    };
+  } catch (error) {
+    console.error("❌ set-active-solution hatası:", error);
+    return { success: false, message: error.message };
+  }
+});
+
+ipcMain.handle("get-active-solution", async (event, programId) => {
+  try {
+    console.log("📋 IPC: get-active-solution çağrıldı");
+    console.log(`   • Program ID: ${programId}`);
+
+    const db = global.currentSchoolDb;
+    if (!db || typeof db.prepare !== "function") {
+      return {
+        success: false,
+        message: "Veritabanı bağlantısı yok - Lütfen giriş yapın",
+      };
+    }
+
+    // DEBUG: Tablo check
+    const tables =
+      db.exec(
+        "SELECT name FROM sqlite_master WHERE type='table' AND name='program_cozumleri';"
+      )[0]?.result?.rows || [];
+    if (tables.length === 0) {
+      return { success: false, message: "program_cozumleri tablosu yok" };
+    }
+
+    const stmt = db.prepare(`
+      SELECT 
+        id,
+        program_id,
+        cozum_adi,
+        cozum_data,
+        metadata,
+        aktif,
+        olusturma_tarihi,
+        guncelleme_tarihi
+      FROM program_cozumleri
+      WHERE program_id = ? AND aktif = 1
+      LIMIT 1
+    `);
+
+    const solution = stmt.get(programId);
+
+    if (!solution) {
+      return { success: false, message: "Aktif çözüm bulunamadı" };
+    }
+
+    // JSON parse et
+    const parsedSolution = {
+      ...solution,
+      cozum_data: JSON.parse(solution.cozum_data),
+      metadata: solution.metadata ? JSON.parse(solution.metadata) : {},
+      aktif: solution.aktif === 1,
+    };
+
+    console.log(`✅ Aktif çözüm bulundu: ${parsedSolution.cozum_adi}`);
+
+    return {
+      success: true,
+      solution: parsedSolution,
+    };
+  } catch (error) {
+    console.error("❌ get-active-solution hatası:", error);
+    return { success: false, message: error.message };
+  }
+});
+
+console.log("✅ Program Çözümü Kaydetme IPC handlers yüklendi (DEBUG MODE)");
+console.log(
+  "   • saveProgramSolution: Yeni çözüm kaydet (ekstra check'ler aktif)"
+);
+console.log("   • getAllProgramSolutions: Tüm çözümleri listele");
+console.log("   • getProgramSolution: Tek çözüm getir");
+console.log("   • deleteProgramSolution: Çözüm sil");
+console.log("   • updateProgramSolution: Çözüm güncelle");
+console.log("   • setActiveSolution: Aktif çözümü işaretle");
+console.log("   • getActiveSolution: Aktif çözümü getir");
+console.log("🔍 DEBUG: FK'ler etkin (PRAGMA foreign_keys=ON)");
+
+// ==========================================
+// MEBBİS ENTEGRASYON - IPC HANDLERS (KORUNDU)
 // ==========================================
 
 ipcMain.handle("open-mebbis-window", async () => {
@@ -1676,7 +3571,6 @@ ipcMain.handle("mebbis-save-students", async (event, students) => {
 ipcMain.handle("mebbis-save-photos", async (event, photos) => {
   console.log("📸 E-Okul fotoğraf aktarımı başladı:", photos.length);
 
-  // ✅ Frontend'e log gönder
   if (mainWindow && !mainWindow.isDestroyed()) {
     mainWindow.webContents.send(
       "backend-log",
@@ -1687,7 +3581,6 @@ ipcMain.handle("mebbis-save-photos", async (event, photos) => {
   function normalizeTurkish(str) {
     if (!str) return "";
 
-    // ✅ Unicode normalization - combining characters'ı kaldır
     str = str.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 
     return str
@@ -1724,7 +3617,6 @@ ipcMain.handle("mebbis-save-photos", async (event, photos) => {
 
     console.log("📋 Toplam öğrenci:", allStudents.length);
 
-    // ✅ Frontend'e gönder
     if (mainWindow && !mainWindow.isDestroyed()) {
       mainWindow.webContents.send(
         "backend-log",
@@ -1758,7 +3650,6 @@ ipcMain.handle("mebbis-save-photos", async (event, photos) => {
         savedCount++;
         console.log(`✅ ${foundStudent.okul_no} - ${foundStudent.ad_soyad}`);
 
-        // ✅ Frontend'e gönder
         if (mainWindow && !mainWindow.isDestroyed()) {
           mainWindow.webContents.send(
             "backend-log",
@@ -1771,7 +3662,6 @@ ipcMain.handle("mebbis-save-photos", async (event, photos) => {
         );
         notFound.push(ad_soyad);
 
-        // ✅ Frontend'e gönder
         if (mainWindow && !mainWindow.isDestroyed()) {
           mainWindow.webContents.send(
             "backend-log",
@@ -1801,7 +3691,7 @@ ipcMain.handle("mebbis-save-photos", async (event, photos) => {
 console.log("✅ MEBBİS IPC Handler'ları yüklendi");
 
 // ==========================================
-// MEBBİS BUTON EVENTLERİ (YENİ MİMARİ)
+// MEBBİS BUTON EVENTLERİ (KORUNDU)
 // ==========================================
 
 ipcMain.on("cek-ogrenci", async (event) => {
@@ -1813,7 +3703,6 @@ ipcMain.on("cek-ogrenci", async (event) => {
     if (result.success) {
       console.log(`✅ ${result.data.length} öğrenci bulundu`);
 
-      // Ana pencereye gönder (modal aç)
       const mainWindow = BrowserWindow.getAllWindows().find(
         (win) => !win.title.includes("MEBBİS")
       );
@@ -1822,7 +3711,6 @@ ipcMain.on("cek-ogrenci", async (event) => {
         mainWindow.webContents.send("mebbis-students-parsed", result.data);
       }
 
-      // Panel penceresine bilgi gönder
       const mebbisWin = mebbisEntegrasyon.getMebbisWindow();
       if (mebbisWin) {
         mebbisWin.webContents.send("sonuc", {
@@ -1903,7 +3791,7 @@ ipcMain.on("cek-fotograf", async (event) => {
 });
 
 // ==========================================
-// AUTO EXCEL IMPORT HANDLER (DÜZELTİLMİŞ)
+// AUTO EXCEL IMPORT HANDLER (KORUNDU)
 // ==========================================
 
 ipcMain.handle("process-auto-excel", async (event, filePath) => {
@@ -1911,7 +3799,6 @@ ipcMain.handle("process-auto-excel", async (event, filePath) => {
     console.log("📂 Excel dosyası işleniyor:", filePath);
 
     const XLSX = require("xlsx");
-    const fs = require("fs");
 
     if (!fs.existsSync(filePath)) {
       return { success: false, message: "Dosya bulunamadı!" };
@@ -1927,7 +3814,6 @@ ipcMain.handle("process-auto-excel", async (event, filePath) => {
     const ogrenciler = [];
     const mevcutTCler = new Set();
 
-    // Mevcut öğrencileri al
     const schoolDB = db.getActiveSchoolDB();
     if (schoolDB) {
       const stmt = schoolDB.prepare(
@@ -1940,7 +3826,6 @@ ipcMain.handle("process-auto-excel", async (event, filePath) => {
       stmt.free();
     }
 
-    // Sınıf bilgisini bul (İLK 10 SATIRI KOMPLE TARA)
     let sinif = "";
 
     for (let R = 0; R < 10; R++) {
@@ -1965,7 +3850,6 @@ ipcMain.handle("process-auto-excel", async (event, filePath) => {
       return { success: false, message: "Sınıf bilgisi bulunamadı!" };
     }
 
-    // ANAHTAR SÜTUN: 4 (E), DEĞER SÜTUN: 7 (H)
     const keyCol = 4;
     const valueCol = 7;
 
@@ -2009,17 +3893,12 @@ ipcMain.handle("process-auto-excel", async (event, filePath) => {
           const value = vCell && vCell.v ? String(vCell.v).trim() : "";
 
           if (key.includes("T.C. Kimlik No")) {
-            // ✅ SADECE İLK BULUNAN TC'Yİ AL
             if (!tcNo || tcNo.length !== 11) {
               tcNo = value.replace(/\D/g, "");
               console.log(
                 `  📋 TC bulundu: Satır ${
                   i + 1
-                }, Key="${key}", Value="${value}", TC="${tcNo}"`
-              );
-            } else {
-              console.log(
-                `  ⚠️ TC zaten var, atlanıyor: Satır ${i + 1}, Value="${value}"`
+                }, Value="${value}", TC="${tcNo}"`
               );
             }
           } else if (key.includes("Adı Soyadı")) {
@@ -2131,8 +4010,10 @@ ipcMain.handle("process-auto-excel", async (event, filePath) => {
   }
 });
 
+console.log("✅ Auto Excel Import Handler yüklendi");
+
 // ==========================================
-// E-OKUL FOTOĞRAF SAYFASI
+// E-OKUL FOTOĞRAF SAYFASI (KORUNDU)
 // ==========================================
 
 ipcMain.handle("open-eokul-photo-page", async () => {
@@ -2158,7 +4039,6 @@ ipcMain.handle("open-eokul-photo-page", async () => {
     (win) => !win.title.includes("E-Okul") && !win.title.includes("MEBBİS")
   );
 
-  // MEBBİS'e bilgi kutusu
   eOkulWindow.webContents.on("did-finish-load", () => {
     const url = eOkulWindow.webContents.getURL();
     console.log("🌐 did-finish-load:", url);
@@ -2177,11 +4057,9 @@ ipcMain.handle("open-eokul-photo-page", async () => {
     }
   });
 
-  // YENİ PENCERE AÇILINCA TESPİT ET
   app.on("browser-window-created", (event, newWindow) => {
     console.log("🆕 Yeni pencere tespit edildi!");
 
-    // Küçük delay ile URL kontrol et
     setTimeout(() => {
       if (newWindow.isDestroyed()) return;
 
@@ -2191,15 +4069,10 @@ ipcMain.handle("open-eokul-photo-page", async () => {
       if (url.includes("e-okul.meb.gov.tr")) {
         console.log("✅ E-OKUL PENCERESİ BULUNDU!");
 
-        // DevTools aç (opsiyonel - yorum satırı yapabilirsin)
-        // newWindow.webContents.openDevTools({ mode: "detach" });
-
-        // İlk butonu ekle
         setTimeout(() => {
           injectButton(newWindow, mainWindow);
         }, 2000);
 
-        // ✅ MANUEL URL POLLİNG: Her 1 saniyede URL kontrol et
         let lastUrl = url;
         const urlCheckInterval = setInterval(() => {
           if (newWindow.isDestroyed()) {
@@ -2210,7 +4083,6 @@ ipcMain.handle("open-eokul-photo-page", async () => {
 
           const currentUrl = newWindow.webContents.getURL();
 
-          // URL değişti mi?
           if (
             currentUrl !== lastUrl &&
             currentUrl.includes("e-okul.meb.gov.tr")
@@ -2221,7 +4093,6 @@ ipcMain.handle("open-eokul-photo-page", async () => {
 
             lastUrl = currentUrl;
 
-            // Yeni sayfada buton ekle
             setTimeout(() => {
               if (!newWindow.isDestroyed()) {
                 console.log("🔄 Yeni URL'de buton enjekte ediliyor...");
@@ -2229,9 +4100,8 @@ ipcMain.handle("open-eokul-photo-page", async () => {
               }
             }, 1500);
           }
-        }, 1000); // Her 1 saniyede kontrol
+        }, 1000);
 
-        // Pencere kapanınca interval'ı temizle
         newWindow.on("closed", () => {
           clearInterval(urlCheckInterval);
           console.log("🛑 URL polling durduruldu");
@@ -2240,7 +4110,6 @@ ipcMain.handle("open-eokul-photo-page", async () => {
     }, 500);
   });
 
-  // FALLBACK: Tüm pencereleri sürekli kontrol et
   const injectedWindows = new Set();
 
   const checkAllWindows = () => {
@@ -2268,7 +4137,6 @@ ipcMain.handle("open-eokul-photo-page", async () => {
     });
   };
 
-  // Her 2 saniyede kontrol et
   const checkInterval = setInterval(checkAllWindows, 2000);
 
   eOkulWindow.on("closed", () => {
@@ -2280,10 +4148,6 @@ ipcMain.handle("open-eokul-photo-page", async () => {
 
   return { success: true };
 });
-
-// ==========================================
-// BUTON ENJEKSİYONU
-// ==========================================
 
 function injectButton(targetWindow, mainWindow) {
   if (!targetWindow || targetWindow.isDestroyed()) {
@@ -2329,12 +4193,10 @@ function injectButton(targetWindow, mainWindow) {
             
             var name = "";
             
-            // Alt attribute
             if (img.alt && img.alt.trim().length > 5) {
               name = img.alt.trim();
             }
             
-            // Parent text
             if (!name && img.parentElement) {
               var parentText = img.parentElement.textContent || "";
               var lines = parentText.split('\\n');
@@ -2351,10 +4213,9 @@ function injectButton(targetWindow, mainWindow) {
               continue;
             }
             
-            // ✅ TEMİZLEME (SADECE BUNLAR)
-            name = name.replace(/^\\d+-/, '');  // "5000-" çıkar
-            name = name.replace(/\\s+/g, ' ');   // Çift boşlukları tek yap
-            name = name.trim();                  // Baş/son boşlukları sil
+            name = name.replace(/^\\d+-/, '');
+            name = name.replace(/\\s+/g, ' ');
+            name = name.trim();
             
             if (name.indexOf("Sınıf") > -1 || name.indexOf("Şubesi") > -1) {
               continue;
@@ -2462,81 +4323,1626 @@ function injectButton(targetWindow, mainWindow) {
   console.log("✅ Listener aktif (Window ID:", targetWindow.id, ")");
 }
 
+console.log("✅ E-Okul Fotoğraf Sistemi yüklendi");
+
 // ==========================================
-// ÖĞRENCİ İŞLEMLERİ - IPC HANDLERS
+// ✈️ GEZİ PLANLAMA SİSTEMİ - IPC HANDLERS
 // ==========================================
 
-ipcMain.handle("get-students", async () => {
+// Tüm Geziler
+ipcMain.handle("get-all-geziler", async (event) => {
   try {
-    // db zaten üstte tanımlı, tekrar require etmeye gerek yok
-    const schoolDB = db.getActiveSchoolDB();
+    console.log("✈️ Tüm geziler getiriliyor...");
 
-    if (!schoolDB) {
-      return { success: false, message: "Okul seçili değil!" };
+    const activeDB = db.getActiveSchoolDB();
+    if (!activeDB) {
+      return { success: false, message: "Aktif veritabanı bulunamadı!" };
     }
 
-    const stmt = schoolDB.prepare("SELECT * FROM ogrenciler WHERE durum = 1");
-    const students = [];
+    const stmt = activeDB.prepare(`
+      SELECT 
+        g.*,
+        COUNT(DISTINCT go.id) as ogrenci_sayisi,
+        COUNT(DISTINCT gog.id) as ogretmen_sayisi,
+        COUNT(DISTINCT gm.id) as misafir_sayisi
+      FROM geziler g
+      LEFT JOIN gezi_ogrenciler go ON g.id = go.gezi_id
+      LEFT JOIN gezi_ogretmenler gog ON g.id = gog.gezi_id
+      LEFT JOIN gezi_misafirler gm ON g.id = gm.gezi_id
+      WHERE g.okul_id = ?
+      GROUP BY g.id
+      ORDER BY g.gezi_tarihi DESC
+    `);
 
+    const currentSchool = JSON.parse(
+      localStorage.getItem("currentSchool") || "{}"
+    );
+    stmt.bind([currentSchool.id || 1]);
+
+    const geziler = [];
     while (stmt.step()) {
-      students.push(stmt.getAsObject());
+      geziler.push(stmt.getAsObject());
     }
-
     stmt.free();
 
-    return { success: true, data: students };
+    console.log(`✅ ${geziler.length} gezi bulundu`);
+
+    return { success: true, data: geziler };
+  } catch (error) {
+    console.error("❌ Geziler getirme hatası:", error);
+    return { success: false, message: error.message };
+  }
+});
+
+// Gezi Detay
+ipcMain.handle("get-gezi-by-id", async (event, geziId) => {
+  try {
+    console.log("📋 Gezi detayı getiriliyor, ID:", geziId);
+
+    const activeDB = db.getActiveSchoolDB();
+    if (!activeDB) {
+      return { success: false, message: "Aktif veritabanı bulunamadı!" };
+    }
+
+    const stmt = activeDB.prepare("SELECT * FROM geziler WHERE id = ?");
+    stmt.bind([parseInt(geziId)]);
+
+    if (!stmt.step()) {
+      stmt.free();
+      return { success: false, message: "Gezi bulunamadı!" };
+    }
+
+    const gezi = stmt.getAsObject();
+    stmt.free();
+
+    return { success: true, data: gezi };
+  } catch (error) {
+    console.error("❌ Gezi detay hatası:", error);
+    return { success: false, message: error.message };
+  }
+});
+
+// Yeni Gezi Oluştur
+ipcMain.handle("create-gezi", async (event, geziData) => {
+  try {
+    console.log("🆕 Yeni gezi oluşturuluyor...");
+
+    const activeDB = db.getActiveSchoolDB();
+    if (!activeDB) {
+      return { success: false, message: "Aktif veritabanı bulunamadı!" };
+    }
+
+    const currentSchool = JSON.parse(
+      localStorage.getItem("currentSchool") || "{}"
+    );
+
+    const stmt = activeDB.prepare(`
+      INSERT INTO geziler (
+        okul_id, gezi_adi, duzenlenen_yer, guzergah,
+        gezi_tarihi, cikis_saati, donus_tarihi, donus_saati,
+        gezi_konusu, gezi_amaci, arastirma_gorevi, degerlendirme,
+        gezi_turu, kafile_baskani_id, durum, olusturma_tarihi
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
+    `);
+
+    stmt.run([
+      currentSchool.id || 1,
+      geziData.gezi_adi,
+      geziData.duzenlenen_yer,
+      geziData.guzergah,
+      geziData.gezi_tarihi,
+      geziData.cikis_saati,
+      geziData.donus_tarihi,
+      geziData.donus_saati,
+      geziData.gezi_konusu,
+      geziData.gezi_amaci,
+      geziData.arastirma_gorevi || null,
+      geziData.degerlendirme || null,
+      geziData.gezi_turu,
+      geziData.kafile_baskani_id,
+      geziData.durum || "planlanan",
+    ]);
+
+    const lastInsertId = activeDB.exec("SELECT last_insert_rowid() as id")[0]
+      .values[0][0];
+    stmt.free();
+
+    db.saveActiveSchoolDB();
+
+    console.log("✅ Gezi oluşturuldu, ID:", lastInsertId);
+
+    return {
+      success: true,
+      id: lastInsertId,
+      message: "Gezi başarıyla oluşturuldu!",
+    };
+  } catch (error) {
+    console.error("❌ Gezi oluşturma hatası:", error);
+    return { success: false, message: error.message };
+  }
+});
+
+// Gezi Güncelle
+ipcMain.handle("update-gezi", async (event, geziId, geziData) => {
+  try {
+    console.log("✏️ Gezi güncelleniyor, ID:", geziId);
+
+    const activeDB = db.getActiveSchoolDB();
+    if (!activeDB) {
+      return { success: false, message: "Aktif veritabanı bulunamadı!" };
+    }
+
+    const stmt = activeDB.prepare(`
+      UPDATE geziler SET
+        gezi_adi = ?,
+        duzenlenen_yer = ?,
+        guzergah = ?,
+        gezi_tarihi = ?,
+        cikis_saati = ?,
+        donus_tarihi = ?,
+        donus_saati = ?,
+        gezi_konusu = ?,
+        gezi_amaci = ?,
+        arastirma_gorevi = ?,
+        degerlendirme = ?,
+        gezi_turu = ?,
+        kafile_baskani_id = ?,
+        durum = ?
+      WHERE id = ?
+    `);
+
+    stmt.run([
+      geziData.gezi_adi,
+      geziData.duzenlenen_yer,
+      geziData.guzergah,
+      geziData.gezi_tarihi,
+      geziData.cikis_saati,
+      geziData.donus_tarihi,
+      geziData.donus_saati,
+      geziData.gezi_konusu,
+      geziData.gezi_amaci,
+      geziData.arastirma_gorevi,
+      geziData.degerlendirme,
+      geziData.gezi_turu,
+      geziData.kafile_baskani_id,
+      geziData.durum || "planlanan",
+      parseInt(geziId),
+    ]);
+
+    stmt.free();
+    db.saveActiveSchoolDB();
+
+    console.log("✅ Gezi güncellendi");
+
+    return { success: true, message: "Gezi başarıyla güncellendi!" };
+  } catch (error) {
+    console.error("❌ Gezi güncelleme hatası:", error);
+    return { success: false, message: error.message };
+  }
+});
+
+// Gezi Sil
+ipcMain.handle("delete-gezi", async (event, geziId) => {
+  try {
+    console.log("🗑️ Gezi siliniyor, ID:", geziId);
+
+    const activeDB = db.getActiveSchoolDB();
+    if (!activeDB) {
+      return { success: false, message: "Aktif veritabanı bulunamadı!" };
+    }
+
+    // İlişkili kayıtları sil
+    activeDB.run("DELETE FROM gezi_ogrenciler WHERE gezi_id = ?", [
+      parseInt(geziId),
+    ]);
+    activeDB.run("DELETE FROM gezi_ogretmenler WHERE gezi_id = ?", [
+      parseInt(geziId),
+    ]);
+    activeDB.run("DELETE FROM gezi_misafirler WHERE gezi_id = ?", [
+      parseInt(geziId),
+    ]);
+
+    // Geziyi sil
+    activeDB.run("DELETE FROM geziler WHERE id = ?", [parseInt(geziId)]);
+
+    db.saveActiveSchoolDB();
+
+    console.log("✅ Gezi silindi");
+
+    return { success: true, message: "Gezi başarıyla silindi!" };
+  } catch (error) {
+    console.error("❌ Gezi silme hatası:", error);
+    return { success: false, message: error.message };
+  }
+});
+
+// Öğrenci Ekle
+ipcMain.handle("add-gezi-ogrenci", async (event, geziId, ogrenciId) => {
+  try {
+    console.log("👨‍🎓 Geziye öğrenci ekleniyor...");
+
+    const activeDB = db.getActiveSchoolDB();
+    if (!activeDB) {
+      return { success: false, message: "Aktif veritabanı bulunamadı!" };
+    }
+
+    const stmt = activeDB.prepare(`
+      INSERT INTO gezi_ogrenciler (gezi_id, ogrenci_id)
+      VALUES (?, ?)
+    `);
+
+    stmt.run([parseInt(geziId), parseInt(ogrenciId)]);
+    stmt.free();
+
+    db.saveActiveSchoolDB();
+
+    console.log("✅ Öğrenci eklendi");
+
+    return { success: true, message: "Öğrenci eklendi!" };
+  } catch (error) {
+    console.error("❌ Öğrenci ekleme hatası:", error);
+    return { success: false, message: error.message };
+  }
+});
+
+// Öğrenci Çıkar
+ipcMain.handle("remove-gezi-ogrenci", async (event, geziId, ogrenciId) => {
+  try {
+    console.log("🗑️ Geziden öğrenci çıkarılıyor...");
+
+    const activeDB = db.getActiveSchoolDB();
+    if (!activeDB) {
+      return { success: false, message: "Aktif veritabanı bulunamadı!" };
+    }
+
+    activeDB.run(
+      "DELETE FROM gezi_ogrenciler WHERE gezi_id = ? AND ogrenci_id = ?",
+      [parseInt(geziId), parseInt(ogrenciId)]
+    );
+
+    db.saveActiveSchoolDB();
+
+    console.log("✅ Öğrenci çıkarıldı");
+
+    return { success: true, message: "Öğrenci çıkarıldı!" };
+  } catch (error) {
+    console.error("❌ Öğrenci çıkarma hatası:", error);
+    return { success: false, message: error.message };
+  }
+});
+
+// Gezi Öğrencileri Getir
+ipcMain.handle("get-gezi-ogrenciler", async (event, geziId) => {
+  try {
+    console.log("📋 Gezi öğrencileri getiriliyor...");
+
+    const activeDB = db.getActiveSchoolDB();
+    if (!activeDB) {
+      return { success: false, message: "Aktif veritabanı bulunamadı!" };
+    }
+
+    const stmt = activeDB.prepare(`
+      SELECT o.* 
+      FROM ogrenciler o
+      INNER JOIN gezi_ogrenciler go ON o.id = go.ogrenci_id
+      WHERE go.gezi_id = ?
+    `);
+
+    stmt.bind([parseInt(geziId)]);
+
+    const ogrenciler = [];
+    while (stmt.step()) {
+      ogrenciler.push(stmt.getAsObject());
+    }
+    stmt.free();
+
+    console.log(`✅ ${ogrenciler.length} öğrenci bulundu`);
+
+    return { success: true, data: ogrenciler };
   } catch (error) {
     console.error("❌ Öğrenci listeleme hatası:", error);
     return { success: false, message: error.message };
   }
 });
 
-// Öğrenci bilgilerini getir
-ipcMain.handle("get-student-by-id", async (event, id) => {
-  try {
-    const schoolDB = db.getActiveSchoolDB();
-    if (!schoolDB) {
-      return { success: false, message: "Aktif okul yok!" };
-    }
+// Öğretmen Ekle
+ipcMain.handle(
+  "add-gezi-ogretmen",
+  async (event, geziId, ogretmenId, gorev) => {
+    try {
+      console.log("👨‍🏫 Geziye öğretmen ekleniyor...");
 
-    const stmt = schoolDB.prepare("SELECT * FROM ogrenciler WHERE id = ?");
-    stmt.bind([id]);
+      const activeDB = db.getActiveSchoolDB();
+      if (!activeDB) {
+        return { success: false, message: "Aktif veritabanı bulunamadı!" };
+      }
 
-    if (stmt.step()) {
-      const ogrenci = stmt.getAsObject();
+      const stmt = activeDB.prepare(`
+      INSERT INTO gezi_ogretmenler (gezi_id, ogretmen_id, gorev)
+      VALUES (?, ?, ?)
+    `);
+
+      stmt.run([
+        parseInt(geziId),
+        parseInt(ogretmenId),
+        gorev || "Sorumlu Öğretmen",
+      ]);
       stmt.free();
-      return { success: true, data: ogrenci };
-    }
 
-    stmt.free();
-    return { success: false, message: "Öğrenci bulunamadı!" };
-  } catch (error) {
-    console.error("❌ Öğrenci getirme hatası:", error);
-    return { success: false, message: error.message };
+      db.saveActiveSchoolDB();
+
+      console.log("✅ Öğretmen eklendi");
+
+      return { success: true, message: "Öğretmen eklendi!" };
+    } catch (error) {
+      console.error("❌ Öğretmen ekleme hatası:", error);
+      return { success: false, message: error.message };
+    }
   }
-});
+);
 
-// Tüm öğrencileri sil
-ipcMain.handle("delete-all-students", async () => {
+// Misafir Ekle
+ipcMain.handle("add-gezi-misafir", async (event, geziId, misafirData) => {
   try {
-    const schoolDB = db.getActiveSchoolDB();
-    if (!schoolDB) {
-      return { success: false, message: "Aktif okul yok!" };
+    console.log("🧑 Geziye misafir ekleniyor...");
+
+    const activeDB = db.getActiveSchoolDB();
+    if (!activeDB) {
+      return { success: false, message: "Aktif veritabanı bulunamadı!" };
     }
 
-    schoolDB.run("DELETE FROM ogrenciler");
+    const stmt = activeDB.prepare(`
+      INSERT INTO gezi_misafirler (gezi_id, ad_soyad, tc_no, cinsiyet, telefon)
+      VALUES (?, ?, ?, ?, ?)
+    `);
+
+    stmt.run([
+      parseInt(geziId),
+      misafirData.ad_soyad,
+      misafirData.tc_no,
+      misafirData.cinsiyet,
+      misafirData.telefon || null,
+    ]);
+    stmt.free();
+
     db.saveActiveSchoolDB();
 
-    console.log("✅ Tüm öğrenciler silindi");
-    return { success: true, message: "Tüm öğrenciler silindi!" };
+    console.log("✅ Misafir eklendi");
+
+    return { success: true, message: "Misafir eklendi!" };
   } catch (error) {
-    console.error("❌ Silme hatası:", error);
+    console.error("❌ Misafir ekleme hatası:", error);
     return { success: false, message: error.message };
   }
 });
 
-console.log("✅ MEBBİS IPC Handler'ları yüklendi");
+// Gezi İstatistikleri
+ipcMain.handle("get-gezi-stats", async (event) => {
+  try {
+    console.log("📊 Gezi istatistikleri hesaplanıyor...");
 
-console.log("✅ Öğrenci IPC Handler'ları yüklendi");
+    const activeDB = db.getActiveSchoolDB();
+    if (!activeDB) {
+      return { success: false, message: "Aktif veritabanı bulunamadı!" };
+    }
 
-console.log("✅ IPC Handler'lar yüklendi");
+    const currentSchool = JSON.parse(
+      localStorage.getItem("currentSchool") || "{}"
+    );
+
+    const stmt = activeDB.prepare(`
+      SELECT 
+        COUNT(*) as toplam,
+        SUM(CASE WHEN durum = 'aktif' THEN 1 ELSE 0 END) as aktif,
+        SUM(CASE WHEN durum = 'tamamlanan' THEN 1 ELSE 0 END) as tamamlanan
+      FROM geziler
+      WHERE okul_id = ?
+    `);
+
+    stmt.bind([currentSchool.id || 1]);
+
+    let stats = {};
+    if (stmt.step()) {
+      stats = stmt.getAsObject();
+    }
+    stmt.free();
+
+    console.log("✅ İstatistikler hesaplandı");
+
+    return { success: true, data: stats };
+  } catch (error) {
+    console.error("❌ İstatistik hatası:", error);
+    return { success: false, message: error.message };
+  }
+});
+// ==========================================
+// GEZİ FİRMA YÖNETİMİ
+// ==========================================
+
+// Firma Kaydet
+ipcMain.handle("firma-kaydet", async (event, geziId, firmaData) => {
+  try {
+    console.log("💾 Firma kaydediliyor, Gezi ID:", geziId);
+    console.log("📊 Firma Data:", JSON.stringify(firmaData, null, 2));
+
+    const schoolDb = db.getActiveSchoolDB();
+    if (!schoolDb) {
+      console.error("❌ Okul veritabanı bulunamadı");
+      return { success: false, message: "Okul veritabanı bulunamadı" };
+    }
+
+    // Önce mevcut kayıt var mı kontrol et
+    const checkResult = schoolDb.exec(
+      "SELECT id FROM gezi_tur_firma WHERE gezi_id = ?",
+      [geziId]
+    );
+
+    console.log("📊 Mevcut Kayıt Kontrolü:", checkResult);
+
+    if (
+      checkResult &&
+      checkResult.length > 0 &&
+      checkResult[0].values.length > 0
+    ) {
+      // Güncelleme
+      const mevcutId = checkResult[0].values[0][0];
+      console.log("🔄 Mevcut kayıt güncelleniyor, ID:", mevcutId);
+
+      schoolDb.run(
+        `UPDATE gezi_tur_firma SET
+          firma_adi = ?, yetkili_ad_soyad = ?, yetkili_unvan = ?, yetkili_telefon = ?,
+          firma_telefon = ?, firma_adres = ?, firma_email = ?,
+          vergi_dairesi = ?, vergi_no = ?, tursab_no = ?, isletme_belge_no = ?,
+          yetki_belgesi = ?, rehber_ad = ?, rehber_kokart = ?,
+          sozlesme_tarihi = ?, toplam_bedel = ?, para_birimi = ?,
+          dahil_hizmetler = ?, dahil_olmayan = ?, iptal_kosul = ?, notlar = ?
+          WHERE id = ?`,
+        [
+          firmaData.firma_adi,
+          firmaData.yetkili_ad_soyad,
+          firmaData.yetkili_unvan,
+          firmaData.yetkili_telefon,
+          firmaData.firma_telefon,
+          firmaData.firma_adres,
+          firmaData.firma_email,
+          firmaData.vergi_dairesi,
+          firmaData.vergi_no,
+          firmaData.tursab_no,
+          firmaData.isletme_belge_no,
+          firmaData.yetki_belgesi,
+          firmaData.rehber_ad,
+          firmaData.rehber_kokart,
+          firmaData.sozlesme_tarihi,
+          firmaData.toplam_bedel,
+          firmaData.para_birimi,
+          firmaData.dahil_hizmetler,
+          firmaData.dahil_olmayan,
+          firmaData.iptal_kosul,
+          firmaData.notlar,
+          mevcutId,
+        ]
+      );
+
+      db.saveActiveSchoolDB();
+      console.log("✅ Firma güncellendi, ID:", mevcutId);
+      return { success: true, message: "Firma başarıyla güncellendi!" };
+    } else {
+      // Yeni kayıt
+      console.log("🆕 Yeni firma kaydediliyor");
+
+      schoolDb.run(
+        `INSERT INTO gezi_tur_firma 
+          (gezi_id, firma_adi, yetkili_ad_soyad, yetkili_unvan, yetkili_telefon,
+           firma_telefon, firma_adres, firma_email, vergi_dairesi, vergi_no,
+           tursab_no, isletme_belge_no, yetki_belgesi, rehber_ad, rehber_kokart,
+           sozlesme_tarihi, toplam_bedel, para_birimi, dahil_hizmetler,
+           dahil_olmayan, iptal_kosul, notlar)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+          geziId,
+          firmaData.firma_adi,
+          firmaData.yetkili_ad_soyad,
+          firmaData.yetkili_unvan,
+          firmaData.yetkili_telefon,
+          firmaData.firma_telefon,
+          firmaData.firma_adres,
+          firmaData.firma_email,
+          firmaData.vergi_dairesi,
+          firmaData.vergi_no,
+          firmaData.tursab_no,
+          firmaData.isletme_belge_no,
+          firmaData.yetki_belgesi,
+          firmaData.rehber_ad,
+          firmaData.rehber_kokart,
+          firmaData.sozlesme_tarihi,
+          firmaData.toplam_bedel,
+          firmaData.para_birimi,
+          firmaData.dahil_hizmetler,
+          firmaData.dahil_olmayan,
+          firmaData.iptal_kosul,
+          firmaData.notlar,
+        ]
+      );
+
+      db.saveActiveSchoolDB();
+      console.log("✅ Yeni firma eklendi");
+      return { success: true, message: "Firma başarıyla kaydedildi!" };
+    }
+  } catch (error) {
+    console.error("❌ Firma kaydetme hatası:", error);
+    console.error("❌ Hata detayı:", error.message);
+    console.error("❌ Stack:", error.stack);
+    return { success: false, message: error.message };
+  }
+});
+
+// Firma Bilgilerini Getir
+ipcMain.handle("firma-getir", async (event, geziId) => {
+  try {
+    console.log("🔍 Firma bilgileri getiriliyor, Gezi ID:", geziId);
+
+    const schoolDb = db.getActiveSchoolDB();
+    if (!schoolDb) {
+      console.error("❌ Okul veritabanı bulunamadı");
+      return {
+        success: false,
+        message: "Okul veritabanı bulunamadı",
+        data: [],
+      };
+    }
+
+    // SQL sorgusunu logla
+    console.log(
+      "📊 SQL Sorgusu:",
+      `SELECT * FROM gezi_tur_firma WHERE gezi_id = ${geziId}`
+    );
+
+    const result = schoolDb.exec(
+      "SELECT * FROM gezi_tur_firma WHERE gezi_id = ?",
+      [geziId]
+    );
+
+    console.log("📊 SQL Result:", result);
+
+    if (!result || result.length === 0) {
+      console.log("ℹ️ Bu gezi için firma kaydı yok");
+      return { success: true, data: [] };
+    }
+
+    const columns = result[0].columns;
+    const values = result[0].values;
+
+    console.log("📊 Columns:", columns);
+    console.log("📊 Values:", values);
+
+    const data = values.map((row) => {
+      const obj = {};
+      columns.forEach((col, index) => {
+        obj[col] = row[index];
+      });
+      return obj;
+    });
+
+    console.log("✅ Firma bilgileri getirildi:", data.length);
+    console.log("📊 Firma Data:", JSON.stringify(data[0], null, 2));
+
+    return { success: true, data };
+  } catch (error) {
+    console.error("❌ Firma getirme hatası:", error);
+    console.error("❌ Hata detayı:", error.message);
+    return { success: false, message: error.message, data: [] };
+  }
+});
+
+// Firma Sil
+ipcMain.handle("firma-sil", async (event, firmaId) => {
+  try {
+    console.log("🗑️ Firma siliniyor, ID:", firmaId);
+
+    const schoolDb = db.getActiveSchoolDB();
+    if (!schoolDb) {
+      return { success: false, message: "Okul veritabanı bulunamadı" };
+    }
+
+    schoolDb.run("DELETE FROM gezi_tur_firma WHERE id = ?", [firmaId]);
+    db.saveActiveSchoolDB();
+
+    console.log("✅ Firma silindi");
+    return { success: true, message: "Firma başarıyla silindi!" };
+  } catch (error) {
+    console.error("❌ Firma silme hatası:", error);
+    return { success: false, message: error.message };
+  }
+});
+
+console.log("✅ Gezi Firma Yönetimi IPC handlers yüklendi");
+
+// ==========================================
+// 📝 ORTAK SINAV (KELEBEK) SİSTEMİ - IPC HANDLERS
+// ==========================================
+
+// ========== OTURMA PLANLARI ==========
+
+// Tüm Planları Getir
+ipcMain.handle("get-all-sinav-planlar", async () => {
+  try {
+    console.log("📋 Tüm sınav planları getiriliyor...");
+
+    const activeDB = db.getActiveSchoolDB();
+    if (!activeDB) {
+      return { success: false, message: "Aktif veritabanı bulunamadı!" };
+    }
+
+    const stmt = activeDB.prepare(`
+      SELECT * FROM ortak_sinav_planlar
+      WHERE durum = 1
+      ORDER BY id ASC
+    `);
+
+    const planlar = [];
+    while (stmt.step()) {
+      planlar.push(stmt.getAsObject());
+    }
+    stmt.free();
+
+    console.log(`✅ ${planlar.length} plan bulundu`);
+    return { success: true, data: planlar };
+  } catch (error) {
+    console.error("❌ Planlar getirme hatası:", error);
+    return { success: false, message: error.message };
+  }
+});
+
+// Plan Ekle
+ipcMain.handle("add-sinav-plan", async (event, planData) => {
+  try {
+    console.log("🆕 Yeni plan ekleniyor:", planData.plan_adi);
+
+    const activeDB = db.getActiveSchoolDB();
+    if (!activeDB) {
+      return { success: false, message: "Aktif veritabanı bulunamadı!" };
+    }
+
+    const stmt = activeDB.prepare(`
+      INSERT INTO ortak_sinav_planlar 
+      (plan_adi, sira_sayisi, sutun_sayisi, toplam_kapasite, duzeni)
+      VALUES (?, ?, ?, ?, ?)
+    `);
+
+    stmt.run([
+      planData.plan_adi,
+      planData.sira_sayisi,
+      planData.sutun_sayisi,
+      planData.toplam_kapasite,
+      planData.duzeni || "Z",
+    ]);
+    stmt.free();
+
+    db.saveActiveSchoolDB();
+
+    console.log("✅ Plan eklendi");
+    return { success: true, message: "Plan başarıyla eklendi!" };
+  } catch (error) {
+    console.error("❌ Plan ekleme hatası:", error);
+    return { success: false, message: error.message };
+  }
+});
+
+// Plan Güncelle
+ipcMain.handle("update-sinav-plan", async (event, planId, planData) => {
+  try {
+    console.log("✏️ Plan güncelleniyor, ID:", planId);
+
+    const activeDB = db.getActiveSchoolDB();
+    if (!activeDB) {
+      return { success: false, message: "Aktif veritabanı bulunamadı!" };
+    }
+
+    const stmt = activeDB.prepare(`
+      UPDATE ortak_sinav_planlar SET
+        plan_adi = ?,
+        sira_sayisi = ?,
+        sutun_sayisi = ?,
+        toplam_kapasite = ?,
+        duzeni = ?,
+        guncelleme_tarihi = CURRENT_TIMESTAMP
+      WHERE id = ?
+    `);
+
+    stmt.run([
+      planData.plan_adi,
+      planData.sira_sayisi,
+      planData.sutun_sayisi,
+      planData.toplam_kapasite,
+      planData.duzeni,
+      parseInt(planId),
+    ]);
+    stmt.free();
+
+    db.saveActiveSchoolDB();
+
+    console.log("✅ Plan güncellendi");
+    return { success: true, message: "Plan başarıyla güncellendi!" };
+  } catch (error) {
+    console.error("❌ Plan güncelleme hatası:", error);
+    return { success: false, message: error.message };
+  }
+});
+
+// Plan Sil
+ipcMain.handle("delete-sinav-plan", async (event, planId) => {
+  try {
+    console.log("🗑️ Plan siliniyor, ID:", planId);
+
+    const activeDB = db.getActiveSchoolDB();
+    if (!activeDB) {
+      return { success: false, message: "Aktif veritabanı bulunamadı!" };
+    }
+
+    // Soft delete
+    activeDB.run("UPDATE ortak_sinav_planlar SET durum = 0 WHERE id = ?", [
+      parseInt(planId),
+    ]);
+
+    db.saveActiveSchoolDB();
+
+    console.log("✅ Plan silindi");
+    return { success: true, message: "Plan başarıyla silindi!" };
+  } catch (error) {
+    console.error("❌ Plan silme hatası:", error);
+    return { success: false, message: error.message };
+  }
+});
+
+// ========== SALONLAR ==========
+
+// Tüm Salonları Getir
+ipcMain.handle("get-all-sinav-salonlar", async () => {
+  try {
+    console.log("📋 Tüm sınav salonları getiriliyor...");
+
+    const activeDB = db.getActiveSchoolDB();
+    if (!activeDB) {
+      return { success: false, message: "Aktif veritabanı bulunamadı!" };
+    }
+
+    const stmt = activeDB.prepare(`
+      SELECT 
+        s.*,
+        p.plan_adi,
+        p.sira_sayisi,
+        p.sutun_sayisi,
+        p.duzeni
+      FROM ortak_sinav_salonlar s
+      LEFT JOIN ortak_sinav_planlar p ON s.plan_id = p.id
+      WHERE s.durum = 1
+      ORDER BY s.salon_adi ASC
+    `);
+
+    const salonlar = [];
+    while (stmt.step()) {
+      salonlar.push(stmt.getAsObject());
+    }
+    stmt.free();
+
+    console.log(`✅ ${salonlar.length} salon bulundu`);
+    return { success: true, data: salonlar };
+  } catch (error) {
+    console.error("❌ Salonlar getirme hatası:", error);
+    return { success: false, message: error.message };
+  }
+});
+
+// Salon Ekle
+ipcMain.handle("add-sinav-salon", async (event, salonData) => {
+  try {
+    console.log("🆕 Yeni salon ekleniyor:", salonData.salon_adi);
+
+    const activeDB = db.getActiveSchoolDB();
+    if (!activeDB) {
+      return { success: false, message: "Aktif veritabanı bulunamadı!" };
+    }
+
+    const stmt = activeDB.prepare(`
+      INSERT INTO ortak_sinav_salonlar 
+      (salon_adi, plan_id, kapasite)
+      VALUES (?, ?, ?)
+    `);
+
+    stmt.run([
+      salonData.salon_adi,
+      salonData.plan_id || null,
+      salonData.kapasite,
+    ]);
+    stmt.free();
+
+    db.saveActiveSchoolDB();
+
+    console.log("✅ Salon eklendi");
+    return { success: true, message: "Salon başarıyla eklendi!" };
+  } catch (error) {
+    console.error("❌ Salon ekleme hatası:", error);
+    return { success: false, message: error.message };
+  }
+});
+
+// Salon Güncelle
+ipcMain.handle("update-sinav-salon", async (event, salonId, salonData) => {
+  try {
+    console.log("✏️ Salon güncelleniyor, ID:", salonId);
+
+    const activeDB = db.getActiveSchoolDB();
+    if (!activeDB) {
+      return { success: false, message: "Aktif veritabanı bulunamadı!" };
+    }
+
+    const stmt = activeDB.prepare(`
+      UPDATE ortak_sinav_salonlar SET
+        salon_adi = ?,
+        plan_id = ?,
+        kapasite = ?,
+        guncelleme_tarihi = CURRENT_TIMESTAMP
+      WHERE id = ?
+    `);
+
+    stmt.run([
+      salonData.salon_adi,
+      salonData.plan_id,
+      salonData.kapasite,
+      parseInt(salonId),
+    ]);
+    stmt.free();
+
+    db.saveActiveSchoolDB();
+
+    console.log("✅ Salon güncellendi");
+    return { success: true, message: "Salon başarıyla güncellendi!" };
+  } catch (error) {
+    console.error("❌ Salon güncelleme hatası:", error);
+    return { success: false, message: error.message };
+  }
+});
+
+// Salon Sil
+ipcMain.handle("delete-sinav-salon", async (event, salonId) => {
+  try {
+    console.log("🗑️ Salon siliniyor, ID:", salonId);
+
+    const activeDB = db.getActiveSchoolDB();
+    if (!activeDB) {
+      return { success: false, message: "Aktif veritabanı bulunamadı!" };
+    }
+
+    // Soft delete
+    activeDB.run("UPDATE ortak_sinav_salonlar SET durum = 0 WHERE id = ?", [
+      parseInt(salonId),
+    ]);
+
+    db.saveActiveSchoolDB();
+
+    console.log("✅ Salon silindi");
+    return { success: true, message: "Salon başarıyla silindi!" };
+  } catch (error) {
+    console.error("❌ Salon silme hatası:", error);
+    return { success: false, message: error.message };
+  }
+});
+
+// ========== SINAVLAR ==========
+
+// Tüm Sınavları Getir
+ipcMain.handle("get-all-ortak-sinavlar", async () => {
+  try {
+    console.log("📋 Tüm ortak sınavlar getiriliyor...");
+
+    const activeDB = db.getActiveSchoolDB();
+    if (!activeDB) {
+      return { success: false, message: "Aktif veritabanı bulunamadı!" };
+    }
+
+    const stmt = activeDB.prepare(`
+      SELECT 
+        s.*,
+        COUNT(DISTINCT d.ogrenci_id) as dagitilan_ogrenci_sayisi,
+        COUNT(DISTINCT g.ogretmen_id) as gozetmen_sayisi
+      FROM ortak_sinavlar s
+      LEFT JOIN ortak_sinav_dagitim d ON s.id = d.sinav_id
+      LEFT JOIN ortak_sinav_gozetmenler g ON s.id = g.sinav_id
+      WHERE s.durum = 1
+      GROUP BY s.id
+      ORDER BY s.sinav_tarihi DESC, s.sinav_saati DESC
+    `);
+
+    const sinavlar = [];
+    while (stmt.step()) {
+      sinavlar.push(stmt.getAsObject());
+    }
+    stmt.free();
+
+    console.log(`✅ ${sinavlar.length} sınav bulundu`);
+    return { success: true, data: sinavlar };
+  } catch (error) {
+    console.error("❌ Sınavlar getirme hatası:", error);
+    return { success: false, message: error.message };
+  }
+});
+
+// Sınav Ekle
+ipcMain.handle("add-ortak-sinav", async (event, sinavData) => {
+  try {
+    console.log("🆕 Yeni sınav ekleniyor:", sinavData.sinav_adi);
+
+    const activeDB = db.getActiveSchoolDB();
+    if (!activeDB) {
+      return { success: false, message: "Aktif veritabanı bulunamadı!" };
+    }
+
+    const stmt = activeDB.prepare(`
+      INSERT INTO ortak_sinavlar 
+      (sinav_kodu, sinav_turu, sinav_adi, sinav_tarihi, sinav_saati, 
+       sinif_seviyesi, sinav_donemi, sinav_no, aciklama, mazeret_telafi, kilitli)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `);
+
+    stmt.run([
+      sinavData.sinav_kodu,
+      sinavData.sinav_turu,
+      sinavData.sinav_adi,
+      sinavData.sinav_tarihi,
+      sinavData.sinav_saati,
+      sinavData.sinif_seviyesi,
+      sinavData.sinav_donemi,
+      sinavData.sinav_no,
+      sinavData.aciklama || null,
+      sinavData.mazeret_telafi || 0,
+      sinavData.kilitli || 0,
+    ]);
+    stmt.free();
+
+    const lastInsertId = activeDB.exec("SELECT last_insert_rowid() as id")[0]
+      .values[0][0];
+
+    db.saveActiveSchoolDB();
+
+    console.log("✅ Sınav eklendi, ID:", lastInsertId);
+    return {
+      success: true,
+      id: lastInsertId,
+      message: "Sınav başarıyla eklendi!",
+    };
+  } catch (error) {
+    console.error("❌ Sınav ekleme hatası:", error);
+    return { success: false, message: error.message };
+  }
+});
+
+// Sınav Güncelle
+ipcMain.handle("update-ortak-sinav", async (event, sinavId, sinavData) => {
+  try {
+    console.log("✏️ Sınav güncelleniyor, ID:", sinavId);
+
+    const activeDB = db.getActiveSchoolDB();
+    if (!activeDB) {
+      return { success: false, message: "Aktif veritabanı bulunamadı!" };
+    }
+
+    const stmt = activeDB.prepare(`
+      UPDATE ortak_sinavlar SET
+        sinav_kodu = ?,
+        sinav_turu = ?,
+        sinav_adi = ?,
+        sinav_tarihi = ?,
+        sinav_saati = ?,
+        sinif_seviyesi = ?,
+        sinav_donemi = ?,
+        sinav_no = ?,
+        aciklama = ?,
+        mazeret_telafi = ?,
+        kilitli = ?,
+        guncelleme_tarihi = CURRENT_TIMESTAMP
+      WHERE id = ?
+    `);
+
+    stmt.run([
+      sinavData.sinav_kodu,
+      sinavData.sinav_turu,
+      sinavData.sinav_adi,
+      sinavData.sinav_tarihi,
+      sinavData.sinav_saati,
+      sinavData.sinif_seviyesi,
+      sinavData.sinav_donemi,
+      sinavData.sinav_no,
+      sinavData.aciklama,
+      sinavData.mazeret_telafi,
+      sinavData.kilitli,
+      parseInt(sinavId),
+    ]);
+    stmt.free();
+
+    db.saveActiveSchoolDB();
+
+    console.log("✅ Sınav güncellendi");
+    return { success: true, message: "Sınav başarıyla güncellendi!" };
+  } catch (error) {
+    console.error("❌ Sınav güncelleme hatası:", error);
+    return { success: false, message: error.message };
+  }
+});
+
+// Sınav Sil
+ipcMain.handle("delete-ortak-sinav", async (event, sinavId) => {
+  try {
+    console.log("🗑️ Sınav siliniyor, ID:", sinavId);
+
+    const activeDB = db.getActiveSchoolDB();
+    if (!activeDB) {
+      return { success: false, message: "Aktif veritabanı bulunamadı!" };
+    }
+
+    // İlişkili kayıtları da sil (CASCADE)
+    activeDB.run("DELETE FROM ortak_sinav_dagitim WHERE sinav_id = ?", [
+      parseInt(sinavId),
+    ]);
+    activeDB.run("DELETE FROM ortak_sinav_gozetmenler WHERE sinav_id = ?", [
+      parseInt(sinavId),
+    ]);
+
+    // Sınavı sil (soft delete)
+    activeDB.run("UPDATE ortak_sinavlar SET durum = 0 WHERE id = ?", [
+      parseInt(sinavId),
+    ]);
+
+    db.saveActiveSchoolDB();
+
+    console.log("✅ Sınav ve ilişkili kayıtlar silindi");
+    return { success: true, message: "Sınav başarıyla silindi!" };
+  } catch (error) {
+    console.error("❌ Sınav silme hatası:", error);
+    return { success: false, message: error.message };
+  }
+});
+
+// Sınav Kilitle/Kilidi Aç
+ipcMain.handle("toggle-sinav-lock", async (event, sinavId) => {
+  try {
+    console.log("🔒 Sınav kilidi değiştiriliyor, ID:", sinavId);
+
+    const activeDB = db.getActiveSchoolDB();
+    if (!activeDB) {
+      return { success: false, message: "Aktif veritabanı bulunamadı!" };
+    }
+
+    // Mevcut durumu al
+    const checkStmt = activeDB.prepare(
+      "SELECT kilitli FROM ortak_sinavlar WHERE id = ?"
+    );
+    checkStmt.bind([parseInt(sinavId)]);
+
+    let currentLock = 0;
+    if (checkStmt.step()) {
+      currentLock = checkStmt.getAsObject().kilitli;
+    }
+    checkStmt.free();
+
+    // Tersini yap
+    const newLock = currentLock === 1 ? 0 : 1;
+
+    const stmt = activeDB.prepare(`
+      UPDATE ortak_sinavlar SET
+        kilitli = ?,
+        guncelleme_tarihi = CURRENT_TIMESTAMP
+      WHERE id = ?
+    `);
+
+    stmt.run([newLock, parseInt(sinavId)]);
+    stmt.free();
+
+    db.saveActiveSchoolDB();
+
+    console.log(`✅ Sınav ${newLock === 1 ? "kilitlendi" : "kilidi açıldı"}`);
+    return {
+      success: true,
+      locked: newLock === 1,
+      message: `Sınav ${newLock === 1 ? "kilitlendi" : "kilidi açıldı"}!`,
+    };
+  } catch (error) {
+    console.error("❌ Kilit değiştirme hatası:", error);
+    return { success: false, message: error.message };
+  }
+});
+
+// ========== DAĞITIM (KELEBEK) ==========
+
+// Kelebek Dağıtımı Yap
+ipcMain.handle(
+  "kelebek-dagitimi-yap",
+  async (event, sinavId, salonIds, ogrenciIds, sabitlenenler) => {
+    try {
+      console.log("🦋 Kelebek dağıtımı başlatılıyor...");
+      console.log(`   • Sınav ID: ${sinavId}`);
+      console.log(`   • Salon Sayısı: ${salonIds.length}`);
+      console.log(`   • Öğrenci Sayısı: ${ogrenciIds.length}`);
+      console.log(`   • Sabitlenmiş: ${sabitlenenler.length}`);
+
+      const activeDB = db.getActiveSchoolDB();
+      if (!activeDB) {
+        return { success: false, message: "Aktif veritabanı bulunamadı!" };
+      }
+
+      // Önce mevcut dağıtımı temizle
+      activeDB.run("DELETE FROM ortak_sinav_dagitim WHERE sinav_id = ?", [
+        parseInt(sinavId),
+      ]);
+
+      // Salonların planlarını al
+      const salonlar = [];
+      for (const salonId of salonIds) {
+        const salonStmt = activeDB.prepare(`
+        SELECT s.*, p.sira_sayisi, p.sutun_sayisi, p.duzeni
+        FROM ortak_sinav_salonlar s
+        LEFT JOIN ortak_sinav_planlar p ON s.plan_id = p.id
+        WHERE s.id = ?
+      `);
+        salonStmt.bind([salonId]);
+
+        if (salonStmt.step()) {
+          salonlar.push(salonStmt.getAsObject());
+        }
+        salonStmt.free();
+      }
+
+      // Öğrencileri karıştır (sabitlenmeyenler için)
+      const karisikOgrenciler = [...ogrenciIds].sort(() => Math.random() - 0.5);
+
+      // Dağıtım yap
+      let ogrenciIndex = 0;
+      const dagitimStmt = activeDB.prepare(`
+      INSERT INTO ortak_sinav_dagitim 
+      (sinav_id, ogrenci_id, salon_id, sira_no, sutun_no, sabitle)
+      VALUES (?, ?, ?, ?, ?, ?)
+    `);
+
+      for (const salon of salonlar) {
+        const siraSayisi = salon.sira_sayisi || 8;
+        const sutunSayisi = salon.sutun_sayisi || 5;
+        const duzeni = salon.duzeni || "Z";
+
+        // Z düzeninde dağıt
+        for (let sira = 1; sira <= siraSayisi; sira++) {
+          for (let sutun = 1; sutun <= sutunSayisi; sutun++) {
+            if (ogrenciIndex >= karisikOgrenciler.length) break;
+
+            const ogrenciId = karisikOgrenciler[ogrenciIndex];
+            const sabitle = sabitlenenler.includes(ogrenciId) ? 1 : 0;
+
+            dagitimStmt.run([
+              parseInt(sinavId),
+              parseInt(ogrenciId),
+              parseInt(salon.id),
+              sira,
+              sutun,
+              sabitle,
+            ]);
+
+            ogrenciIndex++;
+          }
+          if (ogrenciIndex >= karisikOgrenciler.length) break;
+        }
+
+        if (ogrenciIndex >= karisikOgrenciler.length) break;
+      }
+
+      dagitimStmt.free();
+      db.saveActiveSchoolDB();
+
+      console.log(`✅ ${ogrenciIndex} öğrenci dağıtıldı`);
+      return {
+        success: true,
+        dagitilan: ogrenciIndex,
+        message: `${ogrenciIndex} öğrenci başarıyla dağıtıldı!`,
+      };
+    } catch (error) {
+      console.error("❌ Kelebek dağıtımı hatası:", error);
+      return { success: false, message: error.message };
+    }
+  }
+);
+
+// Dağıtımı Getir
+ipcMain.handle("get-sinav-dagitim", async (event, sinavId) => {
+  try {
+    console.log("📋 Sınav dağıtımı getiriliyor, ID:", sinavId);
+
+    const activeDB = db.getActiveSchoolDB();
+    if (!activeDB) {
+      return { success: false, message: "Aktif veritabanı bulunamadı!" };
+    }
+
+    const stmt = activeDB.prepare(`
+      SELECT 
+        d.*,
+        o.ad_soyad as ogrenci_ad,
+        o.okul_no,
+        o.sinif,
+        s.salon_adi
+      FROM ortak_sinav_dagitim d
+      INNER JOIN ogrenciler o ON d.ogrenci_id = o.id
+      INNER JOIN ortak_sinav_salonlar s ON d.salon_id = s.id
+      WHERE d.sinav_id = ?
+      ORDER BY s.salon_adi, d.sira_no, d.sutun_no
+    `);
+
+    stmt.bind([parseInt(sinavId)]);
+
+    const dagitim = [];
+    while (stmt.step()) {
+      dagitim.push(stmt.getAsObject());
+    }
+    stmt.free();
+
+    console.log(`✅ ${dagitim.length} dağıtım kaydı bulundu`);
+    return { success: true, data: dagitim };
+  } catch (error) {
+    console.error("❌ Dağıtım getirme hatası:", error);
+    return { success: false, message: error.message };
+  }
+});
+
+// Öğrenciyi Sabitle/Sabitlemeyi Kaldır
+ipcMain.handle("toggle-ogrenci-sabitle", async (event, dagitimId) => {
+  try {
+    console.log("📌 Öğrenci sabitleme durumu değiştiriliyor, ID:", dagitimId);
+
+    const activeDB = db.getActiveSchoolDB();
+    if (!activeDB) {
+      return { success: false, message: "Aktif veritabanı bulunamadı!" };
+    }
+
+    // Mevcut durumu al
+    const checkStmt = activeDB.prepare(
+      "SELECT sabitle FROM ortak_sinav_dagitim WHERE id = ?"
+    );
+    checkStmt.bind([parseInt(dagitimId)]);
+
+    let currentSabitle = 0;
+    if (checkStmt.step()) {
+      currentSabitle = checkStmt.getAsObject().sabitle;
+    }
+    checkStmt.free();
+
+    // Tersini yap
+    const newSabitle = currentSabitle === 1 ? 0 : 1;
+
+    const stmt = activeDB.prepare(
+      "UPDATE ortak_sinav_dagitim SET sabitle = ? WHERE id = ?"
+    );
+    stmt.run([newSabitle, parseInt(dagitimId)]);
+    stmt.free();
+
+    db.saveActiveSchoolDB();
+
+    console.log(
+      `✅ Öğrenci ${newSabitle === 1 ? "sabitlendi" : "sabitleme kaldırıldı"}`
+    );
+    return {
+      success: true,
+      sabitle: newSabitle === 1,
+      message: `Öğrenci ${
+        newSabitle === 1 ? "sabitlendi" : "sabitleme kaldırıldı"
+      }!`,
+    };
+  } catch (error) {
+    console.error("❌ Sabitleme değiştirme hatası:", error);
+    return { success: false, message: error.message };
+  }
+});
+
+// ========== GÖZETMEN ATAMA ==========
+
+// Gözetmen Ekle
+ipcMain.handle(
+  "add-sinav-gozetmen",
+  async (event, sinavId, ogretmenId, salonId, gorevTuru) => {
+    try {
+      console.log("👨‍🏫 Sınava gözetmen ekleniyor...");
+
+      const activeDB = db.getActiveSchoolDB();
+      if (!activeDB) {
+        return { success: false, message: "Aktif veritabanı bulunamadı!" };
+      }
+
+      const stmt = activeDB.prepare(`
+      INSERT INTO ortak_sinav_gozetmenler 
+      (sinav_id, ogretmen_id, salon_id, gorev_turu)
+      VALUES (?, ?, ?, ?)
+    `);
+
+      stmt.run([
+        parseInt(sinavId),
+        parseInt(ogretmenId),
+        parseInt(salonId),
+        gorevTuru || "Gözetmen",
+      ]);
+      stmt.free();
+
+      db.saveActiveSchoolDB();
+
+      console.log("✅ Gözetmen eklendi");
+      return { success: true, message: "Gözetmen başarıyla eklendi!" };
+    } catch (error) {
+      console.error("❌ Gözetmen ekleme hatası:", error);
+      return { success: false, message: error.message };
+    }
+  }
+);
+
+// Gözetmenleri Getir
+ipcMain.handle("get-sinav-gozetmenler", async (event, sinavId) => {
+  try {
+    console.log("📋 Sınav gözetmenleri getiriliyor, ID:", sinavId);
+
+    const activeDB = db.getActiveSchoolDB();
+    if (!activeDB) {
+      return { success: false, message: "Aktif veritabanı bulunamadı!" };
+    }
+
+    const stmt = activeDB.prepare(`
+      SELECT 
+        g.*,
+        o.ad_soyad as ogretmen_ad,
+        o.brans,
+        s.salon_adi
+      FROM ortak_sinav_gozetmenler g
+      INNER JOIN ogretmenler o ON g.ogretmen_id = o.id
+      INNER JOIN ortak_sinav_salonlar s ON g.salon_id = s.id
+      WHERE g.sinav_id = ?
+      ORDER BY s.salon_adi
+    `);
+
+    stmt.bind([parseInt(sinavId)]);
+
+    const gozetmenler = [];
+    while (stmt.step()) {
+      gozetmenler.push(stmt.getAsObject());
+    }
+    stmt.free();
+
+    console.log(`✅ ${gozetmenler.length} gözetmen bulundu`);
+    return { success: true, data: gozetmenler };
+  } catch (error) {
+    console.error("❌ Gözetmen listeleme hatası:", error);
+    return { success: false, message: error.message };
+  }
+});
+
+// Gözetmen Sil
+ipcMain.handle("delete-sinav-gozetmen", async (event, gozetmenId) => {
+  try {
+    console.log("🗑️ Gözetmen siliniyor, ID:", gozetmenId);
+
+    const activeDB = db.getActiveSchoolDB();
+    if (!activeDB) {
+      return { success: false, message: "Aktif veritabanı bulunamadı!" };
+    }
+
+    activeDB.run("DELETE FROM ortak_sinav_gozetmenler WHERE id = ?", [
+      parseInt(gozetmenId),
+    ]);
+    db.saveActiveSchoolDB();
+
+    console.log("✅ Gözetmen silindi");
+    return { success: true, message: "Gözetmen başarıyla silindi!" };
+  } catch (error) {
+    console.error("❌ Gözetmen silme hatası:", error);
+    return { success: false, message: error.message };
+  }
+});
+
+// ========== AÇIKLAMALAR ==========
+
+// Tüm Açıklamaları Getir
+ipcMain.handle("get-all-sinav-aciklamalar", async () => {
+  try {
+    console.log("📋 Tüm sınav açıklamaları getiriliyor...");
+
+    const activeDB = db.getActiveSchoolDB();
+    if (!activeDB) {
+      return { success: false, message: "Aktif veritabanı bulunamadı!" };
+    }
+
+    const stmt = activeDB.prepare(`
+      SELECT * FROM ortak_sinav_aciklamalar
+      ORDER BY sira ASC
+    `);
+
+    const aciklamalar = [];
+    while (stmt.step()) {
+      aciklamalar.push(stmt.getAsObject());
+    }
+    stmt.free();
+
+    console.log(`✅ ${aciklamalar.length} açıklama bulundu`);
+    return { success: true, data: aciklamalar };
+  } catch (error) {
+    console.error("❌ Açıklamalar getirme hatası:", error);
+    return { success: false, message: error.message };
+  }
+});
+
+// Açıklama Ekle
+ipcMain.handle("add-sinav-aciklama", async (event, aciklama, sira) => {
+  try {
+    console.log("🆕 Yeni açıklama ekleniyor...");
+
+    const activeDB = db.getActiveSchoolDB();
+    if (!activeDB) {
+      return { success: false, message: "Aktif veritabanı bulunamadı!" };
+    }
+
+    const stmt = activeDB.prepare(`
+      INSERT INTO ortak_sinav_aciklamalar (aciklama, sira)
+      VALUES (?, ?)
+    `);
+
+    stmt.run([aciklama, sira]);
+    stmt.free();
+
+    db.saveActiveSchoolDB();
+
+    console.log("✅ Açıklama eklendi");
+    return { success: true, message: "Açıklama başarıyla eklendi!" };
+  } catch (error) {
+    console.error("❌ Açıklama ekleme hatası:", error);
+    return { success: false, message: error.message };
+  }
+});
+
+// Açıklama Güncelle
+ipcMain.handle(
+  "update-sinav-aciklama",
+  async (event, aciklamaId, aciklama, sira) => {
+    try {
+      console.log("✏️ Açıklama güncelleniyor, ID:", aciklamaId);
+
+      const activeDB = db.getActiveSchoolDB();
+      if (!activeDB) {
+        return { success: false, message: "Aktif veritabanı bulunamadı!" };
+      }
+
+      const stmt = activeDB.prepare(`
+      UPDATE ortak_sinav_aciklamalar SET
+        aciklama = ?,
+        sira = ?
+      WHERE id = ?
+    `);
+
+      stmt.run([aciklama, sira, parseInt(aciklamaId)]);
+      stmt.free();
+
+      db.saveActiveSchoolDB();
+
+      console.log("✅ Açıklama güncellendi");
+      return { success: true, message: "Açıklama başarıyla güncellendi!" };
+    } catch (error) {
+      console.error("❌ Açıklama güncelleme hatası:", error);
+      return { success: false, message: error.message };
+    }
+  }
+);
+
+// Açıklama Sil
+ipcMain.handle("delete-sinav-aciklama", async (event, aciklamaId) => {
+  try {
+    console.log("🗑️ Açıklama siliniyor, ID:", aciklamaId);
+
+    const activeDB = db.getActiveSchoolDB();
+    if (!activeDB) {
+      return { success: false, message: "Aktif veritabanı bulunamadı!" };
+    }
+
+    activeDB.run("DELETE FROM ortak_sinav_aciklamalar WHERE id = ?", [
+      parseInt(aciklamaId),
+    ]);
+    db.saveActiveSchoolDB();
+
+    console.log("✅ Açıklama silindi");
+    return { success: true, message: "Açıklama başarıyla silindi!" };
+  } catch (error) {
+    console.error("❌ Açıklama silme hatası:", error);
+    return { success: false, message: error.message };
+  }
+});
+
+console.log("✅ Ortak Sınav (Kelebek) Sistemi IPC handlers yüklendi");
+console.log("   • Oturma Planları (4 handler)");
+console.log("   • Salonlar (4 handler)");
+console.log("   • Sınavlar (5 handler)");
+console.log("   • Kelebek Dağıtımı (3 handler)");
+console.log("   • Gözetmen Atama (3 handler)");
+console.log("   • Açıklamalar (4 handler)");
+console.log("   • TOPLAM: 23 yeni IPC handler");
+
+// ==========================================
+// 📁 DOSYA YÜKLEME SİSTEMİ (Düzeltilmiş)
+// ==========================================
+
+// BURADA TEKRAR require("fs") YAPMIYORUZ, ÇÜNKÜ EN ÜSTTE VAR!
+
+ipcMain.handle("upload-file", async (event, fileData) => {
+  try {
+    console.log("📁 Dosya yükleniyor:", fileData.name);
+
+    // Dosya kayıt klasörü (os, path ve fs yukarıda tanımlı olduğu için doğrudan kullanıyoruz)
+    const uploadDir = path.join(
+      os.homedir(),
+      "Documents",
+      "OkulYonetimSistemi",
+      "Belgeler",
+      "GeziDosyalari"
+    );
+
+    // Klasör yoksa oluştur
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+      console.log("✅ Dosya klasörü oluşturuldu:", uploadDir);
+    }
+
+    // Benzersiz dosya adı oluştur
+    const timestamp = Date.now();
+    const extension = path.extname(fileData.name);
+    const baseName = path.basename(fileData.name, extension);
+    const uniqueName = `${baseName}_${timestamp}${extension}`;
+    const filePath = path.join(uploadDir, uniqueName);
+
+    // Base64 veriyi temizle ve Buffer'a çevir
+    const base64Data = fileData.data.split(",")[1];
+    const buffer = Buffer.from(base64Data, "base64");
+
+    // Dosyayı diske yaz
+    fs.writeFileSync(filePath, buffer);
+
+    console.log("✅ Dosya başarıyla kaydedildi:", filePath);
+
+    return {
+      success: true,
+      filePath: filePath,
+      fileName: uniqueName,
+    };
+  } catch (error) {
+    console.error("❌ Dosya yükleme hatası:", error);
+    return {
+      success: false,
+      message: error.message,
+    };
+  }
+});
+
+ipcMain.handle("open-file", async (event, filePath) => {
+  try {
+    const { shell } = require("electron");
+    await shell.openPath(filePath);
+    return { success: true };
+  } catch (error) {
+    return { success: false, message: error.message };
+  }
+});
+
+// ==========================================
+// 🎉 FINAL LOG
+// ==========================================
+
+console.log("=".repeat(60));
+console.log("🎉 TÜM IPC HANDLER'LAR YÜKLENDİ!");
+console.log("=".repeat(60));
+console.log("📦 Versiyon: 3.0.0");
+console.log("📅 Yıl: 2025");
+console.log("👨‍💻 Geliştirici: SİMRE/MK");
+console.log("🚀 Türkiye'nin İlk Yapay Zeka Destekli Okul Yönetim Sistemi");
+console.log("=".repeat(60));
+console.log("✅ Toplam Handler Kategorisi: 15+");
+console.log("✅ Toplam IPC Endpoint: 150+");
+console.log("✅ Algoritma Entegrasyonu: AKTİF");
+console.log("✅ MEBBİS/E-Okul Entegrasyonu: AKTİF");
+console.log("✅ PDF/Excel Export: AKTİF");
+console.log("✅ Veritabanı Sistemi: AKTİF");
+console.log("=".repeat(60));

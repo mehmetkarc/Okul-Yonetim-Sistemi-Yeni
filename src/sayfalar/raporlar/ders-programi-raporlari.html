@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Ders Programı Raporları</title>
+    <link rel="stylesheet" href="../anasayfa.css" />
+    <link rel="stylesheet" href="../okullar.css" />
+    <link rel="stylesheet" href="../../bilesenler/bildirim-sistemi.css" />
+    <link rel="stylesheet" href="raporlar.css" />
+
+    <!-- PDFMake - ÖNCE YÜKLE -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.min.js"></script>
+
+    <style>
+      .chart-container {
+        max-width: 800px;
+        margin: 20px auto;
+        padding: 20px;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+      }
+      .chart-bar {
+        display: flex;
+        align-items: center;
+        margin-bottom: 12px;
+        gap: 12px;
+      }
+      .chart-label {
+        min-width: 150px;
+        font-size: 13px;
+        color: var(--text-primary);
+        font-weight: 600;
+      }
+      .chart-bar-container {
+        flex: 1;
+        height: 30px;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 6px;
+        overflow: hidden;
+        position: relative;
+      }
+      .chart-bar-fill {
+        height: 100%;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        padding-right: 8px;
+        color: white;
+        font-size: 12px;
+        font-weight: 700;
+        transition: width 1s ease-out;
+      }
+      .chart-bar-fill.danger {
+        background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+      }
+      .chart-bar-fill.warning {
+        background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);
+      }
+      .chart-bar-fill.success {
+        background: linear-gradient(135deg, #00f5a0 0%, #00d9ff 100%);
+      }
+      .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 16px;
+        margin: 20px 0;
+      }
+      .stat-box {
+        padding: 20px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 12px;
+        text-align: center;
+      }
+      .stat-number {
+        font-size: 32px;
+        font-weight: 700;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: 8px;
+      }
+      .stat-label {
+        font-size: 14px;
+        color: var(--text-secondary);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="bg-animations">
+      <div class="gradient-orb orb-1"></div>
+      <div class="gradient-orb orb-2"></div>
+      <div class="gradient-orb orb-3"></div>
+    </div>
+
+    <header class="top-bar">
+      <div class="top-bar-left">
+        <div
+          class="logo-container"
+          onclick="window.location.href='../anasayfa.html'"
+        >
+          <svg class="logo-icon" viewBox="0 0 24 24" fill="none">
+            <path
+              d="M12 3L4 9V21H20V9L12 3Z"
+              stroke="url(#gradient1)"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+            <path
+              d="M9 21V12H15V21"
+              stroke="url(#gradient1)"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+            <defs>
+              <linearGradient
+                id="gradient1"
+                x1="0%"
+                y1="0%"
+                x2="100%"
+                y2="100%"
+              >
+                <stop
+                  offset="0%"
+                  style="stop-color: #00d9ff; stop-opacity: 1"
+                />
+                <stop
+                  offset="100%"
+                  style="stop-color: #7b2fff; stop-opacity: 1"
+                />
+              </linearGradient>
+            </defs>
+          </svg>
+          <div class="logo-text">
+            <span class="logo-title">Okul Yönetim</span>
+            <span class="logo-subtitle" id="okulAdi">Sistem</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="top-bar-center">
+        <h2 style="color: white; font-size: 20px; font-weight: 600">
+          📊 Dinamik PDF Raporlama Sistemi
+        </h2>
+      </div>
+
+      <div class="top-bar-right">
+        <button
+          class="icon-btn"
+          onclick="window.location.href='../otomatik-dagitim.html'"
+          title="Otomatik Dağıtım"
+          style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+            <path
+              d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"
+              stroke="currentColor"
+              stroke-width="2"
+            />
+          </svg>
+        </button>
+
+        <button
+          class="icon-btn"
+          onclick="window.location.href='../anasayfa.html'"
+          title="Ana Sayfa"
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+            <path
+              d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"
+              stroke="currentColor"
+              stroke-width="2"
+            />
+          </svg>
+        </button>
+
+        <button class="icon-btn logout-btn" id="logoutBtn" title="Çıkış">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+            <path
+              d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4m7 14l5-5-5-5m5 5H9"
+              stroke="currentColor"
+              stroke-width="2"
+            />
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <main class="page-container">
+      <div class="page-header">
+        <div class="header-left">
+          <h1 class="page-title">
+            <span class="title-icon">🚀</span>
+            Gelişmiş Raporlama Motoru
+          </h1>
+          <p class="page-description">
+            Türkçe karakter destekli, her türlü zaman tablosuna uyumlu dinamik
+            PDF üretimi
+          </p>
+        </div>
+      </div>
+
+      <!-- RAPOR TÜRÜ SEÇİMİ -->
+      <div class="card glass-card">
+        <div class="card-header">
+          <h2>📋 Rapor Türü Seçin</h2>
+        </div>
+        <div class="card-body">
+          <div class="form-group">
+            <label>Oluşturulacak Rapor</label>
+            <select id="raporTuru" class="form-control">
+              <option value="">Seçiniz...</option>
+              <optgroup label="👨‍🏫 Öğretmen Programları">
+                <option value="tum-ogretmenler-pdf">
+                  📚 Tüm Öğretmenler PDF
+                </option>
+                <option value="secili-ogretmenler-pdf">
+                  👥 Seçili Öğretmenler PDF
+                </option>
+              </optgroup>
+              <optgroup label="🎯 Sınıf Programları">
+                <option value="tum-siniflar-pdf">📚 Tüm Sınıflar PDF</option>
+                <option value="secili-siniflar-pdf">
+                  📋 Seçili Sınıflar PDF
+                </option>
+              </optgroup>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- FİLTRELER -->
+      <div class="card glass-card" id="filtrelerKart" style="display: none">
+        <div class="card-header">
+          <h2>🔍 Filtreler</h2>
+        </div>
+        <div class="card-body">
+          <!-- ÖĞRETMEN FİLTRESİ -->
+          <div
+            class="form-group"
+            id="ogretmenFiltreBolumu"
+            style="display: none"
+          >
+            <label>Öğretmen Seçin (Çoklu Seçim)</label>
+            <select
+              id="ogretmenFiltre"
+              class="form-control"
+              multiple
+              size="6"
+            ></select>
+            <small class="form-text"
+              >Ctrl/Cmd ile çoklu seçim yapabilirsiniz</small
+            >
+          </div>
+
+          <!-- SINIF FİLTRESİ (YENİ) -->
+          <div class="form-group" id="sinifFiltreBolumu" style="display: none">
+            <label>Sınıf Seçin (Çoklu Seçim)</label>
+            <select
+              id="sinifFiltre"
+              class="form-control"
+              multiple
+              size="6"
+            ></select>
+            <small class="form-text"
+              >Ctrl/Cmd ile çoklu seçim yapabilirsiniz</small
+            >
+          </div>
+        </div>
+      </div>
+
+      <!-- BUTONLAR -->
+      <div class="action-buttons" id="butonlar" style="display: none">
+        <button
+          id="ustBilgiAyarBtn"
+          class="btn-secondary"
+          style="background: linear-gradient(135deg, #6c5ce7 0%, #341f97 100%)"
+        >
+          ⚙️ Kurum & İmza Ayarları
+        </button>
+
+        <button
+          class="btn-primary"
+          id="onizleBtn"
+          style="background: linear-gradient(135deg, #00d9ff 0%, #7b2fff 100%)"
+        >
+          🚀 PDF Oluştur ve İndir
+        </button>
+      </div>
+
+      <!-- KURUM BİLGİLERİ MODAL -->
+      <div id="ustBilgiModal" class="modern-modal" style="display: none">
+        <div class="modal-box animate-modal">
+          <div class="modal-header">
+            <h2>⚙️ Kurum Bilgileri</h2>
+            <button id="ustBilgiKapat" class="close-btn">&times;</button>
+          </div>
+
+          <div class="modal-body">
+            <div class="form-group">
+              <label>Kaymakamlık/Valilik</label>
+              <input
+                type="text"
+                id="kaymakamlikInput"
+                class="modal-input"
+                placeholder="T.C. BAHÇELİEVLER KAYMAKAMLIĞI"
+              />
+            </div>
+
+            <div class="form-group">
+              <label>Okul Adı</label>
+              <input
+                type="text"
+                id="okulAdiInput"
+                class="modal-input"
+                placeholder="Bahçelievler Cumhuriyet Anadolu Lisesi"
+              />
+            </div>
+
+            <div class="form-group">
+              <label>Okul Müdürü</label>
+              <input
+                type="text"
+                id="mudurInput"
+                class="modal-input"
+                placeholder="Ad Soyad"
+              />
+            </div>
+
+            <div class="form-group">
+              <label>Müdür Yardımcısı</label>
+              <input
+                type="text"
+                id="mudurYardimcisiInput"
+                class="modal-input"
+                placeholder="Ad Soyad"
+              />
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button id="ustBilgiKaydet" class="btn-save">💾 Kaydet</button>
+            <button id="ustBilgiKapatAlt" class="btn-cancel">❌ İptal</button>
+          </div>
+        </div>
+      </div>
+
+      <style>
+        .modern-modal {
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          z-index: 9999;
+          backdrop-filter: blur(8px);
+          background: rgba(0, 0, 0, 0.6);
+        }
+
+        .modal-box {
+          background: #1a1a2e;
+          border-radius: 16px;
+          padding: 30px;
+          width: 95%;
+          max-width: 550px;
+          box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+          animation: scaleIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+          border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+
+        .modal-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 25px;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+          padding-bottom: 15px;
+        }
+
+        .modal-header h2 {
+          font-size: 20px;
+          color: #00d9ff;
+          margin: 0;
+        }
+
+        .close-btn {
+          background: none;
+          border: none;
+          font-size: 28px;
+          color: rgba(255, 255, 255, 0.5);
+          cursor: pointer;
+          transition: 0.3s;
+        }
+
+        .close-btn:hover {
+          color: #ff6b6b;
+        }
+
+        .modal-input {
+          width: 100%;
+          padding: 12px 15px;
+          font-size: 14px;
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          border-radius: 8px;
+          background: rgba(255, 255, 255, 0.05);
+          color: #fff;
+          margin-bottom: 15px;
+          transition: 0.3s;
+        }
+
+        .modal-input:focus {
+          border-color: #00d9ff;
+          background: rgba(255, 255, 255, 0.1);
+          outline: none;
+          box-shadow: 0 0 10px rgba(0, 217, 255, 0.2);
+        }
+
+        .btn-save {
+          background: linear-gradient(135deg, #00d9ff 0%, #7b2fff 100%);
+          color: white;
+          border: none;
+          padding: 12px 25px;
+          border-radius: 8px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: 0.3s;
+        }
+
+        .btn-save:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 5px 15px rgba(123, 47, 255, 0.4);
+        }
+
+        .btn-cancel {
+          background: rgba(255, 255, 255, 0.1);
+          color: #fff;
+          border: 1px solid rgba(255, 255, 255, 0.2);
+          padding: 12px 25px;
+          border-radius: 8px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: 0.3s;
+        }
+
+        .btn-cancel:hover {
+          background: rgba(255, 255, 255, 0.15);
+        }
+
+        .form-text {
+          display: block;
+          margin-top: 4px;
+          font-size: 12px;
+          color: rgba(255, 255, 255, 0.5);
+        }
+
+        @keyframes scaleIn {
+          from {
+            transform: scale(0.9);
+            opacity: 0;
+          }
+          to {
+            transform: scale(1);
+            opacity: 1;
+          }
+        }
+      </style>
+
+      <div class="card glass-card" id="onizlemeKart" style="display: none">
+        <div class="card-header">
+          <h2>👁️ İşlem Durumu</h2>
+        </div>
+        <div class="card-body">
+          <div
+            id="onizlemeAlani"
+            class="preview-area"
+            style="
+              min-height: 200px;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+            "
+          >
+            Rapor hazırlandığında bilgi görünecektir.
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <div id="bildirimAlani"></div>
+
+    <!-- Bildirim Sistemi ÖNCE -->
+    <script src="../../bilesenler/bildirim-sistemi.js"></script>
+
+    <!-- Ana Script EN SON -->
+    <script src="ders-programi-raporlari.js"></script>
+
+    <script>
+      // PDFMake kontrol
+      if (typeof pdfMake === "undefined") {
+        console.error("❌ PDFMake yuklenemedi!");
+        alert("PDF kütüphanesi yüklenemedi! Sayfayı yenileyin.");
+      } else {
+        console.log("✅ PDFMake hazir!");
+      }
+
+      // Üst Bilgi Modal
+      document.addEventListener("DOMContentLoaded", () => {
+        const ustBilgiModal = document.getElementById("ustBilgiModal");
+        const ustBilgiAyarBtn = document.getElementById("ustBilgiAyarBtn");
+        const kaymakamlikInput = document.getElementById("kaymakamlikInput");
+        const okulAdiInput = document.getElementById("okulAdiInput");
+        const mudurInput = document.getElementById("mudurInput");
+        const mudurYardimcisiInput = document.getElementById(
+          "mudurYardimcisiInput"
+        );
+        const ustBilgiKaydet = document.getElementById("ustBilgiKaydet");
+        const ustBilgiKapat = document.getElementById("ustBilgiKapat");
+        const ustBilgiKapatAlt = document.getElementById("ustBilgiKapatAlt");
+
+        if (ustBilgiAyarBtn) {
+          ustBilgiAyarBtn.addEventListener("click", () => {
+            ustBilgiModal.style.display = "flex";
+
+            kaymakamlikInput.value =
+              localStorage.getItem("kaymakamlikAdi") || "T.C. KAYMAKAMLIĞI";
+            okulAdiInput.value =
+              localStorage.getItem("currentSchoolName") || "";
+            mudurInput.value = localStorage.getItem("mudurAdi") || "";
+            mudurYardimcisiInput.value =
+              localStorage.getItem("mudurYardimcisiAdi") || "";
+
+            setTimeout(() => kaymakamlikInput.focus(), 100);
+          });
+        }
+
+        [ustBilgiKapat, ustBilgiKapatAlt].forEach((btn) => {
+          btn.addEventListener("click", () => {
+            ustBilgiModal.style.display = "none";
+          });
+        });
+
+        ustBilgiKaydet.addEventListener("click", () => {
+          localStorage.setItem("kaymakamlikAdi", kaymakamlikInput.value.trim());
+          localStorage.setItem("currentSchoolName", okulAdiInput.value.trim());
+          localStorage.setItem("mudurAdi", mudurInput.value.trim());
+          localStorage.setItem(
+            "mudurYardimcisiAdi",
+            mudurYardimcisiInput.value.trim()
+          );
+
+          alert("✅ Kurum bilgileri kaydedildi!");
+          ustBilgiModal.style.display = "none";
+
+          document.getElementById("okulAdi").textContent =
+            okulAdiInput.value.trim();
+        });
+
+        document.addEventListener("keydown", (e) => {
+          if (e.key === "Escape" && ustBilgiModal.style.display === "flex") {
+            ustBilgiModal.style.display = "none";
+          }
+        });
+      });
+    </script>
+  </body>
+</html>

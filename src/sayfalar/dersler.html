@@ -1,0 +1,1053 @@
+<!DOCTYPE html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Ders Yönetimi</title>
+    <link rel="stylesheet" href="anasayfa.css" />
+    <link rel="stylesheet" href="okullar.css" />
+    <link rel="stylesheet" href="../bilesenler/bildirim-sistemi.css" />
+  </head>
+  <body>
+    <!-- Arka Plan Animasyonları -->
+    <div class="bg-animations">
+      <div class="gradient-orb orb-1"></div>
+      <div class="gradient-orb orb-2"></div>
+      <div class="gradient-orb orb-3"></div>
+    </div>
+
+    <!-- Üst Bar -->
+    <header class="top-bar">
+      <div class="top-bar-left">
+        <div
+          class="logo-container"
+          onclick="window.location.href='anasayfa.html'"
+        >
+          <svg class="logo-icon" viewBox="0 0 24 24" fill="none">
+            <path
+              d="M12 3L4 9V21H20V9L12 3Z"
+              stroke="url(#gradient1)"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+            <path
+              d="M9 21V12H15V21"
+              stroke="url(#gradient1)"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+            <defs>
+              <linearGradient
+                id="gradient1"
+                x1="0%"
+                y1="0%"
+                x2="100%"
+                y2="100%"
+              >
+                <stop
+                  offset="0%"
+                  style="stop-color: #00d9ff; stop-opacity: 1"
+                />
+                <stop
+                  offset="100%"
+                  style="stop-color: #7b2fff; stop-opacity: 1"
+                />
+              </linearGradient>
+            </defs>
+          </svg>
+          <div class="logo-text">
+            <span class="logo-title">Okul Yönetim</span>
+            <span class="logo-subtitle" id="okulAdi">Sistem</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="top-bar-center">
+        <h2 style="color: white; font-size: 20px; font-weight: 600">
+          📚 Ders Yönetimi
+        </h2>
+      </div>
+
+      <div class="top-bar-right">
+        <button
+          class="icon-btn"
+          onclick="window.location.href='anasayfa.html'"
+          title="Ana Sayfa"
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+            <path
+              d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"
+              stroke="currentColor"
+              stroke-width="2"
+            />
+          </svg>
+        </button>
+
+        <div class="user-menu" id="userMenu">
+          <div class="user-avatar"><span id="userInitials">SA</span></div>
+          <div class="user-info">
+            <span class="user-name" id="userName">Admin</span>
+            <span class="user-role" id="userRole">Okul Yöneticisi</span>
+          </div>
+        </div>
+
+        <button class="icon-btn logout-btn" id="logoutBtn" title="Çıkış">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+            <path
+              d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4m7 14l5-5-5-5m5 5H9"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+            />
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Ana İçerik -->
+    <main class="page-container">
+      <!-- Başlık ve Butonlar -->
+      <div class="page-header">
+        <div class="header-left">
+          <h1 class="page-title">
+            <span class="title-icon">📚</span>
+            Ders Yönetimi
+          </h1>
+          <p class="page-description">Ders ekleyin, düzenleyin ve takip edin</p>
+        </div>
+        <div class="header-right">
+          <!-- RAPORLAR BUTONU -->
+          <button
+            class="btn-primary"
+            onclick="dersRaporlariAc()"
+            title="Ders Raporları"
+            style="
+              background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            "
+          >
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path
+                d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
+              />
+              <polyline points="14 2 14 8 20 8" />
+              <line x1="16" y1="13" x2="8" y2="13" />
+              <line x1="16" y1="17" x2="8" y2="17" />
+              <polyline points="10 9 9 9 8 9" />
+            </svg>
+            <span>📊 Raporlar</span>
+          </button>
+
+          <!-- YENİ DERS EKLE BUTONU -->
+          <button class="btn-primary" id="btnYeniDers">
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path d="M12 5v14m-7-7h14" />
+            </svg>
+            <span>Yeni Ders Ekle</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Özet Kartlar -->
+      <div class="stats-grid" id="statsGrid">
+        <div class="stat-card">
+          <div
+            class="stat-icon"
+            style="background: rgba(0, 217, 255, 0.2); color: #00d9ff"
+          >
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
+              <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
+            </svg>
+          </div>
+          <div class="stat-content">
+            <div class="stat-label">Toplam Ders</div>
+            <div class="stat-value" id="statToplam">0</div>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div
+            class="stat-icon"
+            style="background: rgba(0, 245, 160, 0.2); color: #00f5a0"
+          >
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+              <polyline points="22 4 12 14.01 9 11.01" />
+            </svg>
+          </div>
+          <div class="stat-content">
+            <div class="stat-label">Aktif</div>
+            <div class="stat-value" id="statAktif">0</div>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div
+            class="stat-icon"
+            style="background: rgba(102, 126, 234, 0.2); color: #667eea"
+          >
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+              <circle cx="9" cy="7" r="4" />
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+              <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+            </svg>
+          </div>
+          <div class="stat-content">
+            <div class="stat-label">Öğretmen Atanan</div>
+            <div class="stat-value" id="statOgretmenli">0</div>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div
+            class="stat-icon"
+            style="background: rgba(249, 115, 22, 0.2); color: #f97316"
+          >
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <circle cx="12" cy="12" r="10" />
+              <polyline points="12 6 12 12 16 14" />
+            </svg>
+          </div>
+          <div class="stat-content">
+            <div class="stat-label">Toplam Saat</div>
+            <div class="stat-value" id="statToplamSaat">0</div>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div
+            class="stat-icon"
+            style="background: rgba(139, 92, 246, 0.2); color: #8b5cf6"
+          >
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+              <line x1="3" y1="9" x2="21" y2="9" />
+              <line x1="9" y1="21" x2="9" y2="9" />
+            </svg>
+          </div>
+          <div class="stat-content">
+            <div class="stat-label">Ortak Dersler</div>
+            <div class="stat-value" id="statOrtak">0</div>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div
+            class="stat-icon"
+            style="background: rgba(236, 72, 153, 0.2); color: #ec4899"
+          >
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path
+                d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"
+              />
+            </svg>
+          </div>
+          <div class="stat-content">
+            <div class="stat-label">Seçmeli Dersler</div>
+            <div class="stat-value" id="statSecmeli">0</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Arama ve Filtreler -->
+      <div class="filter-section">
+        <div class="search-box">
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <circle cx="11" cy="11" r="8" />
+            <path d="M21 21l-4.35-4.35" />
+          </svg>
+          <input
+            type="text"
+            id="searchInput"
+            placeholder="Ders adı veya kodu ile ara..."
+          />
+        </div>
+
+        <select class="filter-select" id="filterSinif">
+          <option value="">Tüm Sınıflar</option>
+          <option value="9">9. Sınıf</option>
+          <option value="10">10. Sınıf</option>
+          <option value="11">11. Sınıf</option>
+          <option value="12">12. Sınıf</option>
+        </select>
+
+        <select class="filter-select" id="filterBrans">
+          <option value="">Tüm Branşlar</option>
+        </select>
+
+        <select class="filter-select" id="filterTur">
+          <option value="">Ders Türü</option>
+          <option value="Ortak">Ortak Dersler</option>
+          <option value="Seçmeli">Seçmeli Dersler</option>
+        </select>
+
+        <select class="filter-select" id="filterDurum">
+          <option value="">Durum</option>
+          <option value="1">Aktif</option>
+          <option value="0">Pasif</option>
+        </select>
+
+        <select class="filter-select" id="filterSiralama">
+          <option value="ders_adi">Ders Adı (A-Z)</option>
+          <option value="ders_kodu">Ders Kodu</option>
+          <option value="brans">Branş</option>
+          <option value="haftalik_saat">Haftalık Saat</option>
+        </select>
+
+        <button class="btn-filter" id="btnFiltrele">
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
+          </svg>
+          Filtrele
+        </button>
+      </div>
+
+      <!-- Ders Listesi (Grid/Card) -->
+      <div class="ders-grid" id="derslerGrid">
+        <!-- Boş durum mesajı -->
+        <div class="empty-state" id="emptyState">
+          <div style="font-size: 64px; margin-bottom: 16px">📚</div>
+          <div
+            style="
+              font-size: 20px;
+              font-weight: 600;
+              color: var(--text-primary);
+              margin-bottom: 8px;
+            "
+          >
+            Henüz ders kaydı yok
+          </div>
+          <div style="font-size: 14px; color: var(--text-secondary)">
+            "Yeni Ders Ekle" butonuna tıklayarak ilk kaydı oluşturun
+          </div>
+        </div>
+      </div>
+
+      <!-- Sayfalama -->
+      <div class="pagination" id="pagination" style="display: none">
+        <button class="pagination-btn" id="btnPrevPage">← Önceki</button>
+        <div class="pagination-info" id="paginationInfo">1-10 / 50</div>
+        <button class="pagination-btn" id="btnNextPage">Sonraki →</button>
+      </div>
+    </main>
+
+    <!-- YENİ DERS MODAL - MULTI STEP -->
+    <div class="modal-overlay" id="modalYeniDers" style="display: none">
+      <div class="modal-container large">
+        <div class="modal-header">
+          <h2 id="modalBaslik">
+            <span style="font-size: 24px; margin-right: 8px">➕</span>
+            <span id="modalBaslikText">Yeni Ders Kaydı</span>
+          </h2>
+          <button class="modal-close" onclick="closeModal('modalYeniDers')">
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path d="M18 6L6 18M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        <!-- Form Step İndikatörü -->
+        <div class="form-steps" id="formSteps">
+          <div class="form-step active" data-step="1">
+            <span class="step-number">1</span>
+            <span class="step-label">Temel Bilgiler</span>
+          </div>
+          <div class="form-step" data-step="2">
+            <span class="step-number">2</span>
+            <span class="step-label">Ders Detayları</span>
+          </div>
+          <div class="form-step" data-step="3">
+            <span class="step-number">3</span>
+            <span class="step-label">Öğretmen Ataması</span>
+          </div>
+          <div class="form-step" data-step="4">
+            <span class="step-number">4</span>
+            <span class="step-label">Renk ve Özet</span>
+          </div>
+        </div>
+
+        <div class="modal-body">
+          <form id="formYeniDers">
+            <!-- STEP 1: Temel Bilgiler -->
+            <div class="form-step-content active" data-step="1">
+              <div class="form-section">
+                <h3 class="section-title"><span>📋</span> Temel Bilgiler</h3>
+
+                <div class="form-grid">
+                  <!-- Ders Adı -->
+                  <div class="form-group full-width">
+                    <label class="form-label required">Ders Adı</label>
+                    <div style="display: flex; gap: 8px">
+                      <select
+                        id="dersAdi"
+                        class="form-select"
+                        style="flex: 1"
+                        required
+                      >
+                        <option value="">Ders Seçiniz...</option>
+                        <option value="manuel">+ Manuel Ders Ekle</option>
+                        <optgroup label="Ortak Dersler">
+                          <option value="Matematik">Matematik</option>
+                          <option value="Türk Dili ve Edebiyatı">
+                            Türk Dili ve Edebiyatı
+                          </option>
+                          <option value="Fizik">Fizik</option>
+                          <option value="Kimya">Kimya</option>
+                          <option value="Biyoloji">Biyoloji</option>
+                          <option value="Tarih">Tarih</option>
+                          <option value="Coğrafya">Coğrafya</option>
+                          <option value="Felsefe">Felsefe</option>
+                          <option value="Din Kültürü ve Ahlak Bilgisi">
+                            Din Kültürü ve Ahlak Bilgisi
+                          </option>
+                          <option value="Birinci Yabancı Dil">
+                            Birinci Yabancı Dil
+                          </option>
+                          <option value="Beden Eğitimi ve Spor">
+                            Beden Eğitimi ve Spor
+                          </option>
+                          <option value="Görsel Sanatlar">
+                            Görsel Sanatlar
+                          </option>
+                          <option value="Müzik">Müzik</option>
+                          <option value="T.C. İnkılap Tarihi ve Atatürkçülük">
+                            T.C. İnkılap Tarihi ve Atatürkçülük
+                          </option>
+                          <option value="Sağlık Bilgisi ve Trafik Kültürü">
+                            Sağlık Bilgisi ve Trafik Kültürü
+                          </option>
+                          <option value="Rehberlik ve Yönlendirme">
+                            Rehberlik ve Yönlendirme
+                          </option>
+                        </optgroup>
+                        <optgroup label="Seçmeli Dersler">
+                          <option value="Seçmeli Matematik">
+                            Seçmeli Matematik
+                          </option>
+                          <option value="Seçmeli Fizik">Seçmeli Fizik</option>
+                          <option value="Seçmeli Kimya">Seçmeli Kimya</option>
+                          <option value="Seçmeli Biyoloji">
+                            Seçmeli Biyoloji
+                          </option>
+                          <option value="Temel Matematik">
+                            Temel Matematik
+                          </option>
+                          <option value="Seçmeli Tarih">Seçmeli Tarih</option>
+                          <option value="Seçmeli Coğrafya">
+                            Seçmeli Coğrafya
+                          </option>
+                          <option value="Seçmeli Türk Dili ve Edebiyatı">
+                            Seçmeli Türk Dili ve Edebiyatı
+                          </option>
+                          <option value="Matematik Uygulamaları">
+                            Matematik Uygulamaları
+                          </option>
+                          <option value="Fen Bilimleri Uygulamaları">
+                            Fen Bilimleri Uygulamaları
+                          </option>
+                          <option value="Sosyal Bilim Çalışmaları">
+                            Sosyal Bilim Çalışmaları
+                          </option>
+                          <option value="Astronomi ve Uzay Bilimleri">
+                            Astronomi ve Uzay Bilimleri
+                          </option>
+                          <option value="Kuran-ı Kerim">Kuran-ı Kerim</option>
+                          <option value="Seçmeli Temel Dini Bilgiler">
+                            Seçmeli Temel Dini Bilgiler
+                          </option>
+                          <option value="Peygamberimizin Hayatı">
+                            Peygamberimizin Hayatı
+                          </option>
+                          <option value="Seçmeli Spor Eğitimi">
+                            Seçmeli Spor Eğitimi
+                          </option>
+                          <option value="Seçmeli Sanat Eğitimi">
+                            Seçmeli Sanat Eğitimi
+                          </option>
+                          <option value="Osmanlı Türkçesi">
+                            Osmanlı Türkçesi
+                          </option>
+                        </optgroup>
+                      </select>
+                      <button
+                        type="button"
+                        class="btn-secondary"
+                        id="btnManuelDers"
+                        title="Manuel Ders Ekle"
+                      >
+                        <svg
+                          width="18"
+                          height="18"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2"
+                        >
+                          <path d="M12 5v14m-7-7h14" />
+                        </svg>
+                      </button>
+                    </div>
+                    <small class="form-hint"
+                      >Listeden seçin veya manuel ekleyin</small
+                    >
+                  </div>
+
+                  <!-- Manuel Ders Adı Input (Gizli) -->
+                  <div
+                    class="form-group full-width"
+                    id="manuelDersGroup"
+                    style="display: none"
+                  >
+                    <label class="form-label required">Manuel Ders Adı</label>
+                    <input
+                      type="text"
+                      id="manuelDersAdi"
+                      class="form-input"
+                      placeholder="Ders adını yazın..."
+                    />
+                    <small class="form-hint"
+                      >Özel bir ders adı girebilirsiniz</small
+                    >
+                  </div>
+
+                  <!-- Sınıf Seviyeleri (Checkbox) -->
+                  <div class="form-group full-width">
+                    <label class="form-label required">Sınıf Seviyeleri</label>
+                    <div class="checkbox-grid">
+                      <label class="checkbox-card">
+                        <input type="checkbox" name="sinifSeviyesi" value="9" />
+                        <div class="checkbox-content">
+                          <span class="checkbox-icon">9</span>
+                          <span class="checkbox-label">9. Sınıf</span>
+                        </div>
+                      </label>
+                      <label class="checkbox-card">
+                        <input
+                          type="checkbox"
+                          name="sinifSeviyesi"
+                          value="10"
+                        />
+                        <div class="checkbox-content">
+                          <span class="checkbox-icon">10</span>
+                          <span class="checkbox-label">10. Sınıf</span>
+                        </div>
+                      </label>
+                      <label class="checkbox-card">
+                        <input
+                          type="checkbox"
+                          name="sinifSeviyesi"
+                          value="11"
+                        />
+                        <div class="checkbox-content">
+                          <span class="checkbox-icon">11</span>
+                          <span class="checkbox-label">11. Sınıf</span>
+                        </div>
+                      </label>
+                      <label class="checkbox-card">
+                        <input
+                          type="checkbox"
+                          name="sinifSeviyesi"
+                          value="12"
+                        />
+                        <div class="checkbox-content">
+                          <span class="checkbox-icon">12</span>
+                          <span class="checkbox-label">12. Sınıf</span>
+                        </div>
+                      </label>
+                    </div>
+                    <small class="form-hint"
+                      >Dersin verileceği sınıfları seçin</small
+                    >
+                  </div>
+
+                  <!-- Ders Kodu (Otomatik) -->
+                  <div class="form-group full-width">
+                    <label class="form-label required">Ders Kodu</label>
+                    <input
+                      type="text"
+                      id="dersKodu"
+                      class="form-input"
+                      placeholder="Otomatik oluşturulacak"
+                      style="
+                        background: rgba(255, 255, 255, 0.02);
+                        font-family: monospace;
+                        font-weight: 600;
+                      "
+                    />
+                    <small class="form-hint" id="dersKoduHint"
+                      >Benzersiz bir kod giriniz (Örn: 9.MAT, 10.FIZ)</small
+                    >
+                  </div>
+
+                  <!-- Alan -->
+                  <div class="form-group full-width">
+                    <label class="form-label">Alan</label>
+                    <select id="alan" class="form-select">
+                      <option value="">Tüm Alanlar</option>
+                      <option value="Sayısal">Sayısal</option>
+                      <option value="Sözel">Sözel</option>
+                      <option value="Eşit Ağırlık">Eşit Ağırlık</option>
+                      <option value="Yabancı Dil">Yabancı Dil</option>
+                    </select>
+                    <small class="form-hint"
+                      >9-10: Boş, 11-12: Alan seçilebilir</small
+                    >
+                  </div>
+
+                  <!-- Branş -->
+                  <div class="form-group full-width">
+                    <label class="form-label required">Branş</label>
+                    <select id="brans" class="form-select" required>
+                      <option value="">Branş Seçiniz...</option>
+                      <option value="Branşı Yok">Branşı Yok</option>
+                      <option value="Matematik">Matematik</option>
+                      <option value="Türk Dili ve Edebiyatı">
+                        Türk Dili ve Edebiyatı
+                      </option>
+                      <option value="Fizik">Fizik</option>
+                      <option value="Kimya">Kimya/Kimya Teknolojisi</option>
+                      <option value="Biyoloji">Biyoloji</option>
+                      <option value="Tarih">Tarih</option>
+                      <option value="Coğrafya">Coğrafya</option>
+                      <option value="Felsefe">Felsefe</option>
+                      <option value="Din Kültürü">Din Kültürü</option>
+                      <option value="İngilizce">İngilizce</option>
+                      <option value="Beden Eğitimi">Beden Eğitimi</option>
+                      <option value="Görsel Sanatlar/Müzik">
+                        Görsel Sanatlar/Müzik
+                      </option>
+                      <option value="Görsel Sanatlar">Görsel Sanatlar</option>
+                      <option value="Müzik">Müzik</option>
+                      <option value="Bilişim Teknolojisi">
+                        Bilişim Teknolojisi
+                      </option>
+                      <option value="Rehberlik">Rehberlik</option>
+                      <option value="Almanca">Almanca</option>
+                      <option value="Sanat Tarihi">Sanat Tarihi</option>
+                    </select>
+                    <small class="form-hint"
+                      >Ders adına göre otomatik seçilir</small
+                    >
+                  </div>
+                  <!-- Ders Türü -->
+                  <div class="form-group full-width">
+                    <label class="form-label required">Ders Türü</label>
+                    <div class="radio-group">
+                      <label class="radio-card">
+                        <input
+                          type="radio"
+                          name="dersTuru"
+                          value="Ortak"
+                          checked
+                        />
+                        <div class="radio-content">
+                          <svg
+                            width="20"
+                            height="20"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                          >
+                            <rect
+                              x="3"
+                              y="3"
+                              width="18"
+                              height="18"
+                              rx="2"
+                              ry="2"
+                            />
+                            <line x1="3" y1="9" x2="21" y2="9" />
+                            <line x1="9" y1="21" x2="9" y2="9" />
+                          </svg>
+                          <span>Ortak Ders</span>
+                        </div>
+                      </label>
+                      <label class="radio-card">
+                        <input type="radio" name="dersTuru" value="Seçmeli" />
+                        <div class="radio-content">
+                          <svg
+                            width="20"
+                            height="20"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                          >
+                            <path
+                              d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"
+                            />
+                          </svg>
+                          <span>Seçmeli Ders</span>
+                        </div>
+                      </label>
+                    </div>
+                  </div>
+
+                  <!-- Seçmeli Ders Grubu (Sadece Seçmeli seçildiğinde görünür) -->
+                  <div
+                    class="form-group full-width"
+                    id="secmeliGrupGroup"
+                    style="display: none"
+                  >
+                    <label class="form-label required"
+                      >Seçmeli Ders Grubu</label
+                    >
+                    <select id="secmeliGrup" class="form-select">
+                      <option value="">Grup Seçiniz...</option>
+                      <option value="Akademik Çalışmalar">
+                        Akademik Çalışmalar
+                      </option>
+                      <option value="İnsan, Toplum ve Bilim">
+                        İnsan, Toplum ve Bilim
+                      </option>
+                      <option value="Din, Ahlak ve Değer">
+                        Din, Ahlak ve Değer
+                      </option>
+                      <option value="Kültür, Sanat ve Spor">
+                        Kültür, Sanat ve Spor
+                      </option>
+                    </select>
+                    <small class="form-hint"
+                      >Seçmeli dersler için grup seçimi zorunludur</small
+                    >
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- STEP 2: Ders Detayları -->
+            <div class="form-step-content" data-step="2">
+              <div class="form-section">
+                <h3 class="section-title"><span>📊</span> Ders Detayları</h3>
+
+                <div class="form-grid">
+                  <!-- Haftalık Ders Saati -->
+                  <div class="form-group">
+                    <label class="form-label required"
+                      >Haftalık Ders Saati</label
+                    >
+                    <input
+                      type="number"
+                      id="haftalikSaat"
+                      class="form-input"
+                      min="1"
+                      max="10"
+                      placeholder="Örn: 6"
+                      required
+                    />
+                    <small class="form-hint"
+                      >1-10 arası saat girebilirsiniz</small
+                    >
+                  </div>
+
+                  <!-- Ders Bloğu -->
+                  <div class="form-group">
+                    <label class="form-label required">Ders Bloğu</label>
+                    <input
+                      type="text"
+                      id="dersBogu"
+                      class="form-input"
+                      placeholder="Örn: 2-2-2"
+                      required
+                    />
+                    <small class="form-hint" id="blokHint"
+                      >Günlük dağılım (toplam = haftalık saat)</small
+                    >
+                  </div>
+
+                  <!-- Akıllı Blok Önerileri -->
+                  <div
+                    class="form-group full-width"
+                    id="blokOneriGroup"
+                    style="display: none"
+                  >
+                    <label class="form-label">📌 Akıllı Blok Önerileri</label>
+                    <div class="blok-oneri-grid" id="blokOneriGrid">
+                      <!-- JavaScript ile doldurulacak -->
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- STEP 3: Öğretmen Ataması -->
+            <div class="form-step-content" data-step="3">
+              <div class="form-section">
+                <h3 class="section-title"><span>👨‍🏫</span> Öğretmen Ataması</h3>
+
+                <div
+                  class="info-box"
+                  style="
+                    background: rgba(0, 217, 255, 0.1);
+                    border-left: 4px solid #00d9ff;
+                    margin-bottom: 20px;
+                  "
+                >
+                  <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <circle cx="12" cy="12" r="10" />
+                    <line x1="12" y1="16" x2="12" y2="12" />
+                    <line x1="12" y1="8" x2="12.01" y2="8" />
+                  </svg>
+                  <div>
+                    <strong>Bilgi:</strong> Birden fazla öğretmen
+                    seçebilirsiniz. (Örn: Görsel Sanatlar/Müzik)
+                  </div>
+                </div>
+
+                <div class="form-grid">
+                  <!-- Branşa Uygun Öğretmenler -->
+                  <div class="form-group full-width">
+                    <label class="form-label">Branşa Uygun Öğretmenler</label>
+                    <div class="ogretmen-list" id="bransOgretmenList">
+                      <div
+                        style="
+                          text-align: center;
+                          padding: 20px;
+                          color: var(--text-secondary);
+                        "
+                      >
+                        <svg
+                          width="48"
+                          height="48"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2"
+                          style="margin: 0 auto 12px; opacity: 0.5"
+                        >
+                          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                          <circle cx="9" cy="7" r="4" />
+                          <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                          <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                        </svg>
+                        <p>Branş seçildiğinde öğretmenler listelenecek</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Tüm Öğretmenler -->
+                  <div class="form-group full-width">
+                    <label class="form-label">Tüm Öğretmenler</label>
+                    <div class="ogretmen-list" id="tumOgretmenList">
+                      <!-- JavaScript ile doldurulacak -->
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- STEP 4: Renk ve Özet -->
+            <div class="form-step-content" data-step="4">
+              <div class="form-section">
+                <h3 class="section-title"><span>🎨</span> Renk ve Durum</h3>
+
+                <div class="form-grid">
+                  <!-- Ders Rengi -->
+                  <div class="form-group full-width">
+                    <label class="form-label required">Ders Rengi</label>
+                    <div class="color-grid" id="colorGrid">
+                      <!-- JavaScript ile 20 gradient renk eklenecek -->
+                    </div>
+                    <input type="hidden" id="dersRengi" required />
+                  </div>
+
+                  <!-- Durum -->
+                  <div class="form-group full-width">
+                    <label class="form-label required">Durum</label>
+                    <select id="durum" class="form-select" required>
+                      <option value="1">Aktif</option>
+                      <option value="0">Pasif</option>
+                    </select>
+                    <small class="form-hint"
+                      >Pasif dersler listede görünmez</small
+                    >
+                  </div>
+
+                  <!-- Notlar -->
+                  <div class="form-group full-width">
+                    <label class="form-label">Notlar</label>
+                    <textarea
+                      id="notlar"
+                      class="form-textarea"
+                      rows="4"
+                      placeholder="Ders hakkında notlar (opsiyonel)"
+                    ></textarea>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Form Navigasyon Butonları -->
+            <div class="modal-footer">
+              <button
+                type="button"
+                class="btn-secondary"
+                id="btnPrevStep"
+                style="display: none"
+              >
+                ← Önceki
+              </button>
+              <button
+                type="button"
+                class="btn-secondary"
+                onclick="closeModal('modalYeniDers')"
+              >
+                İptal
+              </button>
+              <button type="button" class="btn-primary" id="btnNextStep">
+                Sonraki →
+              </button>
+              <button
+                type="submit"
+                class="btn-primary"
+                id="btnKaydet"
+                style="display: none"
+              >
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path
+                    d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"
+                  />
+                  <polyline points="17 21 17 13 7 13 7 21" />
+                  <polyline points="7 3 7 8 15 8" />
+                </svg>
+                Dersi Kaydet
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- DETAY MODAL -->
+    <div class="modal-overlay" id="modalDetay" style="display: none">
+      <div class="modal-container" style="max-width: 600px">
+        <div class="modal-header">
+          <h2>
+            <span style="font-size: 24px; margin-right: 8px">🔍</span>
+            Ders Detayları
+          </h2>
+          <button class="modal-close" onclick="closeModal('modalDetay')">
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path d="M18 6L6 18M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        <div class="modal-body">
+          <div id="detayIcerik" style="padding: 20px"></div>
+        </div>
+
+        <div class="modal-footer">
+          <button class="btn-primary" onclick="closeModal('modalDetay')">
+            Kapat
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script src="../bilesenler/bildirim-sistemi.js"></script>
+    <script src="dersler.js" defer></script>
+  </body>
+</html>

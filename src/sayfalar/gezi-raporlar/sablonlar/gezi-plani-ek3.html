@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Müdürlük Onay Yazısı</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Times New Roman", serif;
+        font-size: 12pt;
+        line-height: 1.5;
+        margin: 0;
+        padding: 20mm;
+        color: #000;
+        background: white;
+      }
+
+      .header-right {
+        text-align: right;
+        margin-bottom: 30px;
+      }
+
+      .header-right div {
+        margin: 2px 0;
+      }
+
+      .meta-info {
+        display: flex;
+        justify-content: space-between;
+        margin: 20px 0;
+      }
+
+      .content {
+        text-align: justify;
+        margin: 30px 0;
+        text-indent: 50px;
+      }
+
+      .footer-right {
+        text-align: right;
+        margin-top: 40px;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 20px 0;
+      }
+
+      table,
+      th,
+      td {
+        border: 1px solid #000;
+      }
+
+      th,
+      td {
+        padding: 8px;
+        text-align: left;
+      }
+
+      th {
+        background: #f0f0f0;
+        font-weight: bold;
+      }
+
+      /* Düzenlenebilir Alanlar */
+      .editable {
+        background: #ffffcc !important;
+        cursor: text !important;
+        padding: 2px 5px;
+        border-bottom: 1px dashed #999;
+      }
+
+      .editable:hover {
+        background: #ffff99 !important;
+      }
+
+      .editable:focus {
+        background: #ffeb3b !important;
+        outline: 2px solid #ff9800;
+      }
+
+      .editable:empty:before {
+        content: "Tıklayın...";
+        color: #999;
+        font-style: italic;
+      }
+
+      @media print {
+        @page {
+          size: A4 portrait;
+          margin: 15mm;
+        }
+
+        body {
+          margin: 0;
+          padding: 0;
+        }
+
+        .editable {
+          background: white !important;
+          outline: none !important;
+          border: none !important;
+          cursor: default !important;
+        }
+
+        .editable:empty:before {
+          content: "";
+        }
+
+        .no-print {
+          display: none !important;
+        }
+
+        .warning-modal,
+        .top-buttons {
+          display: none !important;
+        }
+      }
+
+      /* Uyarı Modal */
+      .warning-modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.7);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 9999;
+      }
+
+      .warning-box {
+        background: white;
+        border-radius: 12px;
+        padding: 30px;
+        max-width: 500px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        text-align: center;
+      }
+
+      .warning-icon {
+        font-size: 50px;
+        margin-bottom: 15px;
+      }
+
+      .warning-title {
+        font-size: 22px;
+        font-weight: bold;
+        margin-bottom: 15px;
+        color: #e67e22;
+        font-family: Arial, sans-serif;
+      }
+
+      .warning-text {
+        font-size: 14px;
+        line-height: 1.6;
+        color: #555;
+        margin-bottom: 25px;
+        font-family: Arial, sans-serif;
+        text-align: left;
+      }
+
+      .warning-btn {
+        background: linear-gradient(135deg, #e67e22 0%, #d35400 100%);
+        color: white;
+        border: none;
+        padding: 12px 30px;
+        border-radius: 8px;
+        font-size: 16px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: all 0.3s;
+      }
+
+      .warning-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(230, 126, 34, 0.4);
+      }
+
+      /* Üst Butonlar */
+      .top-buttons {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 15px;
+        text-align: center;
+        margin: -20mm -20mm 20px -20mm;
+        position: sticky;
+        top: 0;
+        z-index: 1000;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      }
+
+      .top-buttons button {
+        padding: 12px 24px;
+        border: none;
+        cursor: pointer;
+        font-size: 15px;
+        font-weight: 700;
+        border-radius: 8px;
+        margin: 0 8px;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      }
+
+      .btn-pdf {
+        background: linear-gradient(135deg, #27ae60 0%, #229954 100%);
+        color: white;
+      }
+
+      .btn-pdf:hover {
+        background: linear-gradient(135deg, #229954 0%, #1e8449 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(39, 174, 96, 0.4);
+      }
+
+      .btn-close {
+        background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+        color: white;
+      }
+
+      .btn-close:hover {
+        background: linear-gradient(135deg, #c0392b 0%, #a93226 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(231, 76, 60, 0.4);
+      }
+    </style>
+  </head>
+  <body>
+    <!-- UYARI MODAL -->
+    <div class="warning-modal" id="warningModal">
+      <div class="warning-box">
+        <div class="warning-icon">⚠️</div>
+        <div class="warning-title">KULLANICI BİLGİLENDİRMESİ</div>
+        <div class="warning-text">
+          <p style="margin-bottom: 10px">
+            <strong>📌 Önemli Not:</strong>
+          </p>
+          <p style="margin-bottom: 8px">
+            Bu şablon <strong>sadece örnek olarak</strong> kullanıcılara yol
+            göstermek amacıyla hazırlanmıştır.
+          </p>
+          <p style="margin-bottom: 8px">
+            Lütfen aşağıdaki bilgileri <strong>kendi kurumunuza göre</strong>
+            düzenleyiniz:
+          </p>
+          <ul style="text-align: left; margin-left: 20px; margin-top: 10px">
+            <li>✓ Okul bilgileri</li>
+            <li>✓ İlçe/İl Milli Eğitim Müdürlüğü</li>
+            <li>✓ Tarih ve sayı bilgileri</li>
+            <li>✓ Gezi detayları</li>
+          </ul>
+        </div>
+        <button class="warning-btn" onclick="closeWarning()">
+          ANLADIM, DEVAM ET
+        </button>
+      </div>
+    </div>
+
+    <!-- ÜST BUTONLAR -->
+    <div class="top-buttons no-print">
+      <button class="btn-pdf" onclick="window.print()">
+        📄 PDF Olarak Kaydet / Yazdır
+      </button>
+      <button class="btn-close" onclick="window.close()">✖ Kapat</button>
+    </div>
+
+    <!-- BELGE İÇERİĞİ -->
+    <div class="header-right">
+      <div><strong>T.C.</strong></div>
+      <div>
+        <span class="editable" contenteditable="true"
+          >........... KAYMAKAMLIĞI</span
+        >
+      </div>
+      <div id="okulAdi"><strong>OKUL ADI</strong></div>
+    </div>
+
+    <div class="meta-info">
+      <div>
+        <strong>SAYI:</strong>
+        <span class="editable" contenteditable="true">............</span>
+      </div>
+      <div><strong>Tarih:</strong> <span id="bugunTarih">-</span></div>
+    </div>
+
+    <div><strong>KONU:</strong> Gezi İzin Talebi</div>
+
+    <div style="text-align: center; margin: 30px 0">
+      <strong
+        ><span class="editable" contenteditable="true"
+          >............ İLÇE MİLLİ EĞİTİM MÜDÜRLÜĞÜNE</span
+        ></strong
+      ><br />
+      <span class="editable" contenteditable="true"
+        >(................................... BÖLÜMÜNE)</span
+      >
+    </div>
+
+    <div class="content">
+      <span id="okulAdiContent"
+        >.................................... Lisesi</span
+      >
+      idareci, öğretmen ve öğrencilerinin yol izni hariç
+      <span class="editable" contenteditable="true">...../...../......</span> -
+      <span class="editable" contenteditable="true">...../...../......</span>
+      tarihleri arasında
+      <span class="editable" contenteditable="true"
+        >......................................</span
+      >
+      kapsamında proje/davet'e istinaden
+      <span class="editable" contenteditable="true">......</span> Kafile
+      Başkanı,
+      <span class="editable" contenteditable="true">........</span> Sorumlu
+      öğretmen ve
+      <span class="editable" contenteditable="true">.......</span> öğrenci ile
+      <span class="editable" contenteditable="true">........</span> ülkesine
+      yapılacak ziyaret ile ilgili evraklar hazırlanarak, tarafımızca kontrol
+      edilerek yazımız ekinde sunulmuştur. Söz konusu ziyaret için yol
+      giderleri, konaklama ve tüm harcamalar ilgili idareci, sorumlu öğretmen ve
+      öğrenciler tarafından karşılanacaktır.
+    </div>
+
+    <div class="content">
+      İlgili ziyaret programına katılacak idareci, öğretmen ve öğrencilerin T.C
+      Kimlik Numaraları, Ad Soyad ve Ünvanları aşağıda belirtilmiştir. Ziyaretin
+      belirtilen tarihlerde adı geçen idareci, öğretmenlerin denetim, gözetim ve
+      sorumluluğunda yapılması ve ziyarete katılan idareci, sorumlu öğretmen ve
+      öğrencilerin
+      <span class="editable" contenteditable="true">...../...../.....</span> -
+      <span class="editable" contenteditable="true">...../...../.....</span>
+      tarihleri arasında görevli izinli sayılmaları için gerekli onayın alınması
+      hususunda;
+    </div>
+
+    <div class="footer-right">
+      <div>
+        <strong><span id="mudurAdi">Ad Soyad</span></strong>
+      </div>
+      <div><strong>Okul Müdürü</strong></div>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th style="width: 10%">Sıra No</th>
+          <th style="width: 20%">TC Kimlik No</th>
+          <th style="width: 40%">Ad Soyad</th>
+          <th style="width: 30%">Ünvan</th>
+        </tr>
+      </thead>
+      <tbody id="katilimciTablosu">
+        <tr>
+          <td>1</td>
+          <td class="editable" contenteditable="true"></td>
+          <td class="editable" contenteditable="true"></td>
+          <td class="editable" contenteditable="true"></td>
+        </tr>
+        <tr>
+          <td>2</td>
+          <td class="editable" contenteditable="true"></td>
+          <td class="editable" contenteditable="true"></td>
+          <td class="editable" contenteditable="true"></td>
+        </tr>
+        <tr>
+          <td>3</td>
+          <td class="editable" contenteditable="true"></td>
+          <td class="editable" contenteditable="true"></td>
+          <td class="editable" contenteditable="true"></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <script>
+      // URL parametrelerinden gezi bilgilerini al
+      const urlParams = new URLSearchParams(window.location.search);
+      const geziId = urlParams.get("gezi_id");
+      const okulAdi = decodeURIComponent(
+        urlParams.get("okul_adi") || "OKUL ADI"
+      );
+      const mudurAdi = decodeURIComponent(
+        urlParams.get("mudur_adi") || "Ad Soyad"
+      );
+
+      // Okul ve müdür adını doldur
+      document.getElementById(
+        "okulAdi"
+      ).innerHTML = `<strong>${okulAdi}</strong>`;
+      document.getElementById("okulAdiContent").textContent = okulAdi;
+      document.getElementById("mudurAdi").textContent = mudurAdi;
+
+      // Bugünün tarihini doldur
+      const today = new Date();
+      const formattedDate = today.toLocaleDateString("tr-TR", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+      });
+      document.getElementById("bugunTarih").textContent = formattedDate;
+
+      // Uyarı modalını kapat
+      function closeWarning() {
+        document.getElementById("warningModal").style.display = "none";
+      }
+
+      // Enter tuşu ile sonraki alana geç
+      document.querySelectorAll(".editable").forEach((elem) => {
+        elem.addEventListener("keydown", function (e) {
+          if (e.key === "Enter") {
+            e.preventDefault();
+            this.blur();
+            const editables = Array.from(
+              document.querySelectorAll(".editable")
+            );
+            const currentIndex = editables.indexOf(this);
+            if (currentIndex < editables.length - 1) {
+              editables[currentIndex + 1].focus();
+            }
+          }
+        });
+
+        elem.addEventListener("focus", function () {
+          const range = document.createRange();
+          range.selectNodeContents(this);
+          const sel = window.getSelection();
+          sel.removeAllRanges();
+          sel.addRange(range);
+        });
+      });
+
+      console.log("✅ Müdürlük Onay Yazısı Şablonu Yüklendi");
+    </script>
+  </body>
+</html>

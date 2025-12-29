@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Veli İzin Belgesi (Ek-4)</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Times New Roman", Times, serif;
+        font-size: 8pt;
+        line-height: 1.1;
+        color: #000;
+        background: #fff;
+        padding: 8mm;
+      }
+
+      @page {
+        size: A4 portrait;
+        margin: 8mm;
+      }
+
+      @media print {
+        body {
+          padding: 0;
+          -webkit-print-color-adjust: exact;
+          print-color-adjust: exact;
+        }
+        .no-print {
+          display: none !important;
+        }
+        th {
+          background-color: #e3f2fd !important;
+          -webkit-print-color-adjust: exact;
+          print-color-adjust: exact;
+        }
+      }
+
+      .header {
+        text-align: center;
+        margin-bottom: 8px;
+      }
+
+      .header h2 {
+        font-size: 10pt;
+        font-weight: bold;
+        margin-bottom: 2px;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 6px;
+        font-size: 7pt;
+      }
+
+      table,
+      th,
+      td {
+        border: 1px solid #000;
+      }
+
+      th,
+      td {
+        padding: 2px 4px;
+        text-align: left;
+        vertical-align: middle;
+      }
+
+      th {
+        font-weight: bold;
+        background-color: #e3f2fd;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+
+      .checkbox {
+        display: inline-block;
+        width: 10px;
+        height: 10px;
+        border: 1px solid #000;
+        margin: 0 2px;
+        vertical-align: middle;
+      }
+
+      .checkbox.checked::after {
+        content: "✓";
+        font-weight: bold;
+        font-size: 9pt;
+        line-height: 10px;
+      }
+
+      .text-content {
+        text-align: justify;
+        margin: 6px 0;
+        line-height: 1.2;
+        font-size: 8pt;
+      }
+
+      .signature-area {
+        margin-top: 12px;
+        display: flex;
+        justify-content: space-between;
+      }
+
+      .signature-box {
+        text-align: center;
+        flex: 1;
+      }
+
+      .health-table {
+        margin: 8px 0;
+        background-color: #f9f9f9;
+      }
+
+      .health-table th {
+        background-color: #e3f2fd;
+        text-align: center;
+        font-size: 8pt;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+
+      .editable {
+        min-height: 16px;
+        border-bottom: 1px solid #000;
+        display: inline-block;
+        min-width: 100%;
+        padding: 1px 3px;
+        font-size: 7pt;
+      }
+
+      .btn-container {
+        position: fixed;
+        top: 10px;
+        right: 10px;
+        z-index: 1000;
+        display: flex;
+        gap: 10px;
+      }
+
+      .btn {
+        padding: 10px 20px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-weight: bold;
+        color: white;
+      }
+
+      .btn-print {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      }
+
+      .btn-close {
+        background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+      }
+
+      .notes {
+        font-size: 6pt;
+        margin-top: 6px;
+        line-height: 1.1;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Butonlar -->
+    <div class="btn-container no-print">
+      <button class="btn btn-print" onclick="window.print()">
+        📄 YAZDIR / PDF
+      </button>
+      <button class="btn btn-close" onclick="window.close()">✖ KAPAT</button>
+    </div>
+
+    <!-- Başlık -->
+    <div class="header">
+      <h2>EK-4</h2>
+      <h2>VELİ İZİN BELGESİ VE TAAHHÜTNAME</h2>
+    </div>
+
+    <!-- Öğrenci Bilgileri Tablosu -->
+    <table>
+      <tr>
+        <th colspan="6" style="background-color: #e3f2fd; text-align: center">
+          ÖĞRENCİNİN
+        </th>
+      </tr>
+      <tr>
+        <td style="width: 20%; font-weight: bold">Adı Soyadı</td>
+        <td style="width: 30%" id="ogrAdiSoyadi"></td>
+        <td style="width: 20%; font-weight: bold">Baba Adı</td>
+        <td style="width: 30%" id="babaAdi"></td>
+      </tr>
+      <tr>
+        <td style="font-weight: bold">Sınıfı</td>
+        <td id="sinif"></td>
+        <td style="font-weight: bold">Anne Adı</td>
+        <td id="anneAdi"></td>
+      </tr>
+      <tr>
+        <td style="font-weight: bold">Okul No</td>
+        <td id="okulNo"></td>
+        <td style="font-weight: bold">Cinsiyeti</td>
+        <td>
+          K <span class="checkbox" id="checkKiz"></span> E
+          <span class="checkbox" id="checkErkek"></span>
+        </td>
+      </tr>
+      <tr>
+        <td style="font-weight: bold">Doğum Tarihi</td>
+        <td id="dogumTarihi"></td>
+        <td style="font-weight: bold">Doğum Yeri</td>
+        <td id="dogumYeri"></td>
+      </tr>
+      <tr>
+        <td style="font-weight: bold">Kan Grubu</td>
+        <td colspan="3" id="kanGrubu"></td>
+      </tr>
+    </table>
+
+    <!-- Telefon Tablosu -->
+    <table>
+      <tr>
+        <th colspan="3" style="text-align: center; background-color: #e3f2fd">
+          CEP TELEFONLARI
+        </th>
+      </tr>
+      <tr>
+        <td style="width: 33%; font-weight: bold; text-align: center">BABA</td>
+        <td style="width: 33%; font-weight: bold; text-align: center">ANNE</td>
+        <td style="width: 34%; font-weight: bold; text-align: center">DİĞER</td>
+      </tr>
+      <tr>
+        <td style="text-align: center" id="babaTelefon"></td>
+        <td style="text-align: center" id="anneTelefon"></td>
+        <td style="text-align: center">
+          <div class="editable" contenteditable="true"></div>
+        </td>
+      </tr>
+    </table>
+
+    <!-- Adres Tablosu -->
+    <table>
+      <tr>
+        <td style="width: 25%; font-weight: bold">Ev Adresi</td>
+        <td>
+          <div class="editable" contenteditable="true"></div>
+        </td>
+      </tr>
+      <tr>
+        <td style="font-weight: bold">Okulun Adresi</td>
+        <td id="okulAdresi"></td>
+      </tr>
+      <tr>
+        <td style="font-weight: bold">Okulun Tef./Fax No</td>
+        <td id="okulTelefon"></td>
+      </tr>
+      <tr>
+        <td style="font-weight: bold">Gezi Yapılacak Yerler</td>
+        <td id="geziYerleri"></td>
+      </tr>
+      <tr>
+        <td style="font-weight: bold">Konaklama Yerleri</td>
+        <td>
+          <div class="editable" contenteditable="true"></div>
+        </td>
+      </tr>
+    </table>
+
+    <!-- Sağlık Bilgileri Tablosu -->
+    <table class="health-table">
+      <tr>
+        <th colspan="2" style="background-color: #e3f2fd">
+          SAĞLIK BİLGİLERİ VE ACİL MÜDAHALE İZNİ
+        </th>
+      </tr>
+      <tr>
+        <td style="width: 40%; font-weight: bold">
+          Kronik Hastalık (Astım, Şeker, Kalp vb.):
+        </td>
+        <td>
+          <div class="editable" contenteditable="true"></div>
+        </td>
+      </tr>
+      <tr>
+        <td style="font-weight: bold">Düzenli Kullanılan İlaçlar:</td>
+        <td>
+          <div class="editable" contenteditable="true"></div>
+        </td>
+      </tr>
+      <tr>
+        <td style="font-weight: bold">İlaç Alerjisi (Varsa):</td>
+        <td>
+          <div class="editable" contenteditable="true"></div>
+        </td>
+      </tr>
+      <tr>
+        <td style="font-weight: bold">Gıda Alerjisi (Varsa):</td>
+        <td>
+          <div class="editable" contenteditable="true"></div>
+        </td>
+      </tr>
+      <tr>
+        <td colspan="2" style="padding: 6px">
+          <strong>Acil Tıbbi Müdahale İzni:</strong><br />
+          Çocuğumun yurt içi/yurt dışında acil bir durumda cerrahi dahil her
+          türlü tıbbi müdahale yapılmasına izin veriyorum/veriyoruz.<br /><br />
+          <span class="checkbox"></span> <strong>EVET</strong>, İzin veriyorum
+          &nbsp;&nbsp;&nbsp; <span class="checkbox"></span>
+          <strong>HAYIR</strong>, İzin vermiyorum
+        </td>
+      </tr>
+    </table>
+
+    <!-- Başvuru Metni -->
+    <div
+      style="
+        text-align: center;
+        font-weight: bold;
+        margin: 8px 0;
+        font-size: 8pt;
+      "
+    >
+      <span id="okulAdiBaslik"></span> MÜDÜRLÜĞÜNE<br />
+      <span id="ilceAdi"></span>
+    </div>
+
+    <!-- Taahhüt Metni -->
+    <div class="text-content">
+      Velisi bulunduğum/bulunduğumuz yukarıda açık kimliği yazılı okulunuz
+      öğrencisinin, <strong id="geziTarihMetin"></strong> tarihleri arasında,
+      Okul Müdürlüğü'nün sorumluluğunda düzenlenen
+      <strong id="geziTuruMetin"></strong> <strong id="geziYeriMetin"></strong>
+      gezisine/faaliyetine/projesine katılmasına izin veriyorum/veriyoruz.
+    </div>
+
+    <div class="text-content">
+      Öğrencinin anılan tarihler arasında görevlilerin vereceği resmi çerçevede
+      talimatlara uyacağını, karşılaşabileceği kaza, hastalık vb. riskler ile bu
+      nedenlerden dolayı kendisine yapılabilecek acil tıbbi müdahalelerin
+      sonuçlarını kabul edeceğimi/edeceğimizi, taahhüt ederim/ederiz.
+    </div>
+
+    <div class="text-content">
+      Gereğini bilgilerinize arz ederim/ederiz.
+      <strong id="tarihMetin"></strong>
+    </div>
+
+    <!-- İmza Alanları -->
+    <div class="signature-area" style="margin-top: 8px">
+      <div class="signature-box">
+        <strong>ANNE</strong><br />
+        <div style="height: 35px"></div>
+        <div id="anneImza"></div>
+      </div>
+      <div class="signature-box">
+        <strong>BABA</strong><br />
+        <div style="height: 35px"></div>
+        <div id="babaImza"></div>
+      </div>
+    </div>
+
+    <div style="text-align: center; margin-top: 6px; font-size: 7pt">
+      <strong
+        >ANNE VE BABA HER İKİSİ DE HAYATTA DEĞİLSE YASAL VELİSİ'NİN</strong
+      >
+    </div>
+
+    <!-- ✅ YASAL VELİ TABLOSU -->
+    <table style="border: none; margin: 6px auto; width: 80%">
+      <tr style="border: none">
+        <td
+          style="
+            border: none;
+            text-align: center;
+            font-weight: bold;
+            width: 33%;
+            font-size: 7pt;
+          "
+        >
+          ADI SOYADI
+        </td>
+        <td
+          style="
+            border: none;
+            text-align: center;
+            font-weight: bold;
+            width: 33%;
+            font-size: 7pt;
+          "
+        >
+          YAKINLIK DERECESİ
+        </td>
+        <td
+          style="
+            border: none;
+            text-align: center;
+            font-weight: bold;
+            width: 34%;
+            font-size: 7pt;
+          "
+        >
+          İMZASI
+        </td>
+      </tr>
+      <tr style="border: none">
+        <td style="border-bottom: 1px solid #000; height: 25px"></td>
+        <td style="border-bottom: 1px solid #000"></td>
+        <td style="border-bottom: 1px solid #000"></td>
+      </tr>
+    </table>
+
+    <!-- Okul Onayı -->
+    <div style="text-align: center; margin-top: 8px; font-size: 8pt">
+      <strong>Tasdik Olunur</strong><br />
+      <span id="tarihMetin2"></span><br />
+      <div style="height: 30px"></div>
+      <strong>(Okul Müdürü Adı Soyadı İmza Mühür)</strong><br />
+      <strong id="mudurAdi"></strong>
+    </div>
+
+    <!-- Açıklamalar -->
+    <div class="notes">
+      <strong>AÇIKLAMALAR:</strong><br />
+      1) Bu taahhütname, yukarıda belirtilen faaliyete katılacak olan öğrencinin
+      anne ve babası (anne ve baba hayatta değil ise yasal velisi) tarafından 2
+      (iki) nüsha doldurulup imzalanacak ve okul aracılığı ile İlçe Milli Eğitim
+      Müdürlüğü'ne ulaştırılacaktır.<br />
+      2) Cep telefonları kısmında yer alan "DİĞER" bölümüne ulaşılabilecek en
+      yakın kişilerin isimleri ve telefonları mutlaka yazılacaktır.<br />
+      3) Aksi halde öğrenci ilgili faaliyete katılamayacaktır.<br />
+      4) Gerçek dışı beyan ve imzanın sorumluluğu, taahhütnameyi dolduranlara ve
+      imzalayana aittir.
+    </div>
+
+    <script>
+      window.addEventListener("load", function () {
+        console.log("✅ Veli İzin Belgesi (Ek-4) HTML yüklendi");
+      });
+    </script>
+  </body>
+</html>

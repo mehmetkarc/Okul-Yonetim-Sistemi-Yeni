@@ -1,0 +1,1337 @@
+<!DOCTYPE html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Ortak Sınav (Kelebek) Sistemi</title>
+    <link rel="stylesheet" href="ortak-sinav.css" />
+
+    <!-- ✅ SweetAlert2 CSS ve JS (MODERN MODALLER İÇİN) -->
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  </head>
+  <body>
+    <!-- ============================================
+         HEADER & NAVIGATION
+         ============================================ -->
+    <header class="main-header">
+      <div class="header-left">
+        <button
+          class="btn-icon"
+          onclick="window.location.href='anasayfa.html'"
+          title="Anasayfa"
+        >
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <path
+              d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"
+              stroke="currentColor"
+              stroke-width="2"
+            />
+            <polyline
+              points="9 22 9 12 15 12 15 22"
+              stroke="currentColor"
+              stroke-width="2"
+            />
+          </svg>
+        </button>
+        <button class="btn-icon" onclick="history.back()" title="Geri Dön">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <line
+              x1="19"
+              y1="12"
+              x2="5"
+              y2="12"
+              stroke="currentColor"
+              stroke-width="2"
+            />
+            <polyline
+              points="12 19 5 12 12 5"
+              stroke="currentColor"
+              stroke-width="2"
+            />
+          </svg>
+        </button>
+      </div>
+
+      <div class="header-center">
+        <h1>
+          <svg
+            width="32"
+            height="32"
+            viewBox="0 0 24 24"
+            fill="none"
+            class="header-icon"
+          >
+            <rect
+              x="3"
+              y="3"
+              width="18"
+              height="18"
+              rx="2"
+              stroke="currentColor"
+              stroke-width="2"
+            />
+            <line
+              x1="9"
+              y1="9"
+              x2="15"
+              y2="9"
+              stroke="currentColor"
+              stroke-width="2"
+            />
+            <line
+              x1="9"
+              y1="15"
+              x2="15"
+              y2="15"
+              stroke="currentColor"
+              stroke-width="2"
+            />
+          </svg>
+          ORTAK SINAV (KELEBEK) SİSTEMİ
+        </h1>
+      </div>
+
+      <div class="header-right">
+        <button
+          class="btn-icon btn-reports"
+          onclick="toggleReportsPanel()"
+          title="Raporlar"
+        >
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <path
+              d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
+              stroke="currentColor"
+              stroke-width="2"
+            />
+            <polyline
+              points="14 2 14 8 20 8"
+              stroke="currentColor"
+              stroke-width="2"
+            />
+          </svg>
+          <span>Raporlar</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- ============================================
+         MAIN CONTAINER
+         ============================================ -->
+    <div class="main-container">
+      <!-- SIDEBAR: Menü -->
+      <aside class="sidebar">
+        <nav class="sidebar-menu">
+          <button class="menu-item active" data-section="dashboard">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+              <rect
+                x="3"
+                y="3"
+                width="7"
+                height="7"
+                stroke="currentColor"
+                stroke-width="2"
+              />
+              <rect
+                x="14"
+                y="3"
+                width="7"
+                height="7"
+                stroke="currentColor"
+                stroke-width="2"
+              />
+              <rect
+                x="3"
+                y="14"
+                width="7"
+                height="7"
+                stroke="currentColor"
+                stroke-width="2"
+              />
+              <rect
+                x="14"
+                y="14"
+                width="7"
+                height="7"
+                stroke="currentColor"
+                stroke-width="2"
+              />
+            </svg>
+            <span>Sınav Yönetimi</span>
+          </button>
+
+          <button class="menu-item" data-section="salon-yonetimi">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+              <rect
+                x="3"
+                y="3"
+                width="18"
+                height="18"
+                rx="2"
+                stroke="currentColor"
+                stroke-width="2"
+              />
+              <line
+                x1="3"
+                y1="9"
+                x2="21"
+                y2="9"
+                stroke="currentColor"
+                stroke-width="2"
+              />
+              <line
+                x1="9"
+                y1="21"
+                x2="9"
+                y2="9"
+                stroke="currentColor"
+                stroke-width="2"
+              />
+            </svg>
+            <span>Salon Yönetimi</span>
+          </button>
+
+          <button class="menu-item" data-section="plan-yonetimi">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+              <rect
+                x="3"
+                y="3"
+                width="7"
+                height="7"
+                stroke="currentColor"
+                stroke-width="2"
+              />
+              <rect
+                x="14"
+                y="3"
+                width="7"
+                height="7"
+                stroke="currentColor"
+                stroke-width="2"
+              />
+              <rect
+                x="3"
+                y="14"
+                width="7"
+                height="7"
+                stroke="currentColor"
+                stroke-width="2"
+              />
+              <rect
+                x="14"
+                y="14"
+                width="7"
+                height="7"
+                stroke="currentColor"
+                stroke-width="2"
+              />
+            </svg>
+            <span>Plan Yönetimi</span>
+          </button>
+
+          <button class="menu-item" data-section="kelebek-dagitim">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+              <path
+                d="M12 2L2 7l10 5 10-5-10-5z"
+                stroke="currentColor"
+                stroke-width="2"
+              />
+              <path
+                d="M2 17l10 5 10-5"
+                stroke="currentColor"
+                stroke-width="2"
+              />
+              <path
+                d="M2 12l10 5 10-5"
+                stroke="currentColor"
+                stroke-width="2"
+              />
+            </svg>
+            <span>Kelebek Dağıtım</span>
+          </button>
+
+          <button class="menu-item" data-section="ogrenci-sabitle">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+              <path
+                d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"
+                stroke="currentColor"
+                stroke-width="2"
+              />
+              <circle
+                cx="12"
+                cy="7"
+                r="4"
+                stroke="currentColor"
+                stroke-width="2"
+              />
+            </svg>
+            <span>Öğrenci Sabitle</span>
+          </button>
+
+          <button class="menu-item" data-section="ogretmen-gorevlendir">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+              <path
+                d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"
+                stroke="currentColor"
+                stroke-width="2"
+              />
+              <circle
+                cx="9"
+                cy="7"
+                r="4"
+                stroke="currentColor"
+                stroke-width="2"
+              />
+              <path
+                d="M23 21v-2a4 4 0 0 0-3-3.87"
+                stroke="currentColor"
+                stroke-width="2"
+              />
+              <path
+                d="M16 3.13a4 4 0 0 1 0 7.75"
+                stroke="currentColor"
+                stroke-width="2"
+              />
+            </svg>
+            <span>Öğretmen Görevlendir</span>
+          </button>
+
+          <button class="menu-item" data-section="aciklamalar">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+              <path
+                d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
+                stroke="currentColor"
+                stroke-width="2"
+              />
+              <polyline
+                points="14 2 14 8 20 8"
+                stroke="currentColor"
+                stroke-width="2"
+              />
+              <line
+                x1="16"
+                y1="13"
+                x2="8"
+                y2="13"
+                stroke="currentColor"
+                stroke-width="2"
+              />
+              <line
+                x1="16"
+                y1="17"
+                x2="8"
+                y2="17"
+                stroke="currentColor"
+                stroke-width="2"
+              />
+            </svg>
+            <span>Açıklamalar</span>
+          </button>
+        </nav>
+      </aside>
+
+      <!-- MAIN CONTENT -->
+      <main class="main-content">
+        <!-- ============================================
+             DASHBOARD: Sınav Kartları
+             ============================================ -->
+        <section id="dashboard" class="content-section active">
+          <div class="section-header">
+            <h2>Sınavlar</h2>
+            <button class="btn-primary" onclick="openYeniSinavModal()">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                <line
+                  x1="12"
+                  y1="5"
+                  x2="12"
+                  y2="19"
+                  stroke="currentColor"
+                  stroke-width="2"
+                />
+                <line
+                  x1="5"
+                  y1="12"
+                  x2="19"
+                  y2="12"
+                  stroke="currentColor"
+                  stroke-width="2"
+                />
+              </svg>
+              Yeni Sınav Oluştur
+            </button>
+          </div>
+
+          <!-- Filtreler -->
+          <div class="filter-panel">
+            <select class="filter-select" id="filterTur">
+              <option value="">Tüm Türler</option>
+              <option value="Kelebek">Kelebek</option>
+              <option value="Karma">Karma</option>
+              <option value="Normal">Normal</option>
+            </select>
+
+            <select class="filter-select" id="filterDonem">
+              <option value="">Tüm Dönemler</option>
+              <option value="I. Dönem">I. Dönem</option>
+              <option value="II. Dönem">II. Dönem</option>
+            </select>
+
+            <select class="filter-select" id="filterSeviye">
+              <option value="">Tüm Seviyeler</option>
+              <option value="9">9. Sınıf</option>
+              <option value="10">10. Sınıf</option>
+              <option value="11">11. Sınıf</option>
+              <option value="12">12. Sınıf</option>
+            </select>
+
+            <input
+              type="date"
+              class="filter-input"
+              id="filterTarih"
+              placeholder="Tarih"
+            />
+
+            <button class="btn-filter" onclick="filterSinavlar()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                <polygon
+                  points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"
+                  stroke="currentColor"
+                  stroke-width="2"
+                />
+              </svg>
+              Filtrele
+            </button>
+
+            <button class="btn-filter-reset" onclick="resetFilters()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                <line
+                  x1="18"
+                  y1="6"
+                  x2="6"
+                  y2="18"
+                  stroke="currentColor"
+                  stroke-width="2"
+                />
+                <line
+                  x1="6"
+                  y1="6"
+                  x2="18"
+                  y2="18"
+                  stroke="currentColor"
+                  stroke-width="2"
+                />
+              </svg>
+              Temizle
+            </button>
+          </div>
+
+          <!-- Sınav Kartları -->
+          <div class="sinav-grid" id="sinavGrid">
+            <!-- Kartlar JS ile dinamik oluşturulacak -->
+          </div>
+        </section>
+
+        <!-- ============================================
+             SALON YÖNETİMİ
+             ============================================ -->
+        <section id="salon-yonetimi" class="content-section">
+          <div class="section-header">
+            <h2>Salon Yönetimi</h2>
+            <button class="btn-primary" onclick="openYeniSalonModal()">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                <line
+                  x1="12"
+                  y1="5"
+                  x2="12"
+                  y2="19"
+                  stroke="currentColor"
+                  stroke-width="2"
+                />
+                <line
+                  x1="5"
+                  y1="12"
+                  x2="19"
+                  y2="12"
+                  stroke="currentColor"
+                  stroke-width="2"
+                />
+              </svg>
+              Yeni Salon Ekle
+            </button>
+          </div>
+
+          <div class="salon-grid" id="salonGrid">
+            <!-- Salon kartları JS ile doldurulacak -->
+          </div>
+        </section>
+
+        <!-- ============================================
+             PLAN YÖNETİMİ
+             ============================================ -->
+        <section id="plan-yonetimi" class="content-section">
+          <div class="section-header">
+            <h2>Oturma Planları</h2>
+            <button class="btn-primary" onclick="openYeniPlanModal()">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                <line
+                  x1="12"
+                  y1="5"
+                  x2="12"
+                  y2="19"
+                  stroke="currentColor"
+                  stroke-width="2"
+                />
+                <line
+                  x1="5"
+                  y1="12"
+                  x2="19"
+                  y2="12"
+                  stroke="currentColor"
+                  stroke-width="2"
+                />
+              </svg>
+              Yeni Plan Oluştur
+            </button>
+          </div>
+
+          <div class="plan-tabs">
+            <button class="plan-tab active" onclick="selectPlanTab('plan-1')">
+              Plan-1 (3 Sütun)
+            </button>
+            <button class="plan-tab" onclick="selectPlanTab('plan-2')">
+              Plan-2 (4 Sütun)
+            </button>
+            <button class="plan-tab" onclick="selectPlanTab('plan-3')">
+              Plan-3 (5 Sütun)
+            </button>
+            <button class="plan-tab" onclick="selectPlanTab('plan-8')">
+              Plan-8 (8 Sütun)
+            </button>
+          </div>
+
+          <div class="plan-content">
+            <div class="plan-settings">
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Sıra Sayısı</label>
+                  <input
+                    type="number"
+                    id="planSiraSayisi"
+                    value="8"
+                    min="1"
+                    max="20"
+                  />
+                </div>
+                <div class="form-group">
+                  <label>Sütun Sayısı</label>
+                  <input
+                    type="number"
+                    id="planSutunSayisi"
+                    value="5"
+                    min="1"
+                    max="10"
+                  />
+                </div>
+                <div class="form-group">
+                  <label>Düzen Tipi</label>
+                  <select id="planDuzen">
+                    <option value="Z">Z Düzeni</option>
+                    <option value="S">S Düzeni</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-actions">
+                <button class="btn-secondary" onclick="temizlePlan()">
+                  Temizle
+                </button>
+                <button class="btn-primary" onclick="hizliDuzenOlustur()">
+                  Hızlı Düzen Oluştur
+                </button>
+              </div>
+            </div>
+
+            <div class="plan-preview" id="planPreview">
+              <!-- Oturma planı önizlemesi JS ile oluşturulacak -->
+            </div>
+          </div>
+        </section>
+
+        <!-- ============================================
+             KELEBEK DAĞITIM
+             ============================================ -->
+        <section id="kelebek-dagitim" class="content-section">
+          <div class="section-header">
+            <h2>Kelebek Dağıtım Sistemi</h2>
+          </div>
+
+          <div class="kelebek-container">
+            <!-- Sol Panel: Sınav ve Sınıf Seçimi -->
+            <div class="kelebek-left">
+              <div class="card">
+                <h3>Sınav Seçimi</h3>
+                <div class="form-group">
+                  <label>Sınav</label>
+                  <select
+                    id="kelebekSinav"
+                    onchange="loadKelebekSinavBilgileri()"
+                  >
+                    <option value="">Sınav Seçiniz</option>
+                  </select>
+                </div>
+
+                <div
+                  id="kelebekSinavBilgileri"
+                  class="sinav-bilgileri"
+                  style="display: none"
+                >
+                  <div class="bilgi-item">
+                    <span>Sınav Adı:</span>
+                    <strong id="kelebekSinavAdi">-</strong>
+                  </div>
+                  <div class="bilgi-item">
+                    <span>Tarih:</span>
+                    <strong id="kelebekSinavTarihi">-</strong>
+                  </div>
+                  <div class="bilgi-item">
+                    <span>Seviye:</span>
+                    <strong id="kelebekSinavSeviye">-</strong>
+                  </div>
+                </div>
+              </div>
+
+              <div class="card">
+                <h3>Sınıf/Sınıfları Seç</h3>
+                <div class="form-group">
+                  <label>Sınıf</label>
+                  <select id="kelebekSinif" onchange="toggleSinifSecimi()">
+                    <option value="">Tüm Sınıflar</option>
+                    <option value="custom">Seçili Sınıflar</option>
+                  </select>
+                </div>
+
+                <div id="sinifSecimListesi" style="display: none">
+                  <div class="checkbox-grid" id="sinifCheckboxGrid">
+                    <!-- JS ile doldurulacak -->
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label class="checkbox-label">
+                    <input type="checkbox" id="devamsizHaric" />
+                    <span>Sürekli devamsız öğrencileri hariç tut</span>
+                  </label>
+                </div>
+              </div>
+
+              <div class="card">
+                <h3>Salon Seçimi</h3>
+                <div id="salonSecimListesi" class="checkbox-grid">
+                  <!-- JS ile doldurulacak -->
+                </div>
+              </div>
+
+              <div class="card stats-card">
+                <h3>İstatistikler</h3>
+                <div class="stat-item">
+                  <span>Toplam Öğrenci:</span>
+                  <strong id="toplamOgrenci">0</strong>
+                </div>
+                <div class="stat-item">
+                  <span>Toplam Salon:</span>
+                  <strong id="toplamSalon">0</strong>
+                </div>
+                <div class="stat-item">
+                  <span>Toplam Kapasite:</span>
+                  <strong id="toplamKapasite">0</strong>
+                </div>
+                <div class="stat-item">
+                  <span>Yerleştirilen:</span>
+                  <strong id="yerlestirilenSayi">0 / 0</strong>
+                </div>
+              </div>
+
+              <div class="form-actions">
+                <button
+                  class="btn-danger"
+                  onclick="durdurDagitim()"
+                  id="btnDurdur"
+                  disabled
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                    <rect
+                      x="6"
+                      y="6"
+                      width="12"
+                      height="12"
+                      stroke="currentColor"
+                      stroke-width="2"
+                    />
+                  </svg>
+                  Durdur
+                </button>
+                <button
+                  class="btn-primary btn-large"
+                  onclick="baslaDagitim()"
+                  id="btnBasla"
+                >
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                    <polygon
+                      points="5 3 19 12 5 21 5 3"
+                      stroke="currentColor"
+                      stroke-width="2"
+                    />
+                  </svg>
+                  Dağıtımı Başlat
+                </button>
+              </div>
+
+              <div
+                class="progress-bar"
+                id="dagitimProgress"
+                style="display: none"
+              >
+                <div class="progress-fill" id="dagitimProgressFill"></div>
+                <span class="progress-text" id="dagitimProgressText">0%</span>
+              </div>
+            </div>
+
+            <!-- Sağ Panel: Öğrenci ve Sınıf Listeleri -->
+            <div class="kelebek-right">
+              <div class="card">
+                <h3>Sınıf Mevcutları</h3>
+                <div class="sinif-liste" id="sinifMevcutListesi">
+                  <!-- JS ile doldurulacak -->
+                </div>
+              </div>
+
+              <div class="card">
+                <h3>Öğrenci Listesi</h3>
+                <input
+                  type="text"
+                  class="search-input"
+                  id="ogrenciAra"
+                  placeholder="🔍 Öğrenci ara..."
+                  onkeyup="filterOgrenciListesi()"
+                />
+                <div class="ogrenci-liste" id="ogrenciListesi">
+                  <!-- JS ile doldurulacak -->
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ============================================
+             ÖĞRENCİ SABİTLE
+             ============================================ -->
+        <section id="ogrenci-sabitle" class="content-section">
+          <div class="section-header">
+            <h2>Öğrenci Sabitleme (Kelebek)</h2>
+          </div>
+
+          <div class="sabitle-container">
+            <!-- Sol Panel: Arama ve Seçim -->
+            <div class="sabitle-left">
+              <div class="card">
+                <h3>Öğrenci Ara</h3>
+                <div class="form-group">
+                  <label>Okul No</label>
+                  <input
+                    type="text"
+                    id="sabitleOkulNo"
+                    placeholder="Okul numarası girin"
+                  />
+                </div>
+                <div class="form-group">
+                  <label>TCKN</label>
+                  <input
+                    type="text"
+                    id="sabitleTckn"
+                    placeholder="TC Kimlik No girin"
+                  />
+                </div>
+                <div class="form-group">
+                  <label>Ad Soyad</label>
+                  <input
+                    type="text"
+                    id="sabitleAdSoyad"
+                    placeholder="Ad soyad girin"
+                  />
+                </div>
+                <button class="btn-primary" onclick="araOgrenci()">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                    <circle
+                      cx="11"
+                      cy="11"
+                      r="8"
+                      stroke="currentColor"
+                      stroke-width="2"
+                    />
+                    <line
+                      x1="21"
+                      y1="21"
+                      x2="16.65"
+                      y2="16.65"
+                      stroke="currentColor"
+                      stroke-width="2"
+                    />
+                  </svg>
+                  Öğrenci Ara
+                </button>
+              </div>
+
+              <div
+                class="card"
+                id="sabitleOgrenciBilgileri"
+                style="display: none"
+              >
+                <h3>Öğrenci Bilgileri</h3>
+                <div class="ogrenci-detay">
+                  <div class="ogrenci-foto">
+                    <img id="sabitleFoto" src="" alt="Öğrenci Fotoğrafı" />
+                  </div>
+                  <div class="ogrenci-info">
+                    <p>
+                      <strong>Ad Soyad:</strong>
+                      <span id="sabitleAdSoyadText">-</span>
+                    </p>
+                    <p>
+                      <strong>Sınıf:</strong>
+                      <span id="sabitleSinifText">-</span>
+                    </p>
+                    <p>
+                      <strong>Okul No:</strong>
+                      <span id="sabitleOkulNoText">-</span>
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div class="card">
+                <h3>Salon Seçimi</h3>
+                <div class="form-group">
+                  <label>Salon</label>
+                  <select id="sabitleSalon" onchange="loadSalonPlan()">
+                    <option value="">Salon Seçiniz</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>Dönem</label>
+                  <select id="sabitleDönem">
+                    <option value="I. Dönem">I. Dönem</option>
+                    <option value="II. Dönem">II. Dönem</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>Plan</label>
+                  <select id="sabitlePlan">
+                    <option value="">Otomatik</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>Sıra</label>
+                  <input
+                    type="number"
+                    id="sabitleSira"
+                    min="1"
+                    placeholder="Sıra seçiniz"
+                  />
+                </div>
+                <button
+                  class="btn-primary btn-large"
+                  onclick="sabitleOgrenci()"
+                >
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                    <path
+                      d="M12 5v14M5 12h14"
+                      stroke="currentColor"
+                      stroke-width="2"
+                    />
+                  </svg>
+                  Öğrenciyi Sabitle
+                </button>
+              </div>
+            </div>
+
+            <!-- Sağ Panel: Oturma Planı ve Sabitlenen Listesi -->
+            <div class="sabitle-right">
+              <div class="card">
+                <h3>Oturma Planı</h3>
+                <div class="oturma-plani-preview" id="sabitlOturmaPlan">
+                  <!-- JS ile doldurulacak -->
+                </div>
+              </div>
+
+              <div class="card">
+                <h3>Sabitlenen Öğrenci Listesi</h3>
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>Dönem</th>
+                      <th>Sınıf</th>
+                      <th>No</th>
+                      <th>Ad Soyad</th>
+                      <th>Salon</th>
+                      <th>Sıra</th>
+                      <th>İşlem</th>
+                    </tr>
+                  </thead>
+                  <tbody id="sabitlenenListesi">
+                    <!-- JS ile doldurulacak -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ============================================
+             ÖĞRETMEN GÖREVLENDİRME
+             ============================================ -->
+        <section id="ogretmen-gorevlendir" class="content-section">
+          <div class="section-header">
+            <h2>Öğretmen Görevlendirme</h2>
+          </div>
+
+          <div class="gorevlendir-container">
+            <!-- Üst Panel: Sınav ve Salon Seçimi -->
+            <div class="gorevlendir-top">
+              <div class="card">
+                <h3>Sınav Seç</h3>
+                <div class="form-row">
+                  <div class="form-group">
+                    <label>Tür</label>
+                    <select id="gorevSinavTur">
+                      <option value="Kelebek">Kelebek</option>
+                      <option value="Karma">Karma</option>
+                      <option value="Normal">Normal</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label>Dönem</label>
+                    <select id="gorevSinavDonem">
+                      <option value="I. Dönem">I. Dönem</option>
+                      <option value="II. Dönem">II. Dönem</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label>Sınav No</label>
+                    <select id="gorevSinavNo">
+                      <option value="I. Yazılı">I. Yazılı</option>
+                      <option value="II. Yazılı">II. Yazılı</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <div class="card">
+                <h3>Seçili Sınav Bilgileri</h3>
+                <div class="sinav-bilgileri-grid">
+                  <div class="bilgi-item">
+                    <span>Sınav Kodu:</span>
+                    <strong id="gorevSinavKodu">-</strong>
+                  </div>
+                  <div class="bilgi-item">
+                    <span>Sınav Dönemi:</span>
+                    <strong id="gorevSinavDonemi">-</strong>
+                  </div>
+                  <div class="bilgi-item">
+                    <span>Sınav Adı:</span>
+                    <strong id="gorevSinavAdi">-</strong>
+                  </div>
+                  <div class="bilgi-item">
+                    <span>Sınav Tarihi:</span>
+                    <strong id="gorevSinavTarihi">-</strong>
+                  </div>
+                  <div class="bilgi-item">
+                    <span>Sınav No:</span>
+                    <strong id="gorevSinavNoText">-</strong>
+                  </div>
+                  <div class="bilgi-item">
+                    <span>Sınav Türü:</span>
+                    <strong id="gorevSinavTuru">-</strong>
+                  </div>
+                </div>
+              </div>
+
+              <div class="card">
+                <h3>Salon Seç</h3>
+                <div class="form-row">
+                  <div class="form-group flex-1">
+                    <label>Salon</label>
+                    <select id="gorevSalon">
+                      <option value="">Salon Seçiniz</option>
+                    </select>
+                  </div>
+                  <div class="form-group" style="width: 150px">
+                    <label>Öğrenci Sayısı</label>
+                    <input type="number" id="gorevOgrenciSayisi" readonly />
+                  </div>
+                </div>
+              </div>
+
+              <div class="card">
+                <h3>Saate Göre Gözetmen Bul (Ders Programı)</h3>
+                <div class="form-row">
+                  <div class="form-group">
+                    <label>Sınıf</label>
+                    <select id="gorevSinif">
+                      <option value="">Tüm Sınıflar</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label>Gün</label>
+                    <select id="gorevGun">
+                      <option value="Pazartesi">Pazartesi</option>
+                      <option value="Salı">Salı</option>
+                      <option value="Çarşamba">Çarşamba</option>
+                      <option value="Perşembe">Perşembe</option>
+                      <option value="Cuma">Cuma</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label>Saat</label>
+                    <select id="gorevSaat">
+                      <option value="1">1. Saat</option>
+                      <option value="2">2. Saat</option>
+                      <option value="3">3. Saat</option>
+                      <option value="4">4. Saat</option>
+                      <option value="5">5. Saat</option>
+                      <option value="6">6. Saat</option>
+                      <option value="7">7. Saat</option>
+                      <option value="8">8. Saat</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="form-actions">
+                  <button class="btn-secondary" onclick="bulGorevlendir()">
+                    Bul Görevlendir
+                  </button>
+                  <button class="btn-primary" onclick="topluGorevlendir()">
+                    Toplu Görevlendirme
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Alt Panel: Öğretmen Seçimi ve Komisyon -->
+            <div class="gorevlendir-bottom">
+              <div class="gorevlendir-left">
+                <div class="card">
+                  <h3>Öğretmen Seç</h3>
+                  <input
+                    type="text"
+                    class="search-input"
+                    id="ogretmenAra"
+                    placeholder="🔍 Öğretmen ara..."
+                    onkeyup="filterOgretmenListesi()"
+                  />
+                  <table class="data-table">
+                    <thead>
+                      <tr>
+                        <th width="40"></th>
+                        <th>Üye</th>
+                        <th>Gözcü</th>
+                        <th>Yedek G.</th>
+                        <th>Ad Soyad</th>
+                        <th>Branşı</th>
+                      </tr>
+                    </thead>
+                    <tbody id="ogretmenSecimListesi">
+                      <!-- JS ile doldurulacak -->
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <div class="gorevlendir-right">
+                <div class="card">
+                  <div class="card-header-flex">
+                    <h3>Sınav Komisyonu</h3>
+                    <button class="btn-danger-sm" onclick="tumGorevleriSil()">
+                      <svg
+                        width="14"
+                        height="14"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                      >
+                        <path
+                          d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"
+                          stroke="currentColor"
+                          stroke-width="2"
+                        />
+                      </svg>
+                      Tüm Görevleri Sil
+                    </button>
+                  </div>
+                  <table class="data-table">
+                    <thead>
+                      <tr>
+                        <th>Tckn</th>
+                        <th>Ad Soyad</th>
+                        <th>Branşı</th>
+                        <th>Görevi</th>
+                        <th>İşlem</th>
+                      </tr>
+                    </thead>
+                    <tbody id="komisyonListesi">
+                      <!-- JS ile doldurulacak -->
+                    </tbody>
+                  </table>
+                </div>
+
+                <div class="card">
+                  <h3>Öğretmenin Diğer Görevleri</h3>
+                  <table class="data-table">
+                    <thead>
+                      <tr>
+                        <th>Sınav</th>
+                        <th>Salon</th>
+                        <th>Görev</th>
+                      </tr>
+                    </thead>
+                    <tbody id="ogretmenDigerGorevler">
+                      <!-- JS ile doldurulacak -->
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ============================================
+             AÇIKLAMALAR
+             ============================================ -->
+        <section id="aciklamalar" class="content-section">
+          <div class="section-header">
+            <h2>Sınav Açıklamaları</h2>
+            <button class="btn-primary" onclick="openYeniAciklamaModal()">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                <line
+                  x1="12"
+                  y1="5"
+                  x2="12"
+                  y2="19"
+                  stroke="currentColor"
+                  stroke-width="2"
+                />
+                <line
+                  x1="5"
+                  y1="12"
+                  x2="19"
+                  y2="12"
+                  stroke="currentColor"
+                  stroke-width="2"
+                />
+              </svg>
+              Yeni Açıklama Ekle
+            </button>
+          </div>
+
+          <div class="aciklamalar-container">
+            <div class="aciklamalar-liste" id="aciklamalarListesi">
+              <!-- JS ile doldurulacak -->
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <!-- ============================================
+         RAPORLAR PANEL (Sağ Taraftan Açılır)
+         ============================================ -->
+    <div
+      class="reports-overlay"
+      id="reportsOverlay"
+      onclick="toggleReportsPanel()"
+    ></div>
+    <aside class="reports-panel" id="reportsPanel">
+      <div class="reports-header">
+        <h3>Raporlar</h3>
+        <button class="btn-icon" onclick="toggleReportsPanel()">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+            <line
+              x1="18"
+              y1="6"
+              x2="6"
+              y2="18"
+              stroke="currentColor"
+              stroke-width="2"
+            />
+            <line
+              x1="6"
+              y1="6"
+              x2="18"
+              y2="18"
+              stroke="currentColor"
+              stroke-width="2"
+            />
+          </svg>
+        </button>
+      </div>
+
+      <div class="reports-content">
+        <button class="report-item" onclick="generateSalonPDF()">
+          <div
+            class="report-icon"
+            style="
+              background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            "
+          >
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+              <path
+                d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
+                stroke="white"
+                stroke-width="2"
+              />
+            </svg>
+          </div>
+          <div class="report-info">
+            <h4>Salon Oturma Planı</h4>
+            <p>Her salonun detaylı PDF raporu</p>
+          </div>
+        </button>
+
+        <button class="report-item" onclick="generateGenelListePDF()">
+          <div
+            class="report-icon"
+            style="
+              background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            "
+          >
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+              <path
+                d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
+                stroke="white"
+                stroke-width="2"
+              />
+            </svg>
+          </div>
+          <div class="report-info">
+            <h4>Genel Sınav Listesi</h4>
+            <p>Tüm öğrenci listesi</p>
+          </div>
+        </button>
+
+        <button class="report-item" onclick="generateOgretmenPDF()">
+          <div
+            class="report-icon"
+            style="
+              background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            "
+          >
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+              <path
+                d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"
+                stroke="white"
+                stroke-width="2"
+              />
+            </svg>
+          </div>
+          <div class="report-info">
+            <h4>Öğretmen Görev Listesi</h4>
+            <p>Gözetmen dağılımı</p>
+          </div>
+        </button>
+
+        <button class="report-item" onclick="generateYoklamaPDF()">
+          <div
+            class="report-icon"
+            style="
+              background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+            "
+          >
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+              <polyline
+                points="20 6 9 17 4 12"
+                stroke="white"
+                stroke-width="2"
+              />
+            </svg>
+          </div>
+          <div class="report-info">
+            <h4>Yoklama Listesi</h4>
+            <p>Salon bazında yoklama</p>
+          </div>
+        </button>
+
+        <button class="report-item" onclick="generateKapiEtiketiPDF()">
+          <div
+            class="report-icon"
+            style="
+              background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+            "
+          >
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+              <rect
+                x="3"
+                y="3"
+                width="18"
+                height="18"
+                rx="2"
+                stroke="white"
+                stroke-width="2"
+              />
+            </svg>
+          </div>
+          <div class="report-info">
+            <h4>Salon Kapı Etiketi</h4>
+            <p>A4 kapı etiketi</p>
+          </div>
+        </button>
+
+        <button class="report-item" onclick="generateOgrenciKartiPDF()">
+          <div
+            class="report-icon"
+            style="
+              background: linear-gradient(135deg, #30cfd0 0%, #330867 100%);
+            "
+          >
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+              <rect
+                x="1"
+                y="4"
+                width="22"
+                height="16"
+                rx="2"
+                stroke="white"
+                stroke-width="2"
+              />
+            </svg>
+          </div>
+          <div class="report-info">
+            <h4>Öğrenci Sınav Kartı</h4>
+            <p>Fotoğraflı sınav kartı</p>
+          </div>
+        </button>
+
+        <button class="report-item" onclick="generateExcel()">
+          <div
+            class="report-icon"
+            style="
+              background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            "
+          >
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+              <path
+                d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
+                stroke="white"
+                stroke-width="2"
+              />
+            </svg>
+          </div>
+          <div class="report-info">
+            <h4>Excel Export</h4>
+            <p>Tüm veriler Excel'e</p>
+          </div>
+        </button>
+      </div>
+    </aside>
+
+    <script src="ortak-sinav.js"></script>
+  </body>
+</html>
