@@ -6,12 +6,15 @@
     <title>Ortak Sınav (Kelebek) Sistemi</title>
     <link rel="stylesheet" href="ortak-sinav.css" />
 
-    <!-- ✅ SweetAlert2 CSS ve JS (MODERN MODALLER İÇİN) -->
+    <!-- ✅ SweetAlert2 -->
     <link
       rel="stylesheet"
       href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css"
     />
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <!-- 🆕 QR Code Kütüphanesi -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   </head>
   <body>
     <!-- ============================================
@@ -297,6 +300,19 @@
               />
             </svg>
             <span>Öğretmen Görevlendir</span>
+          </button>
+
+          <!-- 🆕 YENİ MENÜ -->
+          <button class="menu-item" data-section="sinav-kontrol">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+              <path d="M9 11l3 3L22 4" stroke="currentColor" stroke-width="2" />
+              <path
+                d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"
+                stroke="currentColor"
+                stroke-width="2"
+              />
+            </svg>
+            <span>Sınav Kontrol Paneli</span>
           </button>
 
           <button class="menu-item" data-section="aciklamalar">
@@ -617,12 +633,148 @@
                     <!-- JS ile doldurulacak -->
                   </div>
                 </div>
+              </div>
 
-                <div class="form-group">
-                  <label class="checkbox-label">
-                    <input type="checkbox" id="devamsizHaric" />
-                    <span>Sürekli devamsız öğrencileri hariç tut</span>
+              <!-- 🆕 ALGORİTMA AYARLARI -->
+              <div
+                class="card"
+                style="
+                  background: linear-gradient(
+                    135deg,
+                    rgba(102, 126, 234, 0.05) 0%,
+                    rgba(118, 75, 162, 0.05) 100%
+                  );
+                  border: 2px solid rgba(102, 126, 234, 0.2);
+                "
+              >
+                <h3
+                  style="
+                    color: var(--primary-light);
+                    display: flex;
+                    align-items: center;
+                    gap: 10px;
+                    margin-bottom: 20px;
+                  "
+                >
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                    <circle
+                      cx="12"
+                      cy="12"
+                      r="3"
+                      stroke="currentColor"
+                      stroke-width="2"
+                    />
+                    <path
+                      d="M12 1v6m0 6v6m11-9h-6M6 12H0"
+                      stroke="currentColor"
+                      stroke-width="2"
+                    />
+                  </svg>
+                  Algoritma Ayarları
+                </h3>
+
+                <div style="display: flex; flex-direction: column; gap: 12px">
+                  <label
+                    class="checkbox-label"
+                    style="
+                      margin: 0;
+                      padding: 12px;
+                      background: var(--glass-bg);
+                      border-radius: 8px;
+                      border: 1px solid var(--glass-border);
+                      transition: all 0.3s ease;
+                    "
+                  >
+                    <input type="checkbox" id="ayniSeviyeYasak" checked />
+                    <span style="display: flex; align-items: center; gap: 8px">
+                      <span style="font-size: 18px">🚫</span>
+                      <span>Aynı Seviye Yan Yana Gelmesin (Mümkünse)</span>
+                    </span>
                   </label>
+
+                  <label
+                    class="checkbox-label"
+                    style="
+                      margin: 0;
+                      padding: 12px;
+                      background: var(--glass-bg);
+                      border-radius: 8px;
+                      border: 1px solid var(--glass-border);
+                      transition: all 0.3s ease;
+                    "
+                  >
+                    <input type="checkbox" id="cinsiyetDengesi" checked />
+                    <span style="display: flex; align-items: center; gap: 8px">
+                      <span style="font-size: 18px">⚖️</span>
+                      <span>Kız/Erkek Dengesi Sağlansın</span>
+                    </span>
+                  </label>
+
+                  <label
+                    class="checkbox-label"
+                    style="
+                      margin: 0;
+                      padding: 12px;
+                      background: var(--glass-bg);
+                      border-radius: 8px;
+                      border: 1px solid var(--glass-border);
+                      transition: all 0.3s ease;
+                    "
+                  >
+                    <input type="checkbox" id="serpantinDuzen" checked />
+                    <span style="display: flex; align-items: center; gap: 8px">
+                      <span style="font-size: 18px">🔀</span>
+                      <span>Serpantin Düzen Kullan</span>
+                    </span>
+                  </label>
+
+                  <label
+                    class="checkbox-label"
+                    style="
+                      margin: 0;
+                      padding: 12px;
+                      background: var(--glass-bg);
+                      border-radius: 8px;
+                      border: 1px solid var(--glass-border);
+                      transition: all 0.3s ease;
+                    "
+                  >
+                    <input type="checkbox" id="devamsizHaric" checked />
+                    <span style="display: flex; align-items: center; gap: 8px">
+                      <span style="font-size: 18px">📋</span>
+                      <span>Devamsız Öğrencileri Dahil Etme</span>
+                    </span>
+                  </label>
+                </div>
+
+                <div
+                  style="
+                    margin-top: 15px;
+                    padding: 12px 15px;
+                    background: linear-gradient(
+                      135deg,
+                      rgba(16, 185, 129, 0.1) 0%,
+                      rgba(5, 150, 105, 0.1) 100%
+                    );
+                    border-left: 4px solid #10b981;
+                    border-radius: 8px;
+                    font-size: 13px;
+                    color: var(--text-light);
+                    line-height: 1.6;
+                  "
+                >
+                  <div
+                    style="display: flex; align-items: flex-start; gap: 10px"
+                  >
+                    <span style="font-size: 20px; margin-top: -2px">💡</span>
+                    <div>
+                      <strong style="color: #10b981">Not:</strong> "Aynı Seviye
+                      Yan Yana Gelmesin" seçeneği açıksa algoritma mümkün
+                      olduğunca farklı seviyeleri yan yana yerleştirir. Ancak
+                      öğrenci sayısı dengesizse (örn: 400 9.sınıf, 50 10.sınıf)
+                      mecburen aynı seviyeler yan yana gelecektir.
+                    </div>
+                  </div>
                 </div>
               </div>
 
@@ -686,6 +838,79 @@
                   </svg>
                   Dağıtımı Başlat
                 </button>
+              </div>
+
+              <!-- 🆕 DİJİTAL YOKLAMA VE QR SİSTEMLERİ -->
+              <div
+                style="
+                  margin-top: 20px;
+                  padding: 20px;
+                  background: linear-gradient(
+                    135deg,
+                    rgba(16, 185, 129, 0.05) 0%,
+                    rgba(5, 150, 105, 0.05) 100%
+                  );
+                  border-radius: 12px;
+                  border: 2px solid rgba(16, 185, 129, 0.2);
+                "
+              >
+                <div
+                  style="
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    margin-bottom: 15px;
+                  "
+                >
+                  <h4
+                    style="
+                      margin: 0;
+                      color: #10b981;
+                      font-weight: 700;
+                      display: flex;
+                      align-items: center;
+                      gap: 10px;
+                    "
+                  >
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                      <path
+                        d="M9 11l3 3L22 4"
+                        stroke="currentColor"
+                        stroke-width="2"
+                      />
+                      <path
+                        d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"
+                        stroke="currentColor"
+                        stroke-width="2"
+                      />
+                    </svg>
+                    Dijital Yoklama ve QR Sistemleri
+                  </h4>
+                </div>
+
+                <div style="display: flex; gap: 10px; flex-wrap: wrap">
+                  <button
+                    class="btn-secondary"
+                    onclick="openYoklamaPanelForAllSalons()"
+                    style="flex: 1; min-width: 180px"
+                  >
+                    📋 Yoklama Paneli Aç
+                  </button>
+                  <button
+                    class="btn-secondary"
+                    onclick="generateAllQRCodes()"
+                    style="flex: 1; min-width: 180px"
+                  >
+                    📱 Tüm QR Kodları Oluştur
+                  </button>
+                  <button
+                    class="btn-secondary"
+                    onclick="openDisiplinKayitlari()"
+                    style="flex: 1; min-width: 180px"
+                  >
+                    ⚠️ Disiplin Kayıtları
+                  </button>
+                </div>
               </div>
 
               <div
@@ -1013,6 +1238,46 @@
                   <button class="btn-primary" onclick="topluGorevlendir()">
                     Toplu Görevlendirme
                   </button>
+
+                  <!-- 🆕 AKILLI GÖZETMEN DAĞIT BUTONU -->
+                  <button
+                    class="btn-primary"
+                    onclick="akılliGozetmenDagitALL()"
+                    style="
+                      background: linear-gradient(
+                        135deg,
+                        #667eea 0%,
+                        #764ba2 100%
+                      );
+                      box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+                    "
+                  >
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      style="
+                        display: inline-block;
+                        vertical-align: middle;
+                        margin-right: 6px;
+                      "
+                    >
+                      <circle
+                        cx="12"
+                        cy="12"
+                        r="3"
+                        stroke="currentColor"
+                        stroke-width="2"
+                      />
+                      <path
+                        d="M12 1v6m0 6v6m11-9h-6M6 12H0"
+                        stroke="currentColor"
+                        stroke-width="2"
+                      />
+                    </svg>
+                    🤖 Akıllı Gözetmen Dağıt
+                  </button>
                 </div>
               </div>
             </div>
@@ -1070,10 +1335,10 @@
                   <table class="data-table">
                     <thead>
                       <tr>
-                        <th>Tckn</th>
                         <th>Ad Soyad</th>
                         <th>Branşı</th>
-                        <th>Görevi</th>
+                        <th>Salon</th>
+                        <th>Branş Uyumu</th>
                         <th>İşlem</th>
                       </tr>
                     </thead>
@@ -1099,6 +1364,160 @@
                   </table>
                 </div>
               </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ============================================
+             🆕 SINAV KONTROL PANELİ
+             ============================================ -->
+        <section id="sinav-kontrol" class="content-section">
+          <div class="section-header">
+            <h2>🔍 Sınav Kontrol Paneli</h2>
+            <button class="btn-primary" onclick="yenidenKontrolEt()">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                <path
+                  d="M1 4v6h6M23 20v-6h-6"
+                  stroke="currentColor"
+                  stroke-width="2"
+                />
+                <path
+                  d="M20.49 9A9 9 0 005.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 014.51 15"
+                  stroke="currentColor"
+                  stroke-width="2"
+                />
+              </svg>
+              Yeniden Kontrol Et
+            </button>
+          </div>
+
+          <!-- Uyarı Kartları -->
+          <div class="uyari-grid" id="uyariGrid">
+            <!-- JS ile doldurulacak -->
+          </div>
+
+          <!-- İstatistik Kartları -->
+          <div
+            style="
+              display: grid;
+              grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+              gap: 20px;
+              margin-top: 30px;
+            "
+          >
+            <!-- Kapasite Durumu -->
+            <div class="stat-card">
+              <div class="stat-header">
+                <h4>📊 Kapasite Durumu</h4>
+              </div>
+              <div class="stat-body">
+                <div class="stat-item">
+                  <span>Toplam Öğrenci:</span>
+                  <strong id="statToplamOgrenci">-</strong>
+                </div>
+                <div class="stat-item">
+                  <span>Toplam Kapasite:</span>
+                  <strong id="statToplamKapasite">-</strong>
+                </div>
+                <div class="stat-item">
+                  <span>Kullanım Oranı:</span>
+                  <strong id="statKullanimOrani">-</strong>
+                </div>
+              </div>
+            </div>
+
+            <!-- Gözetmen Durumu -->
+            <div class="stat-card">
+              <div class="stat-header">
+                <h4>👨‍🏫 Gözetmen Durumu</h4>
+              </div>
+              <div class="stat-body">
+                <div class="stat-item">
+                  <span>Atanan Gözetmen:</span>
+                  <strong id="statAtananGozetmen">-</strong>
+                </div>
+                <div class="stat-item">
+                  <span>Branş Uyumlu:</span>
+                  <strong id="statBransUyumlu">-</strong>
+                </div>
+                <div class="stat-item">
+                  <span>Mecburi:</span>
+                  <strong id="statMecburi">-</strong>
+                </div>
+              </div>
+            </div>
+
+            <!-- Sınav Durumu -->
+            <div class="stat-card">
+              <div class="stat-header">
+                <h4>📝 Sınav Durumu</h4>
+              </div>
+              <div class="stat-body">
+                <div class="stat-item">
+                  <span>Toplam Sınav:</span>
+                  <strong id="statToplamSinav">-</strong>
+                </div>
+                <div class="stat-item">
+                  <span>Bugünkü Sınavlar:</span>
+                  <strong id="statBugunkuSinav">-</strong>
+                </div>
+                <div class="stat-item">
+                  <span>Bekleyen:</span>
+                  <strong id="statBekleyenSinav">-</strong>
+                </div>
+              </div>
+            </div>
+
+            <!-- Yoklama Durumu -->
+            <div class="stat-card">
+              <div class="stat-header">
+                <h4>✅ Yoklama Durumu</h4>
+              </div>
+              <div class="stat-body">
+                <div class="stat-item">
+                  <span>Mevcut:</span>
+                  <strong id="statMevcut">-</strong>
+                </div>
+                <div class="stat-item">
+                  <span>Gelmedi:</span>
+                  <strong id="statGelmedi">-</strong>
+                </div>
+                <div class="stat-item">
+                  <span>Disiplin Kaydı:</span>
+                  <strong id="statDisiplin">-</strong>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Detaylı Uyarı Listesi -->
+          <div style="margin-top: 30px">
+            <h3 style="color: var(--text-light); margin-bottom: 15px">
+              ⚠️ Tüm Uyarılar
+            </h3>
+            <div class="card">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Seviye</th>
+                    <th>Tür</th>
+                    <th>Mesaj</th>
+                    <th>Sınav</th>
+                    <th>Tarih</th>
+                    <th>İşlem</th>
+                  </tr>
+                </thead>
+                <tbody id="tumUyarilarListesi">
+                  <tr>
+                    <td
+                      colspan="6"
+                      style="text-align: center; color: #6c757d; padding: 30px"
+                    >
+                      Uyarı bulunmuyor
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
           </div>
         </section>
@@ -1332,6 +1751,8 @@
       </div>
     </aside>
 
+    <!-- 🎨 Modern Modal Sistemi -->
+    <script src="ortak-sinav-modals.js"></script>
     <script src="ortak-sinav.js"></script>
   </body>
 </html>

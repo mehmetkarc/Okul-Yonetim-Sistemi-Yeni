@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Lisans Takip Sistemi</title>
+    <link rel="stylesheet" href="anasayfa.css" />
+    <link rel="stylesheet" href="okullar.css" />
+    <link rel="stylesheet" href="../bilesenler/bildirim-sistemi.css" />
+    <style>
+      /* Lisans sayfasına özel ek stiller */
+      .kalan-gun {
+        font-weight: 700;
+        padding: 4px 8px;
+        border-radius: 6px;
+        font-size: 13px;
+      }
+      .gun-pozitif {
+        background: rgba(0, 245, 160, 0.1);
+        color: #00f5a0;
+      }
+      .gun-uyari {
+        background: rgba(255, 217, 61, 0.1);
+        color: #ffd93d;
+      }
+      .gun-kritik {
+        background: rgba(255, 107, 107, 0.1);
+        color: #ff6b6b;
+      }
+
+      /* Modern Modal Stilleri */
+      .modal-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.85);
+        backdrop-filter: blur(8px);
+        z-index: 9999;
+        align-items: center;
+        justify-content: center;
+      }
+      .modal-content {
+        background: #111;
+        width: 90%;
+        max-width: 550px;
+        border-radius: 20px;
+        border: 1px solid rgba(0, 217, 255, 0.3);
+        overflow: hidden;
+        box-shadow: 0 0 50px rgba(0, 0, 0, 0.5), 0 0 20px rgba(0, 217, 255, 0.1);
+        animation: modalFade 0.3s ease-out;
+      }
+      @keyframes modalFade {
+        from {
+          transform: translateY(-20px);
+          opacity: 0;
+        }
+        to {
+          transform: translateY(0);
+          opacity: 1;
+        }
+      }
+      .modal-header {
+        background: linear-gradient(90deg, #1a1a1a, #222);
+        padding: 20px;
+        border-bottom: 1px solid #333;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .modal-header h2 {
+        color: #00d9ff;
+        margin: 0;
+        font-size: 1.4rem;
+      }
+      .modal-body {
+        padding: 25px;
+        color: #ccc;
+      }
+      .detail-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 12px 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      }
+      .detail-row:last-child {
+        border-bottom: none;
+      }
+      .detail-label {
+        color: #888;
+        font-weight: 600;
+      }
+      .detail-value {
+        color: #fff;
+        text-align: right;
+      }
+      .modal-footer {
+        padding: 20px;
+        background: #1a1a1a;
+      }
+      .close-modal-btn {
+        width: 100%;
+        padding: 12px;
+        background: linear-gradient(90deg, #00d9ff, #7b2fff);
+        border: none;
+        border-radius: 10px;
+        color: white;
+        font-weight: bold;
+        cursor: pointer;
+        transition: 0.3s;
+      }
+      .close-modal-btn:hover {
+        opacity: 0.9;
+        transform: scale(0.98);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="bg-animations">
+      <div class="gradient-orb orb-1"></div>
+      <div class="gradient-orb orb-2"></div>
+      <div class="gradient-orb orb-3"></div>
+    </div>
+
+    <header class="top-bar">
+      <div class="top-bar-left">
+        <div
+          class="logo-container"
+          onclick="window.location.href='anasayfa.html'"
+        >
+          <svg class="logo-icon" viewBox="0 0 24 24" fill="none">
+            <path
+              d="M12 3L4 9V21H20V9L12 3Z"
+              stroke="url(#gradient1)"
+              stroke-width="2"
+            />
+            <path
+              d="M9 21V12H15V21"
+              stroke="url(#gradient1)"
+              stroke-width="2"
+            />
+            <defs>
+              <linearGradient
+                id="gradient1"
+                x1="0%"
+                y1="0%"
+                x2="100%"
+                y2="100%"
+              >
+                <stop
+                  offset="0%"
+                  style="stop-color: #00d9ff; stop-opacity: 1"
+                />
+                <stop
+                  offset="100%"
+                  style="stop-color: #7b2fff; stop-opacity: 1"
+                />
+              </linearGradient>
+            </defs>
+          </svg>
+          <div class="logo-text">
+            <span class="logo-title">Okul Yönetim</span>
+            <span class="logo-subtitle">Lisans Takip</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="top-bar-center">
+        <h2 style="color: white; font-size: 20px; font-weight: 600">
+          🔑 Lisans Yönetimi
+        </h2>
+      </div>
+
+      <div class="top-bar-right">
+        <button
+          class="icon-btn"
+          onclick="window.location.href='anasayfa.html'"
+          title="Ana Sayfa"
+        >
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <main class="page-container">
+      <div class="page-header">
+        <div class="header-left">
+          <h1 class="page-title">
+            <span class="title-icon">📜</span> Lisans Takip & Süreler
+          </h1>
+          <p class="page-description">
+            Okulların lisans sürelerini izleyin ve bitişi yaklaşanları kontrol
+            edin.
+          </p>
+        </div>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div
+            class="stat-icon"
+            style="background: rgba(0, 245, 160, 0.2); color: #00f5a0"
+          >
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+              <polyline points="22 4 12 14.01 9 11.01" />
+            </svg>
+          </div>
+          <div class="stat-content">
+            <div class="stat-label">Aktif Lisanslar</div>
+            <div class="stat-value" id="statAktif">0</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div
+            class="stat-icon"
+            style="background: rgba(255, 217, 61, 0.2); color: #ffd93d"
+          >
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path
+                d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"
+              />
+              <line x1="12" y1="9" x2="12" y2="13" />
+              <line x1="12" y1="17" x2="12.01" y2="17" />
+            </svg>
+          </div>
+          <div class="stat-content">
+            <div class="stat-label">Kritik (30 Gün)</div>
+            <div class="stat-value" id="statKritik">0</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="filter-section">
+        <div class="search-box">
+          <input
+            type="text"
+            id="searchInput"
+            placeholder="Okul adına göre ara..."
+            onkeyup="filtreleLisanslar()"
+          />
+        </div>
+      </div>
+
+      <div class="table-container">
+        <table class="modern-table">
+          <thead>
+            <tr>
+              <th>Okul Kodu</th>
+              <th>Okul Adı</th>
+              <th>Lisans Başlangıç</th>
+              <th>Lisans Bitiş</th>
+              <th>Kalan Süre</th>
+              <th>Durum</th>
+              <th>İşlem</th>
+            </tr>
+          </thead>
+          <tbody id="lisansTbody"></tbody>
+        </table>
+      </div>
+    </main>
+
+    <div id="okulModal" class="modal-overlay">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 id="modalOkulAdi">Okul Detayları</h2>
+          <span style="cursor: pointer; color: #888" onclick="modalKapat()"
+            >✕</span
+          >
+        </div>
+        <div class="modal-body" id="modalDetayIcerik"></div>
+        <div class="modal-footer">
+          <button class="close-modal-btn" onclick="modalKapat()">
+            Anladım
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script src="../bilesenler/bildirim-sistemi.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <script src="lisanslar.js"></script>
+  </body>
+</html>

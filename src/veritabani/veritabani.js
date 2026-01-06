@@ -14,6 +14,8 @@
  * - Solution variant management
  * - Performance tracking
  * - Comprehensive constraint system
+ * - 🔐 PBKDF2 Şifre Hash Sistemi
+ * - 🔒 AES-256 Master DB Şifreleme
  *
  * @author SİMRE/MK
  * @version 3.0.0
@@ -26,15 +28,18 @@ const initSqlJs = require("sql.js");
 const fs = require("fs");
 const path = require("path");
 const os = require("os");
+const crypto = require("crypto"); // ✅ HASH FONKSİYONLARI İÇİN
+const securityManager = require("../utils/security-manager"); // 🔐 Güvenlik modülü
 
 // ============================================
-// GLOBAL DEĞİŞKENLER
+// GLOBAL DEĞİŞKENLER (GÜVENLİK GÜNCELLENDİ)
 // ============================================
 
 let SQL;
 let masterDB = null;
 let activeSchoolDB = null;
 let currentSchoolId = null;
+let currentSchoolCode = null; // 🔒 Aktif okul kodu (güvenlik için)
 
 // Veritabanı klasör yolları
 const belgelerKlasoru = path.join(
@@ -45,11 +50,12 @@ const belgelerKlasoru = path.join(
 const veritabaniKlasoru = path.join(belgelerKlasoru, "Veritabani");
 const yedekKlasoru = path.join(belgelerKlasoru, "Yedekler");
 
-// Master veritabanı yolu
-const masterDbPath = path.join(veritabaniKlasoru, "master.db");
+// 🔐 Master veritabanı yolu (şifrelenmiş, gizli dosya)
+const masterDbPath = path.join(veritabaniKlasoru, ".system.dat.sys");
 
 console.log("📁 Veritabanı Klasörü:", veritabaniKlasoru);
 console.log("📁 Yedek Klasörü:", yedekKlasoru);
+console.log("🔐 Master DB: .system.dat.sys (şifreli)");
 
 // Klasörleri oluştur
 [belgelerKlasoru, veritabaniKlasoru, yedekKlasoru].forEach((klasor) => {
@@ -76,8 +82,8 @@ const DB_CHANGELOG = {
   8: "🔥 program_cozumleri ve programlar tablosu",
   9: "📌 programlar tablosuna ek özellikler",
   10: "✈️ Gezi Planlama Sistemi (10 tablo) - FAZA 1+2+3 hazır",
-  11: "🗓️ Öğretmen Nöbet Sistemi (7 tablo) - Haftalık/Aylık/Dönemlik", // ← YENİ
-  12: "📝 Ortak Sınav (Kelebek) Sistemi (6 tablo) - Kelebek dağıtım, gözetmen, sabitleme", // ← YENİ
+  11: "🗓️ Öğretmen Nöbet Sistemi (7 tablo) - Haftalık/Aylık/Dönemlik",
+  12: "📝 Ortak Sınav (Kelebek) Sistemi (6 tablo) - Kelebek dağıtım, gözetmen, sabitleme",
 };
 
 console.log(`📊 Hedef DB Version: ${CURRENT_DB_VERSION}`);
@@ -100,28 +106,117 @@ async function initDatabase() {
 }
 
 // ============================================
-// MASTER VERİTABANI YÖNETİMİ
+// MASTER VERİTABANI YÖNETİMİ (TAM GÜVENLİK)
 // ============================================
 
+/**
+ * Master veritabanını yükle
+ * ÖNCELİK SIRASI:
+ * 1. .system.dat.sys (şifreli) → Varsa yükle
+ * 2. master.db (düz) → Varsa şifreli formata çevir
+ * 3. Hiçbiri yok → Yeni oluştur
+ */
 async function loadMasterDB() {
   try {
-    if (fs.existsSync(masterDbPath)) {
-      const data = fs.readFileSync(masterDbPath);
-      masterDB = new SQL.Database(data);
-      console.log("✅ Master veritabanı yüklendi");
-    } else {
-      masterDB = new SQL.Database();
-      createMasterTables();
-      createSuperAdmin();
-      saveMasterDB();
-      console.log("✅ Master veritabanı oluşturuldu");
+    console.log("📂 Master veritabanı yükleniyor...");
+
+    const encryptedDbPath = path.join(veritabaniKlasoru, ".system.dat.sys");
+    const oldDbPath = path.join(veritabaniKlasoru, "master.db");
+
+    // ============================================
+    // 1️⃣ ŞİFRELİ DOSYA VAR MI? (ÖNCELİK 1)
+    // ============================================
+    if (fs.existsSync(encryptedDbPath)) {
+      console.log("🔓 Şifreli master DB çözülüyor...");
+
+      try {
+        const encryptedData = fs.readFileSync(encryptedDbPath, "utf8");
+        const masterKey = securityManager.generateMasterKey("Superadmin123!");
+        const base64Data = securityManager.decrypt(encryptedData, masterKey);
+        const binaryData = Buffer.from(base64Data, "base64");
+
+        masterDB = new SQL.Database(binaryData);
+        console.log("✅ Master DB başarıyla yüklendi (şifreli)");
+
+        // ✅ ESKİ DOSYA VARSA SİL (TEMİZLİK)
+        if (fs.existsSync(oldDbPath)) {
+          try {
+            fs.unlinkSync(oldDbPath);
+            console.log("🗑️ Eski master.db temizlendi");
+          } catch (err) {
+            console.warn("⚠️ Eski dosya silinemedi:", err.message);
+          }
+        }
+
+        return;
+      } catch (decryptError) {
+        console.error("❌ Şifre çözme hatası:", decryptError);
+        console.error("⚠️ Şifreli dosya bozuk, yedekten geri yükleniyor...");
+
+        // Bozuk dosyayı yedekle
+        const backupPath = encryptedDbPath + ".corrupted." + Date.now();
+        fs.renameSync(encryptedDbPath, backupPath);
+        console.log("📦 Bozuk dosya yedeklendi:", backupPath);
+
+        // Eski dosya varsa onunla devam et
+        if (!fs.existsSync(oldDbPath)) {
+          throw new Error(
+            "Şifreli dosya bozuk ve yedek bulunamadı! Lütfen veritabanını geri yükleyin."
+          );
+        }
+        // Aşağıdaki 2. adıma düşecek
+      }
     }
+
+    // ============================================
+    // 2️⃣ ESKİ DÜZ DOSYA VAR MI? (ÖNCELİK 2)
+    // ============================================
+    if (fs.existsSync(oldDbPath)) {
+      console.log("🔄 Eski master.db bulundu, şifreli formata çevriliyor...");
+
+      try {
+        const binaryData = fs.readFileSync(oldDbPath);
+        masterDB = new SQL.Database(binaryData);
+
+        console.log("✅ Eski master.db yüklendi");
+
+        // Şifreli olarak kaydet
+        saveMasterDB();
+
+        console.log("✅ Şifreli master DB oluşturuldu (.system.dat.sys)");
+
+        // Eski dosyayı sil
+        fs.unlinkSync(oldDbPath);
+        console.log("🗑️ Eski master.db silindi");
+
+        console.log("🎉 master.db → .system.dat.sys dönüşümü tamamlandı!");
+        return;
+      } catch (conversionError) {
+        console.error("❌ Dönüşüm hatası:", conversionError);
+        throw conversionError;
+      }
+    }
+
+    // ============================================
+    // 3️⃣ HİÇBİRİ YOK - YENİ OLUŞTUR (ÖNCELİK 3)
+    // ============================================
+    console.log("⚠️ Master DB bulunamadı, yeni oluşturuluyor...");
+
+    masterDB = new SQL.Database();
+    createMasterTables();
+    createSuperAdmin();
+    saveMasterDB();
+
+    console.log("✅ Yeni Master DB oluşturuldu ve kaydedildi (şifreli)");
   } catch (error) {
     console.error("❌ Master DB yükleme hatası:", error);
     throw error;
   }
 }
 
+/**
+ * Master tablolarını oluştur
+ */
 function createMasterTables() {
   console.log("📋 Master tablolar oluşturuluyor...");
 
@@ -166,31 +261,133 @@ function createMasterTables() {
   console.log("✅ Master tablolar oluşturuldu");
 }
 
+/**
+ * Superadmin kullanıcısı oluştur
+ */
 function createSuperAdmin() {
   console.log("👤 Super admin oluşturuluyor...");
+
+  // 🔐 ŞİFREYİ HASH'LE
+  const hashedPassword = securityManager.hashPassword("Superadmin123!");
 
   const stmt = masterDB.prepare(`
     INSERT INTO sistem_kullanicilar (kullanici_adi, sifre, ad_soyad, rol)
     VALUES (?, ?, ?, ?)
   `);
 
-  stmt.run(["superadmin", "Super123!", "Sistem Yöneticisi", "super_admin"]);
+  stmt.run(["superadmin", hashedPassword, "Sistem Yöneticisi", "super_admin"]);
   stmt.free();
 
   console.log("✅ Super admin oluşturuldu");
   console.log("🔑 Kullanıcı Adı: superadmin");
-  console.log("🔒 Şifre: Super123!");
+  console.log("🔒 İlk Şifre: Superadmin123!");
 }
 
+/**
+ * Master DB'yi kaydet (şifreleyerek)
+ */
 function saveMasterDB() {
   try {
-    const data = masterDB.export();
-    const buffer = Buffer.from(data);
-    fs.writeFileSync(masterDbPath, buffer);
-    console.log("💾 Master veritabanı kaydedildi");
+    console.log("💾 Master DB kaydediliyor...");
+
+    const encryptedDbPath = path.join(veritabaniKlasoru, ".system.dat.sys");
+
+    // ✅ ÖNCE DOSYA İZİNLERİNİ KALDIR
+    if (fs.existsSync(encryptedDbPath)) {
+      try {
+        if (process.platform === "win32") {
+          const { execSync } = require("child_process");
+          execSync(`attrib -h -s "${encryptedDbPath}"`, { stdio: "ignore" });
+          console.log("🔓 Dosya izinleri kaldırıldı");
+        }
+      } catch (err) {
+        console.warn("⚠️ İzin kaldırma hatası:", err.message);
+      }
+    }
+
+    // Veritabanını export et
+    const binaryData = masterDB.export();
+    const base64Data = Buffer.from(binaryData).toString("base64");
+
+    // Master key ile şifrele
+    const masterKey = securityManager.generateMasterKey("Superadmin123!");
+    const encryptedData = securityManager.encrypt(base64Data, masterKey);
+
+    // Dosyaya yaz
+    fs.writeFileSync(encryptedDbPath, encryptedData, "utf8");
+
+    // ✅ SONRA TEKRAR GİZLE
+    if (process.platform === "win32") {
+      try {
+        const { execSync } = require("child_process");
+        execSync(`attrib +h +s "${encryptedDbPath}"`, { stdio: "ignore" });
+        console.log("🔒 Dosya tekrar gizlendi");
+      } catch (err) {
+        console.warn("⚠️ Gizleme hatası:", err.message);
+      }
+    }
+
+    console.log("✅ Master DB başarıyla kaydedildi");
   } catch (error) {
-    console.error("❌ Master DB kaydetme hatası:", error);
+    console.error("❌ Master DB kayıt hatası:", error);
     throw error;
+  }
+}
+
+/**
+ * 🛠️ OKULU MASTER DB'YE ZORLA KAYDET (TAMİR MODU + DERİN DEBUG)
+ */
+async function repairSchoolRecord(license) {
+  try {
+    console.log("--- [DEBUG: REPAIR BAŞLADI] ---");
+    console.log("📍 İşlenen Okul Kodu:", license.okul_kodu);
+    console.log(
+      "🔑 Lisanstaki Şifre/Hash:",
+      license.sifre ? "MEVCUT" : "EKSİK!"
+    );
+
+    // Geçerli tarihleri hazırla
+    const baslangic = new Date().toISOString();
+    const bitis = new Date(license.gecerlilik || new Date()).toISOString();
+    const dbFileName = `okul_${license.okul_kodu}.db`;
+
+    console.log(`📂 DB Dosya Adı: ${dbFileName}`);
+
+    // Master DB içinde okulu güncelle veya yeniden oluştur
+    const stmt = masterDB.prepare(`
+      INSERT OR REPLACE INTO okullar (
+        okul_kodu, okul_adi, sifre, veritabani_dosyasi,
+        lisans_baslangic, lisans_bitis, durum
+      ) VALUES (?, ?, ?, ?, ?, ?, 1)
+    `);
+
+    stmt.run([
+      String(license.okul_kodu),
+      license.okul_adi,
+      license.sifre, // Lisanstaki mevcut hashli şifre
+      dbFileName,
+      baslangic,
+      bitis,
+    ]);
+    stmt.free();
+
+    // Kaydet ve doğrula
+    saveMasterDB();
+
+    // Doğrulama logu
+    const checkRow = masterDB
+      .prepare("SELECT * FROM okullar WHERE okul_kodu = ?")
+      .get(String(license.okul_kodu));
+    console.log(
+      "📊 Master DB Son Kayıt Durumu:",
+      checkRow ? "BAŞARILI" : "KAYIT BAŞARISIZ!"
+    );
+    console.log("--- [DEBUG: REPAIR TAMAMLANDI] ---");
+
+    return true;
+  } catch (error) {
+    console.error("❌ [REPAIR KRİTİK HATA]:", error);
+    return false;
   }
 }
 
@@ -348,6 +545,23 @@ function createSchoolTables(db) {
       FOREIGN KEY (ders_id) REFERENCES dersler(id) ON DELETE CASCADE,
       FOREIGN KEY (ogretmen_id) REFERENCES ogretmenler(id) ON DELETE CASCADE,
       UNIQUE(ders_id, ogretmen_id)
+    )
+  `);
+
+  // ✅ SINİF-DERS-ÖĞRETMEN TABLOSU (EKLENDİ!)
+  db.run(`
+    CREATE TABLE IF NOT EXISTS sinif_ders_ogretmen (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      sinif_id INTEGER NOT NULL,
+      ders_id INTEGER NOT NULL,
+      ogretmen_id INTEGER,
+      haftalik_ders_saati INTEGER DEFAULT 0,
+      program_id INTEGER,
+      olusturma_tarihi TEXT DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (sinif_id) REFERENCES siniflar(id) ON DELETE CASCADE,
+      FOREIGN KEY (ders_id) REFERENCES dersler(id) ON DELETE CASCADE,
+      FOREIGN KEY (ogretmen_id) REFERENCES ogretmenler(id) ON DELETE SET NULL,
+      UNIQUE(sinif_id, ders_id)
     )
   `);
 
@@ -837,102 +1051,184 @@ function createSchoolTables(db) {
   console.log("✅ Nöbet sistemi tabloları oluşturuldu");
 
   // ==========================================
-  // ORTAK SINAV (KELEBEK) SİSTEMİ TABLOLARI
+  // ORTAK SINAV (KELEBEK) SİSTEMİ TABLOLARI (GÜNCELLENMİŞ)
   // ==========================================
 
   // Ortak Sınav Planları
   db.run(`
-    CREATE TABLE IF NOT EXISTS ortak_sinav_planlar (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      plan_adi TEXT NOT NULL,
-      sira_sayisi INTEGER NOT NULL DEFAULT 8,
-      sutun_sayisi INTEGER NOT NULL DEFAULT 5,
-      toplam_kapasite INTEGER NOT NULL,
-      duzeni TEXT NOT NULL DEFAULT 'Z',
-      durum INTEGER DEFAULT 1,
-      olusturma_tarihi TEXT DEFAULT CURRENT_TIMESTAMP,
-      guncelleme_tarihi TEXT DEFAULT CURRENT_TIMESTAMP
-    )
-  `);
+  CREATE TABLE IF NOT EXISTS ortak_sinav_planlar (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    plan_adi TEXT NOT NULL,
+    sira_sayisi INTEGER NOT NULL DEFAULT 8,
+    sutun_sayisi INTEGER NOT NULL DEFAULT 5,
+    toplam_kapasite INTEGER NOT NULL,
+    duzeni TEXT NOT NULL DEFAULT 'Z',
+    durum INTEGER DEFAULT 1,
+    olusturma_tarihi TEXT DEFAULT CURRENT_TIMESTAMP,
+    guncelleme_tarihi TEXT DEFAULT CURRENT_TIMESTAMP
+  )
+`);
 
-  // Ortak Sınav Salonları
+  // Ortak Sınav Salonları (GÜNCELLENDİ: satir_sayisi, sutun_sayisi eklendi)
   db.run(`
-    CREATE TABLE IF NOT EXISTS ortak_sinav_salonlar (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      salon_adi TEXT NOT NULL,
-      plan_id INTEGER,
-      kapasite INTEGER NOT NULL,
-      durum INTEGER DEFAULT 1,
-      olusturma_tarihi TEXT DEFAULT CURRENT_TIMESTAMP,
-      guncelleme_tarihi TEXT DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (plan_id) REFERENCES ortak_sinav_planlar(id)
-    )
-  `);
+  CREATE TABLE IF NOT EXISTS ortak_sinav_salonlar (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    salon_adi TEXT NOT NULL,
+    plan_id INTEGER,
+    kapasite INTEGER NOT NULL,
+    satir_sayisi INTEGER DEFAULT 8,
+    sutun_sayisi INTEGER DEFAULT 5,
+    durum INTEGER DEFAULT 1,
+    olusturma_tarihi TEXT DEFAULT CURRENT_TIMESTAMP,
+    guncelleme_tarihi TEXT DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (plan_id) REFERENCES ortak_sinav_planlar(id)
+  )
+`);
 
-  // Ortak Sınavlar
+  // Ortak Sınavlar (GÜNCELLENDİ: sinif_id eklendi)
   db.run(`
-    CREATE TABLE IF NOT EXISTS ortak_sinavlar (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      sinav_kodu TEXT NOT NULL UNIQUE,
-      sinav_turu TEXT NOT NULL,
-      sinav_adi TEXT NOT NULL,
-      sinav_tarihi TEXT NOT NULL,
-      sinav_saati TEXT NOT NULL,
-      sinif_seviyesi TEXT NOT NULL,
-      sinav_donemi TEXT NOT NULL,
-      sinav_no TEXT NOT NULL,
-      aciklama TEXT,
-      mazeret_telafi INTEGER DEFAULT 0,
-      kilitli INTEGER DEFAULT 0,
-      durum INTEGER DEFAULT 1,
-      olusturma_tarihi TEXT DEFAULT CURRENT_TIMESTAMP,
-      guncelleme_tarihi TEXT DEFAULT CURRENT_TIMESTAMP
-    )
-  `);
+  CREATE TABLE IF NOT EXISTS ortak_sinavlar (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    sinav_kodu TEXT NOT NULL UNIQUE,
+    sinav_turu TEXT NOT NULL,
+    sinav_adi TEXT NOT NULL,
+    sinav_tarihi TEXT NOT NULL,
+    sinav_saati TEXT NOT NULL,
+    sinif_seviyesi TEXT NOT NULL,
+    sinif_id INTEGER,
+    sinav_donemi TEXT NOT NULL,
+    sinav_no TEXT NOT NULL,
+    aciklama TEXT,
+    mazeret_telafi INTEGER DEFAULT 0,
+    kilitli INTEGER DEFAULT 0,
+    durum INTEGER DEFAULT 1,
+    olusturma_tarihi TEXT DEFAULT CURRENT_TIMESTAMP,
+    guncelleme_tarihi TEXT DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (sinif_id) REFERENCES classes(id)
+  )
+`);
 
   // Ortak Sınav Açıklamaları
   db.run(`
-    CREATE TABLE IF NOT EXISTS ortak_sinav_aciklamalar (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      aciklama TEXT NOT NULL,
-      sira INTEGER NOT NULL,
-      olusturma_tarihi TEXT DEFAULT CURRENT_TIMESTAMP
-    )
-  `);
+  CREATE TABLE IF NOT EXISTS ortak_sinav_aciklamalar (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    aciklama TEXT NOT NULL,
+    sira INTEGER NOT NULL,
+    olusturma_tarihi TEXT DEFAULT CURRENT_TIMESTAMP
+  )
+`);
 
-  // Ortak Sınav Dağıtım
+  // Ortak Sınav Dağıtım (GÜNCELLENDİ: satir_index, sutun_index eklendi)
   db.run(`
-    CREATE TABLE IF NOT EXISTS ortak_sinav_dagitim (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      sinav_id INTEGER NOT NULL,
-      ogrenci_id INTEGER NOT NULL,
-      salon_id INTEGER NOT NULL,
-      sira_no INTEGER NOT NULL,
-      sutun_no INTEGER NOT NULL,
-      sabitle INTEGER DEFAULT 0,
-      olusturma_tarihi TEXT DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (sinav_id) REFERENCES ortak_sinavlar(id) ON DELETE CASCADE,
-      FOREIGN KEY (ogrenci_id) REFERENCES ogrenciler(id) ON DELETE CASCADE,
-      FOREIGN KEY (salon_id) REFERENCES ortak_sinav_salonlar(id) ON DELETE CASCADE
-    )
-  `);
+  CREATE TABLE IF NOT EXISTS ortak_sinav_dagitim (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    sinav_id INTEGER NOT NULL,
+    ogrenci_id INTEGER NOT NULL,
+    salon_id INTEGER NOT NULL,
+    sira_no INTEGER NOT NULL,
+    satir_index INTEGER,
+    sutun_index INTEGER,
+    sabitle INTEGER DEFAULT 0,
+    yoklama_durumu TEXT DEFAULT 'Bekleniyor',
+    olusturma_tarihi TEXT DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (sinav_id) REFERENCES ortak_sinavlar(id) ON DELETE CASCADE,
+    FOREIGN KEY (ogrenci_id) REFERENCES ogrenciler(id) ON DELETE CASCADE,
+    FOREIGN KEY (salon_id) REFERENCES ortak_sinav_salonlar(id) ON DELETE CASCADE
+  )
+`);
 
-  // Ortak Sınav Gözetmenler
+  // Ortak Sınav Gözetmenler (GÜNCELLENDİ: gorev_puani, branş_uyumu eklendi)
   db.run(`
-    CREATE TABLE IF NOT EXISTS ortak_sinav_gozetmenler (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      sinav_id INTEGER NOT NULL,
-      ogretmen_id INTEGER NOT NULL,
-      salon_id INTEGER NOT NULL,
-      gorev_turu TEXT NOT NULL,
-      olusturma_tarihi TEXT DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (sinav_id) REFERENCES ortak_sinavlar(id) ON DELETE CASCADE,
-      FOREIGN KEY (ogretmen_id) REFERENCES ogretmenler(id) ON DELETE CASCADE,
-      FOREIGN KEY (salon_id) REFERENCES ortak_sinav_salonlar(id) ON DELETE CASCADE
-    )
-  `);
+  CREATE TABLE IF NOT EXISTS ortak_sinav_gozetmenler (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    sinav_id INTEGER NOT NULL,
+    ogretmen_id INTEGER NOT NULL,
+    salon_id INTEGER NOT NULL,
+    gorev_turu TEXT NOT NULL,
+    gorev_puani INTEGER DEFAULT 0,
+    brans_uyumu INTEGER DEFAULT 1,
+    gorev_baslangic TEXT,
+    gorev_bitis TEXT,
+    dijital_imza TEXT,
+    olusturma_tarihi TEXT DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (sinav_id) REFERENCES ortak_sinavlar(id) ON DELETE CASCADE,
+    FOREIGN KEY (ogretmen_id) REFERENCES ogretmenler(id) ON DELETE CASCADE,
+    FOREIGN KEY (salon_id) REFERENCES ortak_sinav_salonlar(id) ON DELETE CASCADE
+  )
+`);
 
-  console.log("✅ Ortak sınav (kelebek) tabloları oluşturuldu");
+  // 🆕 YENİ TABLO: Öğrenci Yoklama ve Disiplin Kayıtları
+  db.run(`
+  CREATE TABLE IF NOT EXISTS sinav_yoklama_kayitlari (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    sinav_id INTEGER NOT NULL,
+    ogrenci_id INTEGER NOT NULL,
+    salon_id INTEGER NOT NULL,
+    yoklama_durumu TEXT NOT NULL,
+    yoklama_saati TEXT,
+    gozetmen_id INTEGER,
+    disiplin_turu TEXT,
+    disiplin_aciklama TEXT,
+    kanitlar TEXT,
+    olusturma_tarihi TEXT DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (sinav_id) REFERENCES ortak_sinavlar(id) ON DELETE CASCADE,
+    FOREIGN KEY (ogrenci_id) REFERENCES ogrenciler(id) ON DELETE CASCADE,
+    FOREIGN KEY (salon_id) REFERENCES ortak_sinav_salonlar(id) ON DELETE CASCADE,
+    FOREIGN KEY (gozetmen_id) REFERENCES ogretmenler(id)
+  )
+`);
+
+  // 🆕 YENİ TABLO: QR Kod Kayıtları
+  db.run(`
+  CREATE TABLE IF NOT EXISTS sinav_qr_kodlari (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    sinav_id INTEGER NOT NULL,
+    qr_turu TEXT NOT NULL,
+    hedef_id INTEGER NOT NULL,
+    qr_data TEXT NOT NULL,
+    qr_hash TEXT NOT NULL UNIQUE,
+    kullanim_sayisi INTEGER DEFAULT 0,
+    son_kullanim TEXT,
+    olusturma_tarihi TEXT DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (sinav_id) REFERENCES ortak_sinavlar(id) ON DELETE CASCADE
+  )
+`);
+
+  // 🆕 YENİ TABLO: Öğretmen Görev Puanları
+  db.run(`
+  CREATE TABLE IF NOT EXISTS ogretmen_gorev_puanlari (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    ogretmen_id INTEGER NOT NULL,
+    donem TEXT NOT NULL,
+    toplam_gorev_sayisi INTEGER DEFAULT 0,
+    toplam_gorev_dakika INTEGER DEFAULT 0,
+    son_gorev_tarihi TEXT,
+    guncelleme_tarihi TEXT DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (ogretmen_id) REFERENCES ogretmenler(id) ON DELETE CASCADE,
+    UNIQUE(ogretmen_id, donem)
+  )
+`);
+
+  // 🆕 YENİ TABLO: Sınav Kontrol Paneli Uyarıları
+  db.run(`
+  CREATE TABLE IF NOT EXISTS sinav_kontrol_uyarilari (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    sinav_id INTEGER NOT NULL,
+    uyari_turu TEXT NOT NULL,
+    uyari_mesaji TEXT NOT NULL,
+    uyari_seviyesi TEXT NOT NULL,
+    cozuldu INTEGER DEFAULT 0,
+    olusturma_tarihi TEXT DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (sinav_id) REFERENCES ortak_sinavlar(id) ON DELETE CASCADE
+  )
+`);
+
+  console.log("✅ Ortak sınav (kelebek) tabloları oluşturuldu (ENHANCED)");
+  console.log("✅ 4 YENİ TABLO eklendi:");
+  console.log("   • sinav_yoklama_kayitlari (Dijital Yoklama)");
+  console.log("   • sinav_qr_kodlari (QR Kod Sistemi)");
+  console.log("   • ogretmen_gorev_puanlari (Akıllı Dağıtım)");
+  console.log("   • sinav_kontrol_uyarilari (Kontrol Paneli)");
 
   // ==========================================
   // VERİTABANI VERSİYON TABLOSU
@@ -1266,10 +1562,34 @@ const migrations = {
    * Versiyon 6: 🔥 sinif_ders_ogretmen tablosuna eksik sütunlar
    */
   6: (db) => {
-    console.log(
-      "📋 Migration v6: 🔥 sinif_ders_ogretmen tablosuna sütunlar ekleniyor..."
-    );
+    console.log("📋 Migration v6: 🔥 sinif_ders_ogretmen kontrol ediliyor...");
+
     try {
+      // ✅ ÖNCE TABLO VAR MI KONTROL ET
+      if (!tableExists(db, "sinif_ders_ogretmen")) {
+        console.log("⚠️ sinif_ders_ogretmen tablosu yok, oluşturuluyor...");
+
+        db.run(`
+        CREATE TABLE IF NOT EXISTS sinif_ders_ogretmen (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          sinif_id INTEGER NOT NULL,
+          ders_id INTEGER NOT NULL,
+          ogretmen_id INTEGER,
+          haftalik_ders_saati INTEGER DEFAULT 0,
+          program_id INTEGER,
+          olusturma_tarihi TEXT DEFAULT CURRENT_TIMESTAMP,
+          FOREIGN KEY (sinif_id) REFERENCES siniflar(id) ON DELETE CASCADE,
+          FOREIGN KEY (ders_id) REFERENCES dersler(id) ON DELETE CASCADE,
+          FOREIGN KEY (ogretmen_id) REFERENCES ogretmenler(id) ON DELETE SET NULL,
+          UNIQUE(sinif_id, ders_id)
+        )
+      `);
+
+        console.log("✅ sinif_ders_ogretmen tablosu oluşturuldu");
+        return true;
+      }
+
+      // ✅ TABLO VARSA SÜTUNLARI KONTROL ET
       let changed = false;
 
       // program_id ekle
@@ -1291,7 +1611,7 @@ const migrations = {
       if (changed) {
         console.log("✅ sinif_ders_ogretmen tablosu güncellendi");
       } else {
-        console.log("ℹ️ Sütunlar zaten mevcut");
+        console.log("ℹ️ Tüm sütunlar mevcut");
       }
 
       return true;
@@ -2260,11 +2580,62 @@ function autoRunMigrations(db, schoolCode) {
   return migrationSuccess;
 }
 // ============================================
+// 🔐 ŞİFRE HASH SİSTEMİ (PBKDF2)
+// ============================================
+
+/**
+ * Kullanıcı şifresini hash'le (PBKDF2)
+ * @param {string} plainPassword - Düz metin şifre
+ * @returns {string} salt:hash formatında hash'lenmiş şifre
+ */
+function hashUserPassword(plainPassword) {
+  try {
+    const salt = crypto.randomBytes(16).toString("hex");
+    const hash = crypto
+      .pbkdf2Sync(plainPassword, salt, 100000, 64, "sha512")
+      .toString("hex");
+
+    return `${salt}:${hash}`;
+  } catch (error) {
+    console.error("❌ Şifre hash hatası:", error);
+    throw new Error("Şifre hash'lenemedi!");
+  }
+}
+
+/**
+ * Hash'lenmiş şifreyi doğrula
+ * @param {string} plainPassword - Düz metin şifre
+ * @param {string} hashedPassword - salt:hash formatında hash'lenmiş şifre
+ * @returns {boolean} Şifre doğru mu?
+ */
+function verifyUserPassword(plainPassword, hashedPassword) {
+  try {
+    const [salt, originalHash] = hashedPassword.split(":");
+
+    if (!salt || !originalHash) {
+      console.error("❌ Geçersiz hash formatı!");
+      return false;
+    }
+
+    const hash = crypto
+      .pbkdf2Sync(plainPassword, salt, 100000, 64, "sha512")
+      .toString("hex");
+
+    return hash === originalHash;
+  } catch (error) {
+    console.error("❌ Şifre doğrulama hatası:", error);
+    return false;
+  }
+}
+
+console.log("🔐 Şifre hash sistemi yüklendi (PBKDF2 - 100000 iterasyon)");
+
+// ============================================
 // OKUL YÖNETİMİ FONKSİYONLARI
 // ============================================
 
 /**
- * Yeni okul oluştur
+ * Yeni okul oluştur (TAM HASH SİSTEMİ + SOFT DELETE KONTROLÜ)
  */
 async function createSchool(okulBilgileri) {
   try {
@@ -2278,19 +2649,73 @@ async function createSchool(okulBilgileri) {
       };
     }
 
-    // Okul kodu benzersiz mi kontrol et
+    // ✅ Okul kodu kontrol (AKTİF + SİLİNMİŞ)
     const checkStmt = masterDB.prepare(
-      "SELECT id FROM okullar WHERE okul_kodu = ? AND durum = 1"
+      "SELECT id, durum FROM okullar WHERE okul_kodu = ?"
     );
     checkStmt.bind([okulBilgileri.okul_kodu]);
 
     if (checkStmt.step()) {
+      const existingSchool = checkStmt.getAsObject();
       checkStmt.free();
-      return { success: false, message: "Bu okul kodu zaten kayıtlı!" };
+
+      // ✅ AKTİF OKUL VAR MI?
+      if (existingSchool.durum === 1) {
+        return { success: false, message: "Bu okul kodu zaten kayıtlı!" };
+      }
+
+      // ✅ SİLİNMİŞ OKUL - YENİDEN AKTİFLEŞTİR
+      console.log("⚠️ Silinmiş okul bulundu, yeniden aktifleştiriliyor...");
+
+      const baslangic = new Date();
+      const bitis = new Date();
+      bitis.setFullYear(bitis.getFullYear() + 1);
+
+      const updateStmt = masterDB.prepare(`
+        UPDATE okullar 
+        SET okul_adi = ?, sifre = ?, 
+            il = ?, ilce = ?, adres = ?, telefon = ?, email = ?,
+            yetkili_ad = ?, yetkili_unvan = ?,
+            lisans_baslangic = ?, lisans_bitis = ?,
+            durum = 1, guncelleme_tarihi = ?
+        WHERE id = ?
+      `);
+
+      updateStmt.run([
+        okulBilgileri.okul_adi,
+        okulBilgileri.okul_sifre,
+        okulBilgileri.il || "",
+        okulBilgileri.ilce || "",
+        okulBilgileri.adres || "",
+        okulBilgileri.telefon || "",
+        okulBilgileri.email || "",
+        okulBilgileri.yetkili_ad || "",
+        okulBilgileri.yetkili_unvan || "",
+        baslangic.toISOString(),
+        bitis.toISOString(),
+        new Date().toISOString(),
+        existingSchool.id,
+      ]);
+      updateStmt.free();
+
+      saveMasterDB();
+
+      console.log("✅ Silinmiş okul yeniden aktifleştirildi");
+
+      return {
+        success: true,
+        message: "Okul başarıyla oluşturuldu (yeniden aktifleştirildi)",
+        data: {
+          okul_kodu: okulBilgileri.okul_kodu,
+          admin_kullanici: "admin",
+          admin_sifre: okulBilgileri.admin_sifre,
+          lisans_bitis: bitis.toLocaleDateString("tr-TR"),
+        },
+      };
     }
     checkStmt.free();
 
-    // Lisans tarihleri
+    // ✅ YENİ OKUL OLUŞTUR (NORMAL AKIŞ)
     const baslangic = new Date();
     const bitis = new Date();
     bitis.setFullYear(bitis.getFullYear() + 1);
@@ -2303,22 +2728,22 @@ async function createSchool(okulBilgileri) {
     const schoolDB = new SQL.Database();
     createSchoolTables(schoolDB);
 
-    // 🚀 Migration'ları çalıştır
+    // 🚀 Migration'ları çalıştır (v12'ye kadar)
     console.log("🔄 Yeni okul için migration'lar çalıştırılıyor...");
     runMigrations(schoolDB);
 
-    // Okul admin kullanıcısı oluştur
+    // ✅ Okul admin kullanıcısı oluştur (HASH İLE)
+    console.log("👤 Admin kullanıcısı oluşturuluyor (hash ile)...");
+    const hashedPassword = hashUserPassword(okulBilgileri.admin_sifre);
+
     const adminStmt = schoolDB.prepare(`
       INSERT INTO kullanicilar (kullanici_adi, sifre, ad_soyad, rol)
       VALUES (?, ?, ?, ?)
     `);
-    adminStmt.run([
-      "admin",
-      okulBilgileri.admin_sifre,
-      "Okul Yöneticisi",
-      "okul_admin",
-    ]);
+    adminStmt.run(["admin", hashedPassword, "Okul Yöneticisi", "admin"]);
     adminStmt.free();
+
+    console.log("✅ Admin kullanıcısı oluşturuldu (şifre hash'lendi)");
 
     // Okul veritabanını kaydet
     const data = schoolDB.export();
@@ -2358,7 +2783,11 @@ async function createSchool(okulBilgileri) {
     console.log("✅ Okul başarıyla oluşturuldu");
     console.log("🔑 Okul Kodu:", okulBilgileri.okul_kodu);
     console.log("👤 Admin Kullanıcı: admin");
-    console.log("🔒 Admin Şifre:", okulBilgileri.admin_sifre);
+    console.log("🔒 Admin Şifre (DÜZ):", okulBilgileri.admin_sifre);
+    console.log(
+      "🔐 Admin Şifre (HASH):",
+      hashedPassword.substring(0, 20) + "..."
+    );
 
     return {
       success: true,
@@ -2375,17 +2804,22 @@ async function createSchool(okulBilgileri) {
     return { success: false, message: error.message };
   }
 }
-
 /**
- * Okul listesini getir
+ * Okul listesini getir (ŞİFRE DAHİL)
  */
 function getAllSchools() {
   try {
-    console.log("📋 Okul listesi istendi");
+    console.log("📋 === GET ALL SCHOOLS (veritabani.js) ===");
 
+    if (!masterDB) {
+      console.error("❌ Master DB yok!");
+      return { success: false, message: "Master veritabanı yüklenmedi" };
+    }
+
+    // ✅ ŞİFRE ALANI EKLENDİ
     const stmt = masterDB.prepare(`
       SELECT 
-        id, okul_kodu, okul_adi, il, ilce,
+        id, okul_kodu, okul_adi, sifre, il, ilce,
         yetkili_ad, yetkili_unvan, telefon, email,
         adres, lisans_baslangic, lisans_bitis, durum,
         olusturma_tarihi
@@ -2411,6 +2845,13 @@ function getAllSchools() {
     stmt.free();
 
     console.log(`✅ ${schools.length} okul bulundu`);
+
+    if (schools.length > 0) {
+      console.log("🔑 İlk okul şifresi:", schools[0].sifre || "❌ BOŞ");
+    }
+
+    console.log("=".repeat(60));
+
     return { success: true, data: schools };
   } catch (error) {
     console.error("❌ Okul listesi hatası:", error);
@@ -2423,7 +2864,10 @@ function getAllSchools() {
  */
 function updateSchool(okulId, guncelBilgiler) {
   try {
-    console.log("✏️ Okul güncelleniyor:", okulId);
+    console.log("=".repeat(60));
+    console.log("✏️ OKUL GÜNCELLEME (veritabani.js)");
+    console.log("📋 Okul ID:", okulId);
+    console.log("📝 Güncel bilgiler:", guncelBilgiler);
 
     const checkStmt = masterDB.prepare("SELECT id FROM okullar WHERE id = ?");
     checkStmt.bind([parseInt(okulId)]);
@@ -2450,13 +2894,19 @@ function updateSchool(okulId, guncelBilgiler) {
 
     const sql = `UPDATE okullar SET ${updateFields.join(", ")} WHERE id = ?`;
 
+    console.log("📝 SQL:", sql);
+    console.log("📊 Values:", values);
+
     const stmt = masterDB.prepare(sql);
     stmt.run(values);
     stmt.free();
 
+    // ✅ MASTER DB KAYDET (ÖNEMLİ!)
     saveMasterDB();
 
-    console.log("✅ Okul güncellendi");
+    console.log("✅ Okul güncellendi ve Master DB kaydedildi");
+    console.log("=".repeat(60));
+
     return { success: true, message: "Okul başarıyla güncellendi!" };
   } catch (error) {
     console.error("❌ Okul güncelleme hatası:", error);
@@ -2465,14 +2915,14 @@ function updateSchool(okulId, guncelBilgiler) {
 }
 
 /**
- * Okul sil (soft delete)
+ * Okul sil (HARD DELETE - Kalıcı Silme)
  */
 function deleteSchool(okulId) {
   try {
-    console.log("🗑️ Okul siliniyor:", okulId);
+    console.log("🗑️ Okul siliniyor (HARD DELETE):", okulId);
 
     const checkStmt = masterDB.prepare(
-      "SELECT okul_adi FROM okullar WHERE id = ?"
+      "SELECT okul_adi, okul_kodu, veritabani_dosyasi FROM okullar WHERE id = ?"
     );
     checkStmt.bind([parseInt(okulId)]);
 
@@ -2481,19 +2931,32 @@ function deleteSchool(okulId) {
       return { success: false, message: "Okul bulunamadı!" };
     }
 
-    const okulAdi = checkStmt.getAsObject().okul_adi;
+    const school = checkStmt.getAsObject();
     checkStmt.free();
 
-    const deleteStmt = masterDB.prepare(
-      "UPDATE okullar SET durum = 0, guncelleme_tarihi = ? WHERE id = ?"
-    );
-    deleteStmt.run([new Date().toISOString(), parseInt(okulId)]);
+    // ✅ MASTER DB'DEN SİL
+    const deleteStmt = masterDB.prepare("DELETE FROM okullar WHERE id = ?");
+    deleteStmt.run([parseInt(okulId)]);
     deleteStmt.free();
 
     saveMasterDB();
 
-    console.log("✅ Okul silindi:", okulAdi);
-    return { success: true, message: "Okul başarıyla silindi!" };
+    // ✅ OKUL VERİTABANI DOSYASINI SİL (OPSİYONEL)
+    const dbPath = path.join(veritabaniKlasoru, school.veritabani_dosyasi);
+    if (fs.existsSync(dbPath)) {
+      try {
+        fs.unlinkSync(dbPath);
+        console.log(
+          "✅ Okul veritabanı dosyası silindi:",
+          school.veritabani_dosyasi
+        );
+      } catch (err) {
+        console.warn("⚠️ Okul DB dosyası silinemedi:", err.message);
+      }
+    }
+
+    console.log("✅ Okul kalıcı olarak silindi:", school.okul_adi);
+    return { success: true, message: "Okul kalıcı olarak silindi!" };
   } catch (error) {
     console.error("❌ Okul silme hatası:", error);
     return { success: false, message: error.message };
@@ -2501,27 +2964,48 @@ function deleteSchool(okulId) {
 }
 
 // ============================================
-// GİRİŞ YÖNETİMİ
+// GİRİŞ YÖNETİMİ (TAM HASH SİSTEMİ)
 // ============================================
 
 /**
- * Okul girişi (geliştirilmiş)
+ * Okul girişi (HASH DOĞRULAMA İLE)
  */
 async function loginSchool(okulKodu, kullaniciAdi, sifre) {
   try {
     console.log("🔐 Giriş denemesi:", okulKodu, kullaniciAdi);
 
-    // Super admin girişi
+    // 🔒 ERİŞİM KONTROLÜ
+    if (
+      currentSchoolId &&
+      currentSchoolCode &&
+      currentSchoolCode !== okulKodu
+    ) {
+      console.warn("⚠️ Yetkisiz DB erişim denemesi engellendi!");
+      return {
+        success: false,
+        message: "Başka bir okulun veritabanına erişim yetkiniz yok!",
+      };
+    }
+
+    // 1. Super admin girişi
     if (okulKodu === "000000" || okulKodu === "SISTEM") {
       const stmt = masterDB.prepare(`
         SELECT * FROM sistem_kullanicilar 
-        WHERE kullanici_adi = ? AND sifre = ? AND durum = 1
+        WHERE kullanici_adi = ? AND durum = 1
       `);
-      stmt.bind([kullaniciAdi, sifre]);
+      stmt.bind([kullaniciAdi]);
 
       if (stmt.step()) {
         const user = stmt.getAsObject();
         stmt.free();
+
+        // ✅ HASH KONTROLÜ
+        if (!securityManager.verifyPassword(sifre, user.sifre)) {
+          return {
+            success: false,
+            message: "Kullanıcı adı veya şifre hatalı!",
+          };
+        }
 
         masterDB.run(
           "UPDATE sistem_kullanicilar SET son_giris = ? WHERE id = ?",
@@ -2545,7 +3029,7 @@ async function loginSchool(okulKodu, kullaniciAdi, sifre) {
       return { success: false, message: "Kullanıcı adı veya şifre hatalı!" };
     }
 
-    // Okul kontrolü
+    // 2. Okul kontrolü
     const schoolStmt = masterDB.prepare(`
       SELECT * FROM okullar 
       WHERE okul_kodu = ? AND durum = 1
@@ -2554,13 +3038,16 @@ async function loginSchool(okulKodu, kullaniciAdi, sifre) {
 
     if (!schoolStmt.step()) {
       schoolStmt.free();
-      return { success: false, message: "Okul bulunamadı!" };
+      return {
+        success: false,
+        message: "Okul bulunamadı! Lütfen önce lisans dosyasını yükleyin.",
+      };
     }
 
     const school = schoolStmt.getAsObject();
     schoolStmt.free();
 
-    // Lisans kontrolü
+    // 3. Lisans kontrolü
     let kalanGun = null;
     let lisansBitisTarihi = null;
     let lisansBitisFormatted = null;
@@ -2585,58 +3072,86 @@ async function loginSchool(okulKodu, kullaniciAdi, sifre) {
               message: "Lisansınızın süresi dolmuştur!",
             };
           }
-        } else {
-          console.warn("⚠️ Lisans tarihi geçersiz:", school.lisans_bitis);
         }
       } catch (error) {
-        console.error(
-          "❌ Lisans tarihi parse edilemedi:",
-          school.lisans_bitis,
-          error
-        );
+        console.error("❌ Lisans tarihi parse edilemedi:", error);
       }
     }
 
-    // Okul veritabanını yükle
+    // 4. 🔥 OKUL VERİTABANI YÖNETİMİ
     const dbPath = path.join(veritabaniKlasoru, school.veritabani_dosyasi);
+    let isInitialSetup = false;
 
     if (!fs.existsSync(dbPath)) {
-      return { success: false, message: "Okul veritabanı bulunamadı!" };
+      console.warn("🚀 [İLK KURULUM]: Veritabanı oluşturuluyor...");
+      isInitialSetup = true;
+
+      // A. Yeni DB oluştur
+      activeSchoolDB = new SQL.Database();
+
+      // B. Tablo mimarisini inşa et
+      createSchoolTables(activeSchoolDB);
+
+      // C. Migration'ları çalıştır (v12'ye kadar)
+      console.log("🔄 Tabloları v12'ye güncelliyor...");
+      runMigrations(activeSchoolDB);
+
+      // D. ✅ İlk kullanıcıyı yetkilendir (HASH İLE)
+      console.log("👤 İlk admin oluşturuluyor (hash ile)...");
+      const hashedPassword = hashUserPassword(sifre);
+
+      const insertUserStmt = activeSchoolDB.prepare(`
+        INSERT INTO kullanicilar (kullanici_adi, sifre, ad_soyad, rol)
+        VALUES (?, ?, ?, ?)
+      `);
+      insertUserStmt.run([
+        kullaniciAdi,
+        hashedPassword,
+        "Okul Yöneticisi",
+        "admin",
+      ]);
+      insertUserStmt.free();
+
+      console.log("✅ Admin kullanıcısı oluşturuldu (şifre hash'lendi)");
+
+      // E. Diske mühürle
+      const data = activeSchoolDB.export();
+      fs.writeFileSync(dbPath, Buffer.from(data));
+      console.log("✅ [SİSTEM HAZIR]: Veritabanı dosyası oluşturuldu.");
+    } else {
+      // Mevcut dosyayı yükle
+      console.log("📂 Okul veritabanı yükleniyor:", dbPath);
+      const dbData = fs.readFileSync(dbPath);
+      activeSchoolDB = new SQL.Database(dbData);
     }
 
-    console.log("📂 Okul veritabanı yükleniyor:", dbPath);
-
-    const dbData = fs.readFileSync(dbPath);
-    activeSchoolDB = new SQL.Database(dbData);
     currentSchoolId = school.id;
-
-    // ✅ GLOBAL'E SET ET
     global.currentSchoolDb = activeSchoolDB;
-    console.log("✅ activeSchoolDB ve global.currentSchoolDb set edildi");
 
-    // 🚀 Otomatik migration çalıştır
+    // 🚀 Migration kontrolü (yeni güncellemelerde tablo ekler)
     autoRunMigrations(activeSchoolDB, school.okul_kodu);
 
-    // Kullanıcı kontrolü
+    // 5. ✅ Kullanıcı Login Doğrulaması (HASH KONTROLÜ)
     const userStmt = activeSchoolDB.prepare(`
-      SELECT 
-        k.id as kullanici_id,
-        k.kullanici_adi,
-        k.rol,
-        k.durum,
-        o.id as ogretmen_id,
-        o.ad_soyad,
-        o.tc_no,
-        o.brans,
-        o.unvan,
-        o.gorev,
-        o.telefon,
-        o.email
-      FROM kullanicilar k
-      LEFT JOIN ogretmenler o ON k.id = o.kullanici_id
-      WHERE k.kullanici_adi = ? AND k.sifre = ? AND k.durum = 1
-    `);
-    userStmt.bind([kullaniciAdi, sifre]);
+  SELECT 
+    k.id as kullanici_id,
+    k.kullanici_adi,
+    k.sifre,
+    k.rol,
+    k.durum,
+    o.id as ogretmen_id,
+    o.ad_soyad,
+    o.tc_no,
+    o.brans,
+    o.unvan,
+    o.gorev,
+    o.telefon,
+    o.email
+  FROM kullanicilar k
+  LEFT JOIN ogretmenler o ON k.id = o.kullanici_id
+  WHERE k.kullanici_adi = ? AND k.durum = 1
+`);
+    userStmt.bind([kullaniciAdi]);
 
     if (!userStmt.step()) {
       userStmt.free();
@@ -2648,21 +3163,63 @@ async function loginSchool(okulKodu, kullaniciAdi, sifre) {
     const user = userStmt.getAsObject();
     userStmt.free();
 
-    // Son giriş zamanını güncelle
+    // ✅ ŞİFRE KONTROLÜ (HASH veya DÜZ)
+    let sifreDogruMu = false;
+
+    if (user.sifre.includes(":")) {
+      // HASH'LENMİŞ ŞİFRE
+      console.log("🔐 Hash şifre doğrulaması yapılıyor...");
+      sifreDogruMu = verifyUserPassword(sifre, user.sifre);
+      console.log("🔐 Hash şifre doğrulaması:", sifreDogruMu ? "✅" : "❌");
+    } else {
+      // DÜZ ŞİFRE (Geriye dönük uyumluluk)
+      console.log("⚠️ Düz şifre tespit edildi");
+      sifreDogruMu = sifre === user.sifre;
+
+      // DÜZ ŞİFRE İSE HASH'LE VE GÜNCELLE
+      if (sifreDogruMu) {
+        console.log("⚠️ Düz şifre hash'leniyor...");
+        const hashedPassword = hashUserPassword(sifre);
+
+        const updateStmt = activeSchoolDB.prepare(
+          "UPDATE kullanicilar SET sifre = ? WHERE id = ?"
+        );
+        updateStmt.run([hashedPassword, user.kullanici_id]);
+        updateStmt.free();
+
+        saveActiveSchoolDB();
+        console.log("✅ Şifre hash'lendi ve güncellendi");
+      }
+    }
+
+    if (!sifreDogruMu) {
+      console.warn("⚠️ [WARN]: Kullanıcı adı veya şifre uyuşmuyor.");
+      activeSchoolDB = null;
+      global.currentSchoolDb = null;
+      return { success: false, message: "Kullanıcı adı veya şifre hatalı!" };
+    }
+
+    // 6. ✅ Giriş tarihini güncelle
     activeSchoolDB.run("UPDATE kullanicilar SET son_giris = ? WHERE id = ?", [
       new Date().toISOString(),
       user.kullanici_id,
     ]);
     saveActiveSchoolDB();
 
-    console.log(
-      "✅ Okul kullanıcısı girişi başarılı:",
-      user.ad_soyad || user.kullanici_adi
-    );
+    console.log("✅ Giriş başarılı:", user.ad_soyad || user.kullanici_adi);
 
+    // 🔒 Aktif okul kodunu kaydet
+    currentSchoolCode = okulKodu;
+    console.log(`🔐 Aktif okul kodu ayarlandı: ${okulKodu}`);
+
+    // 7. SONUÇ DÖNDÜR
     return {
       success: true,
       userType: "school_user",
+      isInitialSetup: isInitialSetup,
+      setupMessage: isInitialSetup
+        ? "Sistem ilk kullanım için yapılandırılıyor. Tüm tablolar oluşturuldu."
+        : null,
       user: {
         id: user.kullanici_id,
         kullanici_adi: user.kullanici_adi,
@@ -2693,37 +3250,6 @@ async function loginSchool(okulKodu, kullaniciAdi, sifre) {
   }
 }
 
-/**
- * Aktif okul veritabanını kaydet
- */
-function saveActiveSchoolDB() {
-  if (!activeSchoolDB || !currentSchoolId) {
-    console.warn("⚠️ Aktif okul veritabanı yok");
-    return;
-  }
-
-  try {
-    const stmt = masterDB.prepare(
-      "SELECT veritabani_dosyasi FROM okullar WHERE id = ?"
-    );
-    stmt.bind([currentSchoolId]);
-
-    if (stmt.step()) {
-      const row = stmt.getAsObject();
-      const dbPath = path.join(veritabaniKlasoru, row.veritabani_dosyasi);
-
-      const data = activeSchoolDB.export();
-      const buffer = Buffer.from(data);
-      fs.writeFileSync(dbPath, buffer);
-
-      console.log("💾 Okul veritabanı kaydedildi");
-    }
-    stmt.free();
-  } catch (error) {
-    console.error("❌ Okul DB kaydetme hatası:", error);
-  }
-}
-
 // ============================================
 // GETTER FONKSİYONLARI
 // ============================================
@@ -2733,6 +3259,16 @@ function getMasterDB() {
 }
 
 function getActiveSchoolDB() {
+  if (!activeSchoolDB) {
+    console.error("❌ Aktif okul veritabanı yok!");
+    throw new Error("Veritabanı bulunamadı! Lütfen giriş yapın.");
+  }
+
+  if (!currentSchoolCode) {
+    console.error("❌ Okul kodu belirsiz!");
+    throw new Error("Geçersiz oturum! Lütfen tekrar giriş yapın.");
+  }
+
   return activeSchoolDB;
 }
 
@@ -3233,7 +3769,7 @@ function updateStudent(ogrenciId, guncelBilgiler) {
 }
 
 /**
- * Öğrenci sil
+ * Öğrenci sil (HARD DELETE - Kalıcı Silme)
  */
 function deleteStudent(ogrenciId) {
   try {
@@ -3241,10 +3777,10 @@ function deleteStudent(ogrenciId) {
       return { success: false, message: "Aktif okul veritabanı bulunamadı!" };
     }
 
-    console.log("🗑️ Öğrenci siliniyor:", ogrenciId);
+    console.log("🗑️ Öğrenci siliniyor (HARD DELETE):", ogrenciId);
 
     const checkStmt = activeSchoolDB.prepare(
-      "SELECT ad_soyad FROM ogrenciler WHERE id = ?"
+      "SELECT ad_soyad, okul_no FROM ogrenciler WHERE id = ?"
     );
     checkStmt.bind([parseInt(ogrenciId)]);
 
@@ -3252,21 +3788,24 @@ function deleteStudent(ogrenciId) {
       checkStmt.free();
       return { success: false, message: "Öğrenci bulunamadı!" };
     }
+
+    const student = checkStmt.getAsObject();
     checkStmt.free();
 
+    // ✅ KALICI SİLME
     const deleteStmt = activeSchoolDB.prepare(
-      "UPDATE ogrenciler SET durum = 0 WHERE id = ?"
+      "DELETE FROM ogrenciler WHERE id = ?"
     );
     deleteStmt.run([parseInt(ogrenciId)]);
     deleteStmt.free();
 
     saveActiveSchoolDB();
 
-    console.log("✅ Öğrenci silindi");
+    console.log("✅ Öğrenci kalıcı olarak silindi:", student.ad_soyad);
 
     return {
       success: true,
-      message: "Öğrenci başarıyla silindi!",
+      message: "Öğrenci kalıcı olarak silindi!",
     };
   } catch (error) {
     console.error("❌ Öğrenci silme hatası:", error);
@@ -5251,6 +5790,41 @@ function getAllTeachersWithLoad(programId) {
   }
 }
 
+// ==========================================
+// AKTİF OKUL VERİTABANI KAYDETME
+// ==========================================
+
+/**
+ * Aktif okul veritabanını diske kaydeder
+ */
+function saveActiveSchoolDB() {
+  if (!activeSchoolDB || !currentSchoolId) {
+    console.warn("⚠️ Aktif okul veritabanı bulunamadı, kayıt atlanıyor.");
+    return;
+  }
+
+  try {
+    const stmt = masterDB.prepare(
+      "SELECT veritabani_dosyasi FROM okullar WHERE id = ?"
+    );
+    stmt.bind([currentSchoolId]);
+
+    if (stmt.step()) {
+      const row = stmt.getAsObject();
+      const dbPath = path.join(veritabaniKlasoru, row.veritabani_dosyasi);
+
+      const data = activeSchoolDB.export();
+      const buffer = Buffer.from(data);
+      fs.writeFileSync(dbPath, buffer);
+
+      console.log("💾 Okul veritabanı başarıyla kaydedildi.");
+    }
+    stmt.free();
+  } catch (error) {
+    console.error("❌ Okul DB kaydetme hatası:", error);
+  }
+}
+
 // ============================================
 // 📤 MODULE EXPORTS
 // ============================================
@@ -5265,6 +5839,10 @@ module.exports = {
   getCurrentSchoolId,
   veritabaniKlasoru,
   yedekKlasoru,
+
+  // 🔐 ŞİFRE HASH FONKSİYONLARI (YENİ)
+  hashUserPassword,
+  verifyUserPassword,
 
   // Migration
   runMigrations,
@@ -5282,6 +5860,7 @@ module.exports = {
   updateSchool,
   deleteSchool,
   loginSchool,
+  repairSchoolRecord,
 
   // Öğretmen yönetimi
   createTeacher,
@@ -5356,5 +5935,6 @@ console.log("✅ Veritabanı modülü yüklendi - Ultra Enhanced Version");
 console.log("👨‍💻 Geliştirici: SİMRE/MK");
 console.log("📦 Version: 3.0.0");
 console.log("🚀 Tüm fonksiyonlar export edildi");
+console.log("🔐 Şifre hash sistemi aktif (PBKDF2)");
 console.log("🎯 Algoritma entegrasyonu aktif");
 console.log("📊 Migration sistemi v12 hazır");

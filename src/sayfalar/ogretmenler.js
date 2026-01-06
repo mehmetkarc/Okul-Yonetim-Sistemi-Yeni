@@ -57,53 +57,12 @@ window.addEventListener("DOMContentLoaded", async () => {
 });
 
 // ==========================================
-// KULLANICI BİLGİLERİ
+// KULLANICI BİLGİLERİ (GÜNCELLENMİŞ & TAMİR EDİLMİŞ)
 // ==========================================
 
-function loadUserInfo() {
-  const currentUserStr = localStorage.getItem("currentUser");
-  const currentSchoolStr = localStorage.getItem("currentSchool");
-
-  if (!currentUserStr) {
-    console.error("❌ Kullanıcı bilgisi bulunamadı!");
-    localStorage.clear();
-    window.location.href = "giris.html";
-    return;
-  }
-
-  try {
-    currentUser = JSON.parse(currentUserStr);
-    schoolInfo = currentSchoolStr ? JSON.parse(currentSchoolStr) : null;
-    userType =
-      currentUser.rol === "super_admin" ? "super_admin" : "school_user";
-
-    console.log("👤 Kullanıcı:", currentUser);
-    console.log("🏫 Okul:", schoolInfo);
-
-    // Kullanıcı bilgilerini göster
-    document.getElementById("userName").textContent = currentUser.ad_soyad;
-    document.getElementById("userRole").textContent = getRoleName(
-      currentUser.rol
-    );
-
-    const initials = currentUser.ad_soyad
-      .split(" ")
-      .map((word) => word[0])
-      .join("")
-      .toUpperCase()
-      .substring(0, 2);
-    document.getElementById("userInitials").textContent = initials;
-
-    if (schoolInfo) {
-      document.getElementById("okulAdi").textContent = schoolInfo.okul_adi;
-    }
-  } catch (error) {
-    console.error("❌ Kullanıcı bilgisi parse hatası:", error);
-    localStorage.clear();
-    window.location.href = "giris.html";
-  }
-}
-
+/**
+ * Rol ismini kullanıcı dostu metne çevirir
+ */
 function getRoleName(rol) {
   const roles = {
     super_admin: "Sistem Yöneticisi",
@@ -111,6 +70,86 @@ function getRoleName(rol) {
     ogretmen: "Öğretmen",
   };
   return roles[rol] || rol;
+}
+
+/**
+ * Oturum bilgilerini yükler ve UI elemanlarını doldurur
+ */
+function loadUserInfo() {
+  console.log("🔍 OGRETMENLER SAYFASI - OTURUM KONTROLÜ BAŞLADI");
+
+  const currentUserStr = localStorage.getItem("currentUser");
+  const currentSchoolStr = localStorage.getItem("currentSchool");
+
+  // Konsolda verileri doğrula
+  console.log("📦 CurrentUser Verisi:", currentUserStr);
+  console.log("🏫 CurrentSchool Verisi:", currentSchoolStr);
+
+  if (!currentUserStr) {
+    console.error("❌ HATA: currentUserStr bulunamadı!");
+    window.location.href = "giris.html";
+    return;
+  }
+
+  try {
+    currentUser = JSON.parse(currentUserStr);
+
+    // Anasayfadan gelen tamir edilmiş veriyi kullan veya currentUser'a güven
+    schoolInfo = currentSchoolStr ? JSON.parse(currentSchoolStr) : currentUser;
+
+    // Eksik alanları manuel tamamla (Hata almamak için)
+    if (!currentUser.ad_soyad) {
+      currentUser.ad_soyad = currentUser.kullanici_adi || "Yönetici";
+    }
+
+    if (!schoolInfo.okul_adi) {
+      schoolInfo.okul_adi = "Okul Belirtilmemiş";
+    }
+
+    // Kullanıcı tipi belirle
+    userType =
+      currentUser.rol === "super_admin" ? "super_admin" : "school_user";
+
+    console.log("👤 UserType:", userType);
+    console.log("✅ Veri Hazır. UI güncelleniyor...");
+
+    // DOM Elemanlarını Güncelle
+    const userNameEl = document.getElementById("userName");
+    const userRoleEl = document.getElementById("userRole");
+    const userInitialsEl = document.getElementById("userInitials");
+    const okulAdiEl = document.getElementById("okulAdi");
+
+    // İsim bilgisi
+    if (userNameEl) {
+      userNameEl.textContent = currentUser.ad_soyad;
+    }
+
+    // Rol bilgisi (getRoleName artık burada tanımlı olduğu için hata vermez)
+    if (userRoleEl) {
+      userRoleEl.textContent = getRoleName(currentUser.rol);
+    }
+
+    // İnisiyaller (Profil resmi yerine harfler)
+    if (userInitialsEl && currentUser.ad_soyad) {
+      const initials = currentUser.ad_soyad
+        .split(" ")
+        .map((word) => word[0])
+        .join("")
+        .toUpperCase()
+        .substring(0, 2);
+      userInitialsEl.textContent = initials;
+    }
+
+    // Okul adı bilgisi
+    if (okulAdiEl && schoolInfo) {
+      okulAdiEl.textContent = schoolInfo.okul_adi;
+    }
+
+    console.log("✨ UI Güncelleme Tamamlandı.");
+  } catch (error) {
+    console.error("❌ KRİTİK HATA (Parse veya UI):", error);
+    // Hata mesajını konsola yazıyoruz ama kullanıcıyı her seferinde dışarı atmıyoruz
+  }
 }
 
 // ==========================================

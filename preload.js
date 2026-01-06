@@ -73,7 +73,12 @@ window.electronAPI = {
   onUpdateError: (callback) => {
     console.log("📡 Preload: onUpdateError listener kuruluyor");
     ipcRenderer.on("update-error", (event, data) => {
-      console.error("❌ Preload: Güncelleme hatası!", data);
+      console.error("❌ Preload: Güncelleme hatası!", {
+        message: data?.message || data,
+        code: data?.code,
+        stack: data?.stack,
+        fullError: data,
+      });
       callback(data);
     });
   },
@@ -635,6 +640,22 @@ window.electronAPI = {
     return ipcRenderer.invoke("get-current-user");
   },
 
+  // 🔐 Superadmin Şifre Yönetimi
+  setupAdminPassword: (password) => {
+    console.log("🔐 Preload: setupAdminPassword çağrıldı");
+    return ipcRenderer.invoke("setup-admin-password", password);
+  },
+
+  verifyAdminPassword: (password) => {
+    console.log("🔍 Preload: verifyAdminPassword çağrıldı");
+    return ipcRenderer.invoke("verify-admin-password", password);
+  },
+
+  isFirstSetup: () => {
+    console.log("❓ Preload: isFirstSetup çağrıldı");
+    return ipcRenderer.invoke("is-first-setup");
+  },
+
   // ==========================================
   // 📈 İSTATİSTİKLER VE ANALİTİK
   // ==========================================
@@ -988,6 +1009,87 @@ window.electronAPI = {
   },
 
   // ==========================================
+  // 🆕 AKILLI GÖZETMEN DAĞITIM SİSTEMİ
+  // ==========================================
+
+  akillilGozetmenDagit: (sinavId, salonId) => {
+    console.log("🤖 Preload: akillilGozetmenDagit çağrıldı");
+    console.log(`   • Sınav ID: ${sinavId}`);
+    console.log(`   • Salon ID: ${salonId}`);
+    return ipcRenderer.invoke("akilli-gozetmen-dagit", sinavId, salonId);
+  },
+
+  getOgretmenGorevPuanlari: (donem) => {
+    console.log("📊 Preload: getOgretmenGorevPuanlari çağrıldı");
+    return ipcRenderer.invoke("get-ogretmen-gorev-puanlari", donem);
+  },
+
+  // ==========================================
+  // 🆕 QR KOD SİSTEMİ
+  // ==========================================
+
+  generateQrKod: (sinavId, qrTuru, hedefId) => {
+    console.log("📱 Preload: generateQrKod çağrıldı");
+    console.log(`   • Sınav ID: ${sinavId}`);
+    console.log(`   • QR Türü: ${qrTuru}`);
+    console.log(`   • Hedef ID: ${hedefId}`);
+    return ipcRenderer.invoke("generate-qr-kod", sinavId, qrTuru, hedefId);
+  },
+
+  verifyQrKod: (qrHash) => {
+    console.log("🔍 Preload: verifyQrKod çağrıldı");
+    return ipcRenderer.invoke("verify-qr-kod", qrHash);
+  },
+
+  // ==========================================
+  // 🆕 DİJİTAL YOKLAMA VE DİSİPLİN SİSTEMİ
+  // ==========================================
+
+  kaydetYoklama: (yoklamaData) => {
+    console.log("📝 Preload: kaydetYoklama çağrıldı");
+    console.log(`   • Öğrenci ID: ${yoklamaData.ogrenci_id}`);
+    console.log(`   • Durum: ${yoklamaData.yoklama_durumu}`);
+    return ipcRenderer.invoke("kaydet-yoklama", yoklamaData);
+  },
+
+  kaydetDisiplin: (disiplinData) => {
+    console.log("⚠️ Preload: kaydetDisiplin çağrıldı");
+    console.log(`   • Öğrenci ID: ${disiplinData.ogrenci_id}`);
+    console.log(`   • Disiplin Türü: ${disiplinData.disiplin_turu}`);
+    return ipcRenderer.invoke("kaydet-disiplin", disiplinData);
+  },
+
+  getSalonYoklama: (sinavId, salonId) => {
+    console.log("📋 Preload: getSalonYoklama çağrıldı");
+    console.log(`   • Sınav ID: ${sinavId}`);
+    console.log(`   • Salon ID: ${salonId}`);
+    return ipcRenderer.invoke("get-salon-yoklama", sinavId, salonId);
+  },
+
+  // ==========================================
+  // 🆕 SINAV KONTROL PANELİ
+  // ==========================================
+
+  validateSinav: (sinavData) => {
+    console.log("🔍 Preload: validateSinav çağrıldı");
+    return ipcRenderer.invoke("validate-sinav", sinavData);
+  },
+
+  getSinavUyarilari: (sinavId) => {
+    console.log("📋 Preload: getSinavUyarilari çağrıldı");
+    return ipcRenderer.invoke("get-sinav-uyarilari", sinavId);
+  },
+
+  // ==========================================
+  // 🆕 FOTOĞRAF YÜKLEME (DİSİPLİN İÇİN)
+  // ==========================================
+
+  uploadDisiplinKanit: (fileData) => {
+    console.log("📷 Preload: uploadDisiplinKanit çağrıldı");
+    return ipcRenderer.invoke("upload-disiplin-kanit", fileData);
+  },
+
+  // ==========================================
   // 📁 DOSYA YÖNETİMİ
   // ==========================================
 
@@ -1067,3 +1169,8 @@ if (window.electronAPI) {
     typeof window.electronAPI.quitAndInstall
   );
 }
+
+console.log("✅ 🤖 Akıllı Gözetmen Dağıtım API'leri aktif");
+console.log("✅ 📱 QR Kod Sistemi API'leri aktif");
+console.log("✅ 📝 Dijital Yoklama & Disiplin API'leri aktif");
+console.log("✅ 🔍 Sınav Kontrol Paneli API'leri aktif");

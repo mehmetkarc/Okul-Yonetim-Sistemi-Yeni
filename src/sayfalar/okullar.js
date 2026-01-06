@@ -1,5 +1,6 @@
 // ==========================================
-// OKUL YÖNETİMİ SAYFASI
+// OKUL YÖNETİMİ SAYFASI V2.0 (DÜZELTİLMİŞ)
+// Lisans oluşturma create-license.js ile %100 uyumlu
 // ==========================================
 
 const { ipcRenderer } = require("electron");
@@ -10,6 +11,174 @@ let userType = null;
 let schoolInfo = null;
 let allSchools = [];
 let filteredSchools = [];
+
+// ⚠️ LİSANS ÜRETİM AYARLARI (Crypto-JS Gerektirir)
+const MASTER_KEY = "OYS-2025-SUPER-SECRET-KEY-XYZ123-MEHMET-KARC";
+
+// ==========================================
+// 🔐 LİSANS DOSYASI OLUŞTUR VE İNDİR (DÜZELTİLMİŞ)
+// create-license.js ile %100 uyumlu
+// ==========================================
+
+function lisansDosyasiIndir(okulVerisi) {
+  try {
+    console.log("🔐 === LİSANS OLUŞTURMA BAŞLADI ===");
+    console.log("📦 Gelen okul verisi:", okulVerisi);
+
+    // ✅ ŞİFRE KONTROLÜ (Tüm olası property isimleri)
+    const adminSifre =
+      okulVerisi.adminSifre ||
+      okulVerisi.admin_sifre ||
+      okulVerisi.sifre ||
+      okulVerisi.okul_sifre ||
+      "";
+
+    console.log(
+      "🔒 Bulunan şifre:",
+      adminSifre ? `✅ ${adminSifre}` : "❌ BOŞ!"
+    );
+
+    if (!adminSifre) {
+      console.error("❌ ŞİFRE BULUNAMADI!");
+      console.log("📋 Okul verisi detay:", JSON.stringify(okulVerisi, null, 2));
+
+      Bildirim.error(
+        "Okul şifresi bulunamadı!\n\n" +
+          "Lütfen:\n" +
+          "1. Sayfayı yenileyin (F5)\n" +
+          "2. Okul listesini tekrar yükleyin\n" +
+          "3. Sorun devam ederse okulu düzenleyip kaydedin"
+      );
+      return;
+    }
+
+    // Tarihi formatla
+    const bitisTarihi = okulVerisi.lisansBitis
+      ? new Date(okulVerisi.lisansBitis).toISOString().split("T")[0]
+      : "2026-12-30";
+
+    // ✅ TÜM MODÜLLER
+    const tumModuller = [
+      "ogretmenler",
+      "ogrenciler",
+      "siniflar",
+      "dersler",
+      "ders-programi",
+      "devamsizlik",
+      "notlar",
+      "raporlar",
+      "veliler",
+      "personel",
+      "muhasebe",
+      "stok",
+      "kütüphane",
+      "kantin",
+      "ayarlar",
+      "dashboard",
+      "ogretmen-ekle",
+      "ogrenci-ekle",
+      "sinif-olustur",
+      "ders-ekle",
+      "program-olustur",
+      "yoklama",
+      "not-giris",
+      "basari-rapor",
+      "devamsizlik-rapor",
+      "veli-toplanti",
+      "personel-maas",
+      "gelir-gider",
+      "stok-takip",
+      "kitap-kayit",
+      "kantin-satis",
+      "duyuru-yap",
+      "etkinlik",
+      "servis-takip",
+      "yemek-menu",
+      "ogretmen-nobet",
+      "gezi-planla",
+      "ortak-sinav",
+      "sorumluluk-sinav",
+      "rehberlik",
+      "aidat-takip",
+      "sms-gonder",
+      "email-gonder",
+      "dosya-arsiv",
+      "okul-ayarlari",
+    ];
+
+    // 1. Veri Yapısını Hazırla
+    const license = {
+      okul_kodu: String(okulVerisi.okulKodu),
+      okul_adi: String(okulVerisi.okulAdi),
+      kullanici_adi: "admin",
+      sifre: String(adminSifre), // ✅ DÜZELTME
+      moduller: tumModuller,
+      aktif: true,
+      gecerlilik: bitisTarihi,
+      olusturma_tarihi: new Date().toISOString(),
+    };
+
+    console.log("📋 Lisans verisi hazırlandı:");
+    console.log("   • Okul Kodu:", license.okul_kodu);
+    console.log("   • Okul Adı:", license.okul_adi);
+    console.log("   • Şifre:", license.sifre);
+    console.log("   • Modül Sayısı:", license.moduller.length);
+    console.log("   • Geçerlilik:", license.gecerlilik);
+
+    // 2. İmza Oluştur
+    const rawDataForSignature =
+      license.okul_kodu +
+      license.okul_adi +
+      license.kullanici_adi +
+      license.sifre +
+      license.gecerlilik +
+      MASTER_KEY;
+
+    license.imza = CryptoJS.SHA256(rawDataForSignature).toString();
+    console.log("🔐 İmza oluşturuldu:", license.imza.substring(0, 16) + "...");
+
+    // 3. Şifrele
+    const jsonData = JSON.stringify(license);
+    const encrypted = CryptoJS.AES.encrypt(jsonData, MASTER_KEY).toString();
+    console.log("🔒 Lisans şifrelendi:", encrypted.length, "karakter");
+
+    // 4. İndir
+    const blob = new Blob([encrypted], { type: "text/plain" });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `lisans_${license.okul_kodu}.lic`;
+    document.body.appendChild(a);
+    a.click();
+
+    setTimeout(() => {
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    }, 100);
+
+    // Bildirim
+    if (typeof Bildirim !== "undefined" && Bildirim.success) {
+      Bildirim.success(
+        `✅ Lisans dosyası oluşturuldu!\n\n` +
+          `🏫 Okul: ${license.okul_adi}\n` +
+          `🔑 Okul Kodu: ${license.okul_kodu}\n` +
+          `👤 Kullanıcı: admin\n` +
+          `🔒 Şifre: ${license.sifre}\n` +
+          `📅 Geçerlilik: ${bitisTarihi}\n\n` +
+          `Dosya indirildi: lisans_${license.okul_kodu}.lic`,
+        "Lisans Oluşturuldu",
+        10000
+      );
+    }
+
+    console.log("✅ === LİSANS OLUŞTURMA TAMAMLANDI ===");
+  } catch (error) {
+    console.error("❌ Lisans üretim hatası:", error);
+    if (typeof Bildirim !== "undefined" && Bildirim.error) {
+      Bildirim.error("Lisans oluşturulurken bir hata oluştu!");
+    }
+  }
+}
 
 // DOM elemanları
 const btnYeniOkul = document.getElementById("btnYeniOkul");
@@ -43,7 +212,7 @@ window.addEventListener("DOMContentLoaded", async () => {
 });
 
 // ==========================================
-// KULLANICI BİLGİLERİ
+// KULLANICI BİLGİLERİ (GÜNCELLENMİŞ VE TAM SÜRÜM)
 // ==========================================
 
 function loadUserInfo() {
@@ -60,36 +229,77 @@ function loadUserInfo() {
   try {
     currentUser = JSON.parse(currentUserStr);
     schoolInfo = currentSchoolStr ? JSON.parse(currentSchoolStr) : null;
-    userType =
-      currentUser.rol === "super_admin" ? "super_admin" : "school_user";
 
-    // Kullanıcı bilgilerini güncelle
-    document.getElementById("userName").textContent = currentUser.ad_soyad;
-    document.getElementById("userRole").textContent = getRoleName(
-      currentUser.rol
-    );
+    // 👑 KRİTİK DÜZELTME: Hem 'role' hem 'rol' kontrolü + Okul Kodu Bypass
+    const actualRole = currentUser.role || currentUser.rol;
 
-    const initials = currentUser.ad_soyad
-      .split(" ")
-      .map((word) => word[0])
-      .join("")
-      .toUpperCase()
-      .substring(0, 2);
-    document.getElementById("userInitials").textContent = initials;
-
-    // Okul adı
-    if (schoolInfo) {
-      document.getElementById("okulAdi").textContent = schoolInfo.okul_adi;
+    if (
+      actualRole === "super_admin" ||
+      currentUser.okul_kodu === "000000" ||
+      currentUser.kullanici_adi === "superadmin"
+    ) {
+      userType = "super_admin";
     } else {
-      document.getElementById("okulAdi").textContent = "Super Admin";
+      userType = "school_user";
     }
 
-    // Yetki kontrolü - Sadece super admin okullar sayfasına erişebilir
+    // Arayüz elemanlarını güncelle (Hata almamak için varlık kontrolü yapıldı)
+    const userNameElem = document.getElementById("userName");
+    const userRoleElem = document.getElementById("userRole");
+    const userInitialsElem = document.getElementById("userInitials");
+    const okulAdiElem = document.getElementById("okulAdi");
+
+    if (userNameElem) {
+      userNameElem.textContent =
+        currentUser.ad_soyad || currentUser.kullanici_adi || "Kullanıcı";
+    }
+
+    if (userRoleElem) {
+      userRoleElem.textContent = getRoleName(actualRole);
+    }
+
+    if (userInitialsElem) {
+      const nameParts = (
+        currentUser.ad_soyad ||
+        currentUser.kullanici_adi ||
+        "SA"
+      ).split(" ");
+      const initials =
+        nameParts.length > 1
+          ? (nameParts[0][0] + nameParts[nameParts.length - 1][0]).toUpperCase()
+          : nameParts[0].substring(0, 2).toUpperCase();
+      userInitialsElem.textContent = initials;
+    }
+
+    // Okul adı gösterimi
+    if (okulAdiElem) {
+      if (userType === "super_admin") {
+        okulAdiElem.textContent = "Sistem Yönetim Merkezi";
+      } else if (schoolInfo) {
+        okulAdiElem.textContent = schoolInfo.okul_adi;
+      } else {
+        okulAdiElem.textContent = "Okul Kullanıcısı";
+      }
+    }
+
+    // 🛡️ YETKİ KONTROLÜ - Sadece super admin okullar sayfasına erişebilir
     if (userType !== "super_admin") {
-      Bildirim.error("Bu sayfaya erişim yetkiniz yok!");
+      console.warn("❌ Yetkisiz Giriş Denemesi: Kullanıcı Süper Admin değil.");
+
+      if (
+        typeof Bildirim !== "undefined" &&
+        typeof Bildirim.error === "function"
+      ) {
+        Bildirim.error("Bu sayfaya erişim yetkiniz bulunmamaktadır!");
+      } else {
+        alert("Bu sayfaya erişim yetkiniz bulunmamaktadır!");
+      }
+
       setTimeout(() => {
         window.location.href = "anasayfa.html";
       }, 2000);
+    } else {
+      console.log("✅ Yetki Onaylandı: Süper Admin girişi başarılı.");
     }
   } catch (error) {
     console.error("❌ Kullanıcı bilgisi parse hatası:", error);
@@ -98,17 +308,23 @@ function loadUserInfo() {
   }
 }
 
+// ==========================================
+// ROL İSMİ DÖNDÜR (GÜNCELLENMİŞ)
+// ==========================================
+
 function getRoleName(rol) {
+  // Hem İngilizce hem Türkçe veritabanı değerlerini destekler
   const roles = {
     super_admin: "Sistem Yöneticisi",
     okul_admin: "Okul Yöneticisi",
     ogretmen: "Öğretmen",
+    admin: "Yönetici",
   };
-  return roles[rol] || rol;
+  return roles[rol] || rol || "Tanımsız Rol";
 }
 
 // ==========================================
-// OKULLARI YÜKLE - SONSUZ DÖNGÜ KORONMESİ İLE
+// OKULLARI YÜKLE - SONSUZ DÖNGÜ KORUNMASI İLE
 // ==========================================
 
 async function loadSchools() {
@@ -166,18 +382,18 @@ async function loadSchools() {
 function renderSchools() {
   if (filteredSchools.length === 0) {
     okullarTbody.innerHTML = `
-            <tr>
-                <td colspan="8" style="text-align: center; padding: 60px;">
-                    <div style="font-size: 48px; margin-bottom: 16px;">🔍</div>
-                    <div style="font-size: 18px; font-weight: 600; color: var(--text-primary); margin-bottom: 8px;">
-                        Okul bulunamadı
-                    </div>
-                    <div style="font-size: 14px; color: var(--text-secondary);">
-                        Arama kriterlerinizi değiştirmeyi deneyin
-                    </div>
-                </td>
-            </tr>
-        `;
+      <tr>
+        <td colspan="8" style="text-align: center; padding: 60px;">
+          <div style="font-size: 48px; margin-bottom: 16px;">🔍</div>
+          <div style="font-size: 18px; font-weight: 600; color: var(--text-primary); margin-bottom: 8px;">
+            Okul bulunamadı
+          </div>
+          <div style="font-size: 14px; color: var(--text-secondary);">
+            Arama kriterlerinizi değiştirmeyi deneyin
+          </div>
+        </td>
+      </tr>
+    `;
     return;
   }
 
@@ -200,55 +416,106 @@ function renderSchools() {
     }
 
     html += `
-            <tr style="animation: fadeIn 0.5s ease ${index * 0.05}s both;">
-                <td>${index + 1}</td>
-                <td><strong style="color: var(--primary);">${
-                  okul.okul_kodu
-                }</strong></td>
-                <td><strong>${okul.okul_adi}</strong></td>
-                <td>${okul.il} / ${okul.ilce}</td>
-                <td>${okul.yetkili_ad || "-"}</td>
-                <td>${okul.yetkili_unvan || "-"}</td>
-                <td>
-                    <span class="license-badge ${lisansClass}">
-                        ${lisansBadge}
-                    </span>
-                    <br>
-                    <small style="color: var(--text-muted); font-size: 11px;">
-                        ${new Date(okul.lisans_bitis).toLocaleDateString(
-                          "tr-TR"
-                        )}
-                    </small>
-                </td>
-                <td>
-                    <div class="action-buttons">
-  <button class="btn-action edit" onclick="duzenleOkul(${
-    okul.id
-  })" title="Düzenle">
-    ✏️
-  </button>
-  <button class="btn-action" onclick="sifreGoster(${
-    okul.id
-  })" title="Şifre Göster" style="background: rgba(0, 217, 255, 0.2); color: #00d9ff;">
-    👁️
-  </button>
-  <button class="btn-action license" onclick="lisansYenile(${
-    okul.id
-  })" title="Lisans Yenile">
-    🔑
-  </button>
-  <button class="btn-action delete" onclick="silOkul(${okul.id}, '${
-      okul.okul_adi
-    }')" title="Sil">
-    🗑️
-  </button>
-</div>
-                </td>
-            </tr>
-        `;
+      <tr style="animation: fadeIn 0.5s ease ${index * 0.05}s both;">
+        <td>${index + 1}</td>
+        <td><strong style="color: var(--primary);">${
+          okul.okul_kodu
+        }</strong></td>
+        <td><strong>${okul.okul_adi}</strong></td>
+        <td>${okul.il} / ${okul.ilce}</td>
+        <td>${okul.yetkili_ad || "-"}</td>
+        <td>${okul.yetkili_unvan || "-"}</td>
+        <td>
+          <span class="license-badge ${lisansClass}">${lisansBadge}</span>
+          <br>
+          <small style="color: var(--text-muted); font-size: 11px;">
+            ${new Date(okul.lisans_bitis).toLocaleDateString("tr-TR")}
+          </small>
+        </td>
+        <td>
+          <div class="action-buttons">
+            <button class="btn-action edit" onclick="duzenleOkul(${
+              okul.id
+            })" title="Düzenle">✏️</button>
+            <button class="btn-action" onclick="sifreGoster(${
+              okul.id
+            })" title="Şifre Göster" style="background: rgba(0, 217, 255, 0.2); color: #00d9ff;">👁️</button>
+            <button class="btn-action license" onclick="lisansDosyasiIndirById(${
+              okul.id
+            })" title="Lisans Dosyası Oluştur ve İndir">🔑</button>
+            <button class="btn-action delete" onclick="silOkul(${
+              okul.id
+            }, '${okul.okul_adi.replace(/'/g, "\\'")}')" title="Sil">🗑️</button>
+          </div>
+        </td>
+      </tr>
+    `;
   });
 
   okullarTbody.innerHTML = html;
+}
+
+// ==========================================
+// LİSANS İNDİR - OKUL DB'DEN ŞİFRE AL
+// ==========================================
+
+async function lisansDosyasiIndirById(okulId) {
+  console.log("🔐 === LİSANS İNDİR (Okul DB'den şifre) ===");
+  console.log("🔍 Okul ID:", okulId);
+
+  const okul = allSchools.find((o) => o.id === okulId);
+
+  if (!okul) {
+    console.error("❌ Okul bulunamadı!");
+    Bildirim.error("Okul bulunamadı!");
+    return;
+  }
+
+  console.log("📋 Okul bulundu:", okul.okul_adi);
+
+  try {
+    // ✅ OKUL DB'DEN ADMIN ŞİFRESİNİ AL
+    Bildirim.showLoading("Okul şifresi alınıyor...");
+
+    const result = await ipcRenderer.invoke("get-school-password", okulId);
+
+    Bildirim.hideLoading();
+
+    if (!result.success) {
+      console.error("❌ Şifre alınamadı:", result.message);
+      Bildirim.error("Okul şifresi alınamadı!");
+      return;
+    }
+
+    const adminSifre = result.data.admin_sifre;
+
+    console.log("✅ Okul DB'den alınan şifre:", adminSifre);
+
+    if (!adminSifre || adminSifre === "Bulunamadı") {
+      console.error("❌ Şifre geçersiz!");
+      Bildirim.error("Okul şifresi geçersiz!");
+      return;
+    }
+
+    // Lisans verisini hazırla
+    const okulVerisi = {
+      okulKodu: okul.okul_kodu,
+      okulAdi: okul.okul_adi,
+      adminSifre: adminSifre, // ✅ DB'DEN ALINAN ŞİFRE
+      lisansBitis: okul.lisans_bitis,
+    };
+
+    console.log("✅ Lisans verisi hazırlandı:", {
+      ...okulVerisi,
+      adminSifre: "***", // Güvenlik için gizle
+    });
+
+    // Lisans oluştur
+    lisansDosyasiIndir(okulVerisi);
+  } catch (error) {
+    console.error("❌ Hata:", error);
+    Bildirim.error("Lisans oluşturulamadı: " + error.message);
+  }
 }
 
 // ==========================================
@@ -827,7 +1094,7 @@ async function handleEditFormSubmit(e) {
 }
 
 // ==========================================
-// OKUL ŞİFRESİNİ GÖSTER
+// OKUL ŞİFRESİNİ GÖSTER (HASH DESTEKLİ + ŞİFRE SIFIRLAMA)
 // ==========================================
 
 async function sifreGoster(okulId) {
@@ -836,33 +1103,140 @@ async function sifreGoster(okulId) {
 
     const result = await ipcRenderer.invoke("get-school-password", okulId);
 
-    if (result.success) {
-      const { okul_kodu, okul_adi, okul_sifre, admin_sifre } = result.data;
-
-      await Bildirim.confirm(
-        `🏫 **${okul_adi}**\n\n` +
-          `━━━━━━━━━━━━━━━━━━━━━━━\n\n` +
-          `**📌 Okul Girişi İçin:**\n` +
-          `Okul Kodu: **${okul_kodu}**\n` +
-          `Kullanıcı Adı: **admin**\n` +
-          `Şifre: **${admin_sifre}**\n\n` +
-          `━━━━━━━━━━━━━━━━━━━━━━━\n\n` +
-          `*(Okul Şifresi: ${okul_sifre})*\n\n` +
-          `⚠️ Bu bilgileri okul yetkilisine iletin ve güvenli bir şekilde saklayın!`,
-        "Okul Giriş Bilgileri",
-        {
-          icon: "🔑",
-          confirmText: "Tamam",
-          cancelText: null,
-          type: "info",
-        }
-      );
-    } else {
+    if (!result.success) {
       Bildirim.error(result.message || "Şifre görüntülenemedi!");
+      return;
     }
+
+    const { okul_kodu, okul_adi, okul_sifre, admin_sifre, is_hashed } =
+      result.data;
+    const isHashed = is_hashed || false;
+
+    // ✅ HASH'Lİ VE DÜZ ŞİFRE İÇİN FARKLI GÖSTERIM
+    await Bildirim.confirm(
+      `🏫 **${okul_adi}**\n\n` +
+        `━━━━━━━━━━━━━━━━━━━━━━━\n\n` +
+        `**📌 Okul Girişi İçin:**\n` +
+        `Okul Kodu: **${okul_kodu}**\n` +
+        `Kullanıcı Adı: **admin**\n\n` +
+        (isHashed
+          ? `**🔒 Admin Şifresi: HASH'LENMİŞ (GÜVENLİ)**\n\n` +
+            `⚠️ Şifre güvenlik için hash'lenmiştir.\n` +
+            `Hash değeri: \`${admin_sifre.substring(0, 40)}...\`\n\n` +
+            `⚠️ **Hash'lenmiş şifre okunamaz!**\n` +
+            `Şifreyi unuttuysanız **"Şifre Sıfırla"** butonuna tıklayın.\n\n`
+          : `Şifre: **${admin_sifre}**\n\n`) +
+        `━━━━━━━━━━━━━━━━━━━━━━━\n\n` +
+        `*(Okul Şifresi: ${okul_sifre})*\n\n` +
+        `⚠️ Bu bilgileri okul yetkilisine iletin ve güvenli bir şekilde saklayın!`,
+      "Okul Giriş Bilgileri",
+      {
+        icon: "🔑",
+        confirmText: "Tamam",
+        cancelText: isHashed ? "🔄 Şifre Sıfırla" : "Kopyala",
+        type: "info",
+      }
+    ).then(async (action) => {
+      if (action === "cancel") {
+        if (isHashed) {
+          // ✅ ŞİFRE SIFIRLAMA
+          await sifreSifirla(okulId, okul_adi, okul_kodu);
+        } else {
+          // KOPYALAMA
+          const copyText = `Okul Kodu: ${okul_kodu}\nKullanıcı: admin\nŞifre: ${admin_sifre}`;
+          navigator.clipboard.writeText(copyText);
+          Bildirim.success("Giriş bilgileri kopyalandı!");
+        }
+      }
+    });
   } catch (error) {
     console.error("❌ Şifre görüntüleme hatası:", error);
     Bildirim.error("Şifre görüntülenemedi: " + error.message);
+  }
+}
+
+// ==========================================
+// 🔄 ŞİFRE SIFIRLAMA FONKSİYONU (YENİ!)
+// ==========================================
+
+async function sifreSifirla(okulId, okulAdi, okulKodu) {
+  try {
+    // 1. YENİ ŞİFRE İSTE
+    const yeniSifre = await Bildirim.prompt(
+      `**🏫 Okul:** ${okulAdi}\n` +
+        `**🔢 Okul Kodu:** ${okulKodu}\n\n` +
+        `━━━━━━━━━━━━━━━━━━━━━━━\n\n` +
+        `**🔒 Yeni Şifre Girin:**\n\n` +
+        `⚠️ **Güçlü şifre kullanın:**\n` +
+        `• En az 8 karakter\n` +
+        `• Büyük/küçük harf, rakam ve özel karakter\n` +
+        `• Şifreyi güvenli bir yerde saklayın`,
+      "🔄 Şifre Sıfırla",
+      {
+        icon: "⚠️",
+        confirmText: "✅ Sıfırla",
+        cancelText: "İptal",
+        type: "warning",
+        placeholder: "Yeni şifre girin...",
+      }
+    );
+
+    if (!yeniSifre || yeniSifre.trim() === "") {
+      Bildirim.info("Şifre sıfırlama iptal edildi.");
+      return;
+    }
+
+    if (yeniSifre.length < 4) {
+      Bildirim.error("Şifre en az 4 karakter olmalıdır!");
+      return;
+    }
+
+    console.log("🔄 Şifre sıfırlanıyor...");
+
+    // 2. ŞİFREYİ SIFIRLA
+    const result = await ipcRenderer.invoke(
+      "reset-school-password",
+      okulId,
+      yeniSifre
+    );
+
+    if (result.success) {
+      // 3. BAŞARILI MESAJI
+      await Bildirim.confirm(
+        `**✅ Şifre Başarıyla Sıfırlandı!**\n\n` +
+          `━━━━━━━━━━━━━━━━━━━━━━━\n\n` +
+          `🏫 **Okul:** ${result.okul_adi}\n` +
+          `🔢 **Okul Kodu:** ${result.okul_kodu}\n\n` +
+          `🔒 **Yeni Şifre:**\n` +
+          `**\`${result.yeni_sifre}\`**\n\n` +
+          `━━━━━━━━━━━━━━━━━━━━━━━\n\n` +
+          `⚠️ **ÖNEMLİ:**\n` +
+          `• Bu şifreyi güvenli bir yerde saklayın!\n` +
+          `• Şifre hash'lenerek veritabanına kaydedildi.\n` +
+          `• Bir daha görüntülenemez!`,
+        "Şifre Sıfırlandı",
+        {
+          icon: "✅",
+          confirmText: "Tamam",
+          cancelText: "📋 Kopyala",
+          type: "success",
+        }
+      ).then((action) => {
+        if (action === "cancel") {
+          // KOPYALA
+          navigator.clipboard.writeText(result.yeni_sifre);
+          Bildirim.success("Yeni şifre kopyalandı!");
+        }
+      });
+
+      // 4. LİSTEYİ YENİLE
+      okullariYukle();
+    } else {
+      Bildirim.error(result.message || "Şifre sıfırlanamadı!");
+    }
+  } catch (error) {
+    console.error("❌ Şifre sıfırlama hatası:", error);
+    Bildirim.error("Şifre sıfırlanırken hata oluştu: " + error.message);
   }
 }
 

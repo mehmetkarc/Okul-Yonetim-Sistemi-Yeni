@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sistem Sağlığı | Okul Yönetim</title>
+    <link rel="stylesheet" href="anasayfa.css" />
+    <link rel="stylesheet" href="sistem-saglik.css" />
+    <link rel="stylesheet" href="../bilesenler/bildirim-sistemi.css" />
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  </head>
+  <body>
+    <!-- Arka Plan Animasyonları -->
+    <div class="bg-animations">
+      <div class="gradient-orb orb-1"></div>
+      <div class="gradient-orb orb-2"></div>
+      <div class="gradient-orb orb-3"></div>
+    </div>
+
+    <!-- Header -->
+    <header class="top-bar">
+      <div class="top-bar-left">
+        <div
+          class="logo-container"
+          onclick="window.location.href='anasayfa.html'"
+        >
+          <svg class="logo-icon" viewBox="0 0 24 24" fill="none">
+            <path
+              d="M12 3L4 9V21H20V9L12 3Z"
+              stroke="url(#gradient1)"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+            <path
+              d="M9 21V12H15V21"
+              stroke="url(#gradient1)"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+            <defs>
+              <linearGradient
+                id="gradient1"
+                x1="0%"
+                y1="0%"
+                x2="100%"
+                y2="100%"
+              >
+                <stop
+                  offset="0%"
+                  style="stop-color: #00d9ff; stop-opacity: 1"
+                />
+                <stop
+                  offset="100%"
+                  style="stop-color: #7b2fff; stop-opacity: 1"
+                />
+              </linearGradient>
+            </defs>
+          </svg>
+          <div class="logo-text">
+            <span class="logo-title">Okul Yönetim</span>
+            <span class="logo-subtitle">Sistem Merkezi</span>
+          </div>
+        </div>
+
+        <div style="margin-left: 40px">
+          <h2
+            style="color: white; font-size: 20px; font-weight: 600; margin: 0"
+          >
+            ❤️ Sistem Sağlığı ve Performans
+          </h2>
+        </div>
+      </div>
+
+      <div class="top-bar-right">
+        <button
+          class="icon-btn"
+          onclick="window.location.href='anasayfa.html'"
+          title="Ana Sayfa"
+        >
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+          </svg>
+        </button>
+        <div class="user-menu">
+          <div class="user-avatar" id="userInitials"><span>SA</span></div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="page-container">
+      <!-- Sistem Durumu Kartları -->
+      <div class="status-cards">
+        <div class="status-card cpu">
+          <div class="status-header">
+            <span class="status-icon">🖥️</span>
+            <span class="status-title">CPU Kullanımı</span>
+          </div>
+          <div class="status-value" id="cpuValue">0%</div>
+          <div class="status-footer">
+            <span id="cpuCores">0 Çekirdek</span>
+            <span id="cpuTemp" class="temp-badge">0°C</span>
+          </div>
+        </div>
+
+        <div class="status-card memory">
+          <div class="status-header">
+            <span class="status-icon">💾</span>
+            <span class="status-title">RAM Kullanımı</span>
+          </div>
+          <div class="status-value" id="memoryValue">0%</div>
+          <div class="status-footer">
+            <span id="memoryUsed">0 GB</span> /
+            <span id="memoryTotal">0 GB</span>
+          </div>
+        </div>
+
+        <div class="status-card disk">
+          <div class="status-header">
+            <span class="status-icon">💿</span>
+            <span class="status-title">Disk Kullanımı</span>
+          </div>
+          <div class="status-value" id="diskValue">0%</div>
+          <div class="status-footer">
+            <span id="diskUsed">0 GB</span> / <span id="diskTotal">0 GB</span>
+          </div>
+        </div>
+
+        <div class="status-card database">
+          <div class="status-header">
+            <span class="status-icon">🗄️</span>
+            <span class="status-title">Veritabanı</span>
+          </div>
+          <div class="status-value" id="dbSize">0 MB</div>
+          <div class="status-footer">
+            <span id="activeSchools">0 Aktif Okul</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Grafikler -->
+      <div class="charts-grid">
+        <div class="chart-container">
+          <div class="chart-header">
+            <h3>📊 CPU Kullanım Geçmişi</h3>
+            <span class="chart-subtitle">Son 10 ölçüm</span>
+          </div>
+          <div class="chart-wrapper">
+            <canvas id="cpuChart"></canvas>
+          </div>
+        </div>
+
+        <div class="chart-container">
+          <div class="chart-header">
+            <h3>📊 RAM Kullanım Geçmişi</h3>
+            <span class="chart-subtitle">Son 10 ölçüm</span>
+          </div>
+          <div class="chart-wrapper">
+            <canvas id="memoryChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sistem Bilgileri -->
+      <div class="info-grid">
+        <div class="info-card">
+          <div class="info-icon">⏱️</div>
+          <div class="info-content">
+            <div class="info-label">Çalışma Süresi</div>
+            <div class="info-value" id="systemUptime">-</div>
+          </div>
+        </div>
+
+        <div class="info-card">
+          <div class="info-icon">💾</div>
+          <div class="info-content">
+            <div class="info-label">Son Yedekleme</div>
+            <div class="info-value" id="lastBackup">-</div>
+          </div>
+        </div>
+
+        <div class="info-card">
+          <div class="info-icon">💻</div>
+          <div class="info-content">
+            <div class="info-label">Platform</div>
+            <div class="info-value" id="platform">-</div>
+          </div>
+        </div>
+
+        <div class="info-card">
+          <div class="info-icon">🖥️</div>
+          <div class="info-content">
+            <div class="info-label">Hostname</div>
+            <div class="info-value" id="hostname">-</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Yenileme Butonu -->
+      <div class="refresh-section">
+        <button class="btn-refresh-large" onclick="refreshData()">
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path
+              d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"
+            />
+          </svg>
+          Verileri Yenile
+        </button>
+        <div class="auto-refresh-info">
+          <span class="pulse-dot"></span>
+          Otomatik yenileme: Her 5 saniyede
+        </div>
+      </div>
+    </main>
+
+    <script src="../bilesenler/bildirim-sistemi.js"></script>
+    <script src="sistem-saglik.js"></script>
+  </body>
+</html>

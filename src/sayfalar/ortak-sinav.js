@@ -1,4 +1,386 @@
 // ==========================================
+// 🦋 KELEBEK DAĞITIM ALGORİTMASI V2.0 (ULTRA OPTİMİZE)
+// - Minimum çakışma
+// - Kız/Erkek dengesi
+// - Seviye çeşitliliği
+// - Serpantin düzen
+// - Backtracking
+// ==========================================
+
+class KelebekAlgorithm {
+  constructor(ogrenciler, salonlar, ayarlar = {}) {
+    this.ogrenciler = ogrenciler;
+    this.salonlar = salonlar;
+    this.ayarlar = {
+      ayniSeviyeYasak: ayarlar.ayniSeviyeYasak ?? true,
+      ayniSubeYasak: ayarlar.ayniSubeYasak ?? true,
+      cinsiyetDengesi: ayarlar.cinsiyetDengesi ?? true,
+      serpantinDuzen: ayarlar.serpantinDuzen ?? true,
+      minCakismaModu: ayarlar.minCakismaModu ?? true,
+      ...ayarlar,
+    };
+
+    this.dagitimSonucu = [];
+    this.bosKoltuklar = [];
+    this.cakismalar = {
+      ayniSube: 0,
+      ayniSeviye: 0,
+      ayniCinsiyet: 0,
+    };
+  }
+
+  // ==========================================
+  // 1. ANA ÇALIŞTIRICI
+  // ==========================================
+
+  async calistir() {
+    console.log("=".repeat(60));
+    console.log("🦋 KELEBEK ALGORİTMASI BAŞLATILIYOR");
+    console.log("=".repeat(60));
+
+    // Veri hazırlama
+    this.ogrenciHavuzlari = this.ogrencileriGrupla();
+    console.log("✅ Öğrenciler gruplandı:", {
+      9: this.ogrenciHavuzlari[9]?.length || 0,
+      10: this.ogrenciHavuzlari[10]?.length || 0,
+      11: this.ogrenciHavuzlari[11]?.length || 0,
+      12: this.ogrenciHavuzlari[12]?.length || 0,
+    });
+
+    // Her seviyeyi karıştır (Fisher-Yates)
+    Object.keys(this.ogrenciHavuzlari).forEach((seviye) => {
+      this.ogrenciHavuzlari[seviye] = this.fisherYatesShuffle(
+        this.ogrenciHavuzlari[seviye]
+      );
+    });
+
+    console.log("✅ Öğrenciler karıştırıldı (Fisher-Yates)");
+
+    // Dağıtımı yap
+    await this.dagitimYap();
+
+    // Backtracking (boş koltukları doldur)
+    if (this.bosKoltuklar.length > 0) {
+      console.log(
+        `⚠️ ${this.bosKoltuklar.length} boş koltuk var, backtracking başlatılıyor...`
+      );
+      await this.backtrackingDoldur();
+    }
+
+    console.log("=".repeat(60));
+    console.log("✅ DAĞITIM TAMAMLANDI");
+    console.log("=".repeat(60));
+    console.log("📊 İSTATİSTİKLER:");
+    console.log(`   • Yerleştirilen: ${this.dagitimSonucu.length} öğrenci`);
+    console.log(`   • Boş Koltuk: ${this.bosKoltuklar.length}`);
+    console.log(`   • Aynı Şube Çakışma: ${this.cakismalar.ayniSube}`);
+    console.log(`   • Aynı Seviye Çakışma: ${this.cakismalar.ayniSeviye}`);
+    console.log(`   • Aynı Cinsiyet Çakışma: ${this.cakismalar.ayniCinsiyet}`);
+    console.log("=".repeat(60));
+
+    return {
+      dagitim: this.dagitimSonucu,
+      bosKoltuklar: this.bosKoltuklar,
+      cakismalar: this.cakismalar,
+    };
+  }
+
+  // ==========================================
+  // 2. VERİ HAZIRLAMA
+  // ==========================================
+
+  ogrencileriGrupla() {
+    const gruplar = { 9: [], 10: [], 11: [], 12: [] };
+
+    this.ogrenciler.forEach((ogr) => {
+      // Sınıf bilgisinden seviyeyi çıkar (örn: "9-A" → 9)
+      const seviye = parseInt(ogr.sinif?.toString().split("-")[0]);
+
+      if (seviye >= 9 && seviye <= 12) {
+        if (!gruplar[seviye]) gruplar[seviye] = [];
+        gruplar[seviye].push(ogr);
+      }
+    });
+
+    return gruplar;
+  }
+
+  fisherYatesShuffle(array) {
+    const arr = [...array];
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+
+  // ==========================================
+  // 3. ANA DAĞITIM MOTORU
+  // ==========================================
+
+  async dagitimYap() {
+    const seviyeAnahtarlari = Object.keys(this.ogrenciHavuzlari).filter(
+      (s) => this.ogrenciHavuzlari[s].length > 0
+    );
+
+    let seviyeIndex = 0;
+    let globalSiraNo = 1;
+
+    for (const salon of this.salonlar) {
+      console.log(
+        `\n🏢 Salon: ${salon.salon_adi} (Kapasite: ${salon.kapasite})`
+      );
+
+      const satirSayisi = salon.satir_sayisi || 8;
+      const sutunSayisi = salon.sutun_sayisi || 5;
+      const duzen = this.ayarlar.serpantinDuzen ? "serpantin" : "normal";
+
+      // Salon matrisi oluştur
+      const matris = Array(satirSayisi)
+        .fill()
+        .map(() => Array(sutunSayisi).fill(null));
+
+      // Koltukları sırala (serpantin veya normal)
+      const koltukSirasi = this.koltukSirasiOlustur(
+        satirSayisi,
+        sutunSayisi,
+        duzen
+      );
+
+      for (const { satir, sutun } of koltukSirasi) {
+        let yerlesti = false;
+        let deneme = 0;
+
+        // Uygun öğrenci bul (tüm seviyeleri dene)
+        while (deneme < seviyeAnahtarlari.length && !yerlesti) {
+          const seviye = seviyeAnahtarlari[seviyeIndex];
+          const havuz = this.ogrenciHavuzlari[seviye];
+
+          if (havuz && havuz.length > 0) {
+            // Skora göre en uygun öğrenciyi seç
+            const { ogrenci, index } = this.enUygunOgrenciyiBul(
+              havuz,
+              matris,
+              satir,
+              sutun
+            );
+
+            if (ogrenci) {
+              // Yerleştir
+              matris[satir][sutun] = ogrenci;
+              this.ogrenciHavuzlari[seviye].splice(index, 1);
+
+              this.dagitimSonucu.push({
+                salon_id: salon.id,
+                salon_adi: salon.salon_adi,
+                ogrenci_id: ogrenci.id,
+                ogrenci_ad: ogrenci.ad_soyad,
+                sinif: ogrenci.sinif,
+                cinsiyet: ogrenci.cinsiyet,
+                sira_no: globalSiraNo,
+                satir_index: satir,
+                sutun_index: sutun,
+              });
+
+              yerlesti = true;
+              globalSiraNo++;
+            }
+          }
+
+          seviyeIndex = (seviyeIndex + 1) % seviyeAnahtarlari.length;
+          deneme++;
+        }
+
+        // Yerleştirilemediyse boş bırak
+        if (!yerlesti) {
+          this.bosKoltuklar.push({
+            salon_id: salon.id,
+            salon_adi: salon.salon_adi,
+            satir: satir,
+            sutun: sutun,
+            sira_no: globalSiraNo,
+          });
+          globalSiraNo++;
+        }
+
+        // Animasyon için bekle (UI güncellemesi)
+        if (typeof dagitimDurdur !== "undefined" && dagitimDurdur) {
+          throw new Error("Dağıtım kullanıcı tarafından durduruldu");
+        }
+
+        await this.sleep(5); // 5ms bekle
+      }
+    }
+  }
+
+  // ==========================================
+  // 4. KOLTUK SIRASI OLUŞTUR (SERPANTİN)
+  // ==========================================
+
+  koltukSirasiOlustur(satirSayisi, sutunSayisi, duzen) {
+    const koltuklar = [];
+
+    for (let satir = 0; satir < satirSayisi; satir++) {
+      if (duzen === "serpantin" && satir % 2 === 1) {
+        // Tek satırlarda sağdan sola
+        for (let sutun = sutunSayisi - 1; sutun >= 0; sutun--) {
+          koltuklar.push({ satir, sutun });
+        }
+      } else {
+        // Çift satırlarda (ve normal modda) soldan sağa
+        for (let sutun = 0; sutun < sutunSayisi; sutun++) {
+          koltuklar.push({ satir, sutun });
+        }
+      }
+    }
+
+    return koltuklar;
+  }
+
+  // ==========================================
+  // 5. EN UYGUN ÖĞRENCİYİ BUL (SKOR SİSTEMİ)
+  // ==========================================
+
+  enUygunOgrenciyiBul(havuz, matris, satir, sutun) {
+    let enIyiOgrenci = null;
+    let enIyiIndex = -1;
+    let enDusukSkor = Infinity;
+
+    for (let i = 0; i < havuz.length; i++) {
+      const ogrenci = havuz[i];
+      const skor = this.cakismaSkoruHesapla(ogrenci, matris, satir, sutun);
+
+      // Sıfır skor = hiç çakışma yok (en iyisi)
+      if (skor === 0) {
+        return { ogrenci, index: i };
+      }
+
+      if (skor < enDusukSkor) {
+        enDusukSkor = skor;
+        enIyiOgrenci = ogrenci;
+        enIyiIndex = i;
+      }
+    }
+
+    // Minimum çakışma modunda en düşük skorlu olanı döndür
+    if (this.ayarlar.minCakismaModu && enIyiOgrenci) {
+      return { ogrenci: enIyiOgrenci, index: enIyiIndex };
+    }
+
+    // Minimum çakışma modu kapalıysa ve skor > 0 ise null döndür
+    return { ogrenci: null, index: -1 };
+  }
+
+  // ==========================================
+  // 6. ÇAKIŞMA SKORU HESAPLA
+  // ==========================================
+
+  cakismaSkoruHesapla(ogrenci, matris, satir, sutun) {
+    let skor = 0;
+
+    // 4 yönlü komşular (üst, alt, sol, sağ)
+    const komsular = [
+      { r: satir - 1, c: sutun }, // Üst
+      { r: satir + 1, c: sutun }, // Alt
+      { r: satir, c: sutun - 1 }, // Sol
+      { r: satir, c: sutun + 1 }, // Sağ
+    ];
+
+    for (const { r, c } of komsular) {
+      if (r >= 0 && r < matris.length && c >= 0 && c < matris[0].length) {
+        const komsu = matris[r][c];
+
+        if (komsu) {
+          // KURAL 1: Aynı şube (ÇOK KÖTÜ - en yüksek skor)
+          if (komsu.sinif === ogrenci.sinif) {
+            skor += 1000;
+          }
+
+          // KURAL 2: Aynı seviye (KÖTÜ - orta skor)
+          const komsuSeviye = parseInt(komsu.sinif?.toString().split("-")[0]);
+          const ogrSeviye = parseInt(ogrenci.sinif?.toString().split("-")[0]);
+
+          if (this.ayarlar.ayniSeviyeYasak && komsuSeviye === ogrSeviye) {
+            skor += 100;
+          }
+
+          // KURAL 3: Aynı cinsiyet (İSTENMEYEN - düşük skor)
+          if (
+            this.ayarlar.cinsiyetDengesi &&
+            komsu.cinsiyet === ogrenci.cinsiyet
+          ) {
+            skor += 10;
+          }
+        }
+      }
+    }
+
+    return skor;
+  }
+
+  // ==========================================
+  // 7. BACKTRACKING (BOŞ KOLTUKLARI DOLDUR)
+  // ==========================================
+
+  async backtrackingDoldur() {
+    console.log("🔄 Backtracking başlatılıyor...");
+
+    // Kalan tüm öğrencileri topla
+    const kalanOgrenciler = [];
+    Object.values(this.ogrenciHavuzlari).forEach((havuz) => {
+      kalanOgrenciler.push(...havuz);
+    });
+
+    if (kalanOgrenciler.length === 0) {
+      console.log("⚠️ Kalan öğrenci yok, backtracking atlanıyor");
+      return;
+    }
+
+    console.log(
+      `📦 ${kalanOgrenciler.length} öğrenci kaldı, boş koltuklara yerleştirilecek`
+    );
+
+    // Kuralları gevşeterek yerleştir
+    for (const bosKoltuk of this.bosKoltuklar) {
+      if (kalanOgrenciler.length === 0) break;
+
+      // İlk öğrenciyi al (artık skor bakmıyoruz, zorunluluk)
+      const ogrenci = kalanOgrenciler.shift();
+
+      this.dagitimSonucu.push({
+        salon_id: bosKoltuk.salon_id,
+        salon_adi: bosKoltuk.salon_adi,
+        ogrenci_id: ogrenci.id,
+        ogrenci_ad: ogrenci.ad_soyad,
+        sinif: ogrenci.sinif,
+        cinsiyet: ogrenci.cinsiyet,
+        sira_no: bosKoltuk.sira_no,
+        satir_index: bosKoltuk.satir,
+        sutun_index: bosKoltuk.sutun,
+        backtracking: true, // İşaretle
+      });
+
+      await this.sleep(5);
+    }
+
+    console.log("✅ Backtracking tamamlandı");
+  }
+
+  // ==========================================
+  // 8. YARDIMCI FONKSİYONLAR
+  // ==========================================
+
+  sleep(ms) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+}
+
+// Global olarak erişilebilir yap
+if (typeof window !== "undefined") {
+  window.KelebekAlgorithm = KelebekAlgorithm;
+}
+
+// ==========================================
 // ORTAK SINAV (KELEBEK) SİSTEMİ - JAVASCRIPT
 // Modern SweetAlert2 Modals & Notifications
 // ==========================================
@@ -292,11 +674,11 @@ function displaySinavKartlari(sinavlar) {
     })
     .join("");
 }
-
 // ==========================================
 // YENİ SINAV OLUŞTUR MODAL
 // ==========================================
 
+/* ESKİ MODAL - ARTIK KULLANILMIYOR (ortak-sinav-modals.js kullanılıyor)
 async function openYeniSinavModal() {
   const { value: formValues } = await Swal.fire({
     title: '<h2 style="color: #fff;">Yeni Sınav Oluştur</h2>',
@@ -459,6 +841,7 @@ async function kaydetYeniSinav(data) {
     showNotification("error", "❌ Bir hata oluştu!");
   }
 }
+*/
 
 // ==========================================
 // SINAV KİLİTLE/KİLİDİ AÇ
@@ -652,6 +1035,7 @@ function displaySalonlar(salonlar) {
     .join("");
 }
 
+/*
 async function openYeniSalonModal() {
   // Planları çek
   const planlarResult = await window.electronAPI.dbQuery(
@@ -768,6 +1152,7 @@ async function deleteSalon(salonId) {
     }
   }
 }
+*/
 
 // ==========================================
 // PART 2: PLAN YÖNETİMİ
@@ -916,6 +1301,7 @@ function temizlePlan() {
   `;
 }
 
+/*
 async function openYeniPlanModal() {
   const { value: formValues } = await Swal.fire({
     title: '<h2 style="color: #fff;">Yeni Plan Oluştur</h2>',
@@ -1002,6 +1388,7 @@ async function openYeniPlanModal() {
     }
   }
 }
+*/
 
 // ==========================================
 // PART 2: KELEBEK DAĞITIM SİSTEMİ
@@ -1193,16 +1580,22 @@ function displayOgrenciListesi(ogrenciler) {
   }
 
   liste.innerHTML = ogrenciler
-    .map(
-      (ogr) => `
+    .map((ogr) => {
+      // ✅ FOTOĞRAF PATH DÜZELTMESİ
+      let fotoSrc = "assets/default-avatar.png";
+      if (ogr.fotograf_path) {
+        fotoSrc = "file:///" + ogr.fotograf_path.replace(/\\/g, "/");
+      }
+
+      return `
     <div class="ogrenci-item">
       <div style="display: flex; align-items: center; gap: 0.75rem;">
-        <div style="width: 40px; height: 40px; border-radius: 50%; overflow: hidden; border: 2px solid var(--primary-light);">
-          <img src="${
-            ogr.fotograf_yolu || "assets/default-avatar.png"
-          }" style="width: 100%; height: 100%; object-fit: cover;" alt="${
-        ogr.ad_soyad
-      }">
+        <div style="width: 40px; height: 40px; border-radius: 50%; overflow: hidden; border: 2px solid var(--primary-light); position: relative; background: rgba(123, 47, 255, 0.1);">
+          <img src="${fotoSrc}" 
+               style="width: 100%; height: 100%; object-fit: cover;" 
+               alt="${ogr.ad_soyad}"
+               onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+          <div style="position: absolute; inset: 0; display: none; align-items: center; justify-content: center; font-size: 20px;">👤</div>
         </div>
         <div>
           <div style="font-weight: 600;">${ogr.ad_soyad}</div>
@@ -1215,8 +1608,8 @@ function displayOgrenciListesi(ogrenciler) {
         ogr.cinsiyet === "E" ? "👨 Erkek" : "👩 Kadın"
       }</div>
     </div>
-  `
-    )
+  `;
+    })
     .join("");
 
   // İstatistikleri güncelle
@@ -1334,108 +1727,47 @@ async function executeKelebekAlgorithm() {
 
   try {
     // ADIM 1: Öğrencileri al
+    console.log("📥 Öğrenciler çekiliyor...");
     const ogrenciler = await getKelebekOgrenciler();
+    console.log(`✅ ${ogrenciler.length} öğrenci alındı`);
 
     // ADIM 2: Salonları al
+    console.log("🏢 Salonlar çekiliyor...");
     const salonlar = await getKelebekSalonlar();
+    console.log(`✅ ${salonlar.length} salon alındı`);
 
-    // ADIM 3: Kelebek mantığıyla dağıt
-    await kelebekDagit(ogrenciler, salonlar);
+    // Validasyon
+    if (ogrenciler.length === 0) {
+      throw new Error("Öğrenci bulunamadı!");
+    }
 
-    closeLoading();
-    showNotification("success", "✅ Dağıtım tamamlandı!");
+    if (salonlar.length === 0) {
+      throw new Error("Salon bulunamadı!");
+    }
 
-    // Butonları geri al
-    document.getElementById("btnBasla").disabled = false;
-    document.getElementById("btnDurdur").disabled = true;
-    document.getElementById("dagitimProgress").style.display = "none";
-  } catch (error) {
-    closeLoading();
-    console.error("❌ Dağıtım hatası:", error);
-    showNotification("error", "❌ Dağıtım başarısız!");
+    // ADIM 3: Algoritma ayarlarını belirle
+    const ayarlar = {
+      ayniSeviyeYasak:
+        document.getElementById("ayniSeviyeYasak")?.checked ?? true,
+      ayniSubeYasak: true,
+      cinsiyetDengesi:
+        document.getElementById("cinsiyetDengesi")?.checked ?? true,
+      serpantinDuzen:
+        document.getElementById("serpantinDuzen")?.checked ?? true,
+      minCakismaModu: true, // Her zaman açık
+    };
 
-    document.getElementById("btnBasla").disabled = false;
-    document.getElementById("btnDurdur").disabled = true;
-  }
-}
+    console.log("⚙️ Algoritma ayarları:", ayarlar);
 
-async function getKelebekOgrenciler() {
-  const seviye = currentSinav.sinif_seviyesi;
-  let query = `SELECT * FROM ogrenciler WHERE durum = 1`;
+    // ADIM 4: 🦋 YENİ ALGORİTMAYI BAŞLAT
+    const algorithm = new KelebekAlgorithm(ogrenciler, salonlar, ayarlar);
 
-  if (seviye && seviye !== "9-10-11-12") {
-    const seviyeler = seviye.split("-");
-    const conditions = seviyeler.map((s) => `sinif LIKE '${s}-%'`).join(" OR ");
-    query += ` AND (${conditions})`;
-  }
-
-  // Devamsız hariç tut
-  if (document.getElementById("devamsizHaric").checked) {
-    query += ` AND devamsiz = 0`;
-  }
-
-  query += ` ORDER BY sinif, ad_soyad`;
-
-  const result = await window.electronAPI.dbQuery(query);
-  return result.success ? result.data : [];
-}
-
-async function getKelebekSalonlar() {
-  const checkboxes = document.querySelectorAll(".salon-checkbox:checked");
-  const salonIds = Array.from(checkboxes).map((cb) => cb.value);
-
-  if (salonIds.length === 0) return [];
-
-  const placeholders = salonIds.map(() => "?").join(",");
-  const result = await window.electronAPI.dbQuery(
-    `SELECT s.*, p.sira_sayisi, p.sutun_sayisi, p.duzeni 
-     FROM ortak_sinav_salonlar s
-     LEFT JOIN ortak_sinav_planlar p ON s.plan_id = p.id
-     WHERE s.id IN (${placeholders})`,
-    salonIds
-  );
-
-  return result.success ? result.data : [];
-}
-
-async function kelebekDagit(ogrenciler, salonlar) {
-  console.log(
-    `🦋 Dağıtım: ${ogrenciler.length} öğrenci, ${salonlar.length} salon`
-  );
-
-  // Öğrencileri karıştır (rastgele sıralama)
-  const karisikOgrenciler = shuffleArray([...ogrenciler]);
-
-  let yerlestirilenSayi = 0;
-  let salonIndex = 0;
-  let siraNo = 1;
-
-  // Her salon için dağıt
-  for (const salon of salonlar) {
-    const kapasite = salon.kapasite;
-    const salonOgrenciler = karisikOgrenciler.slice(
-      yerlestirilenSayi,
-      yerlestirilenSayi + kapasite
-    );
-
-    // Salon için öğrencileri yerleştir
-    for (let i = 0; i < salonOgrenciler.length; i++) {
-      const ogr = salonOgrenciler[i];
-
-      // Veritabanına kaydet
-      await window.electronAPI.dbQuery(
-        `INSERT INTO ortak_sinav_dagitim (sinav_id, ogrenci_id, salon_id, sira_no, sutun_no, sabitle) 
-         VALUES (?, ?, ?, ?, ?, 0)`,
-        [currentSinav.id, ogr.id, salon.id, siraNo, 1]
-      );
-
-      yerlestirilenSayi++;
-      siraNo++;
-
-      // Progress güncelle
+    // Progress callback ekle
+    algorithm.sleep = async function (ms) {
       const progress = Math.round(
-        (yerlestirilenSayi / ogrenciler.length) * 100
+        (algorithm.dagitimSonucu.length / ogrenciler.length) * 100
       );
+
       document.getElementById(
         "dagitimProgressFill"
       ).style.width = `${progress}%`;
@@ -1444,37 +1776,123 @@ async function kelebekDagit(ogrenciler, salonlar) {
       ).textContent = `${progress}%`;
       document.getElementById(
         "yerlestirilenSayi"
-      ).textContent = `${yerlestirilenSayi} / ${ogrenciler.length}`;
+      ).textContent = `${algorithm.dagitimSonucu.length} / ${ogrenciler.length}`;
 
       // Durduruldu mu kontrol et
       if (dagitimDurdur) {
         throw new Error("Dağıtım durduruldu");
       }
 
-      // Animasyon için bekle
-      await sleep(10);
+      return new Promise((resolve) => setTimeout(resolve, ms));
+    };
+
+    // Algoritma çalıştır
+    const sonuc = await algorithm.calistir();
+
+    console.log("📊 Algoritma sonucu:", sonuc);
+
+    // ADIM 5: VERİTABANINA KAYDET
+    console.log("💾 Veritabanına kaydediliyor...");
+
+    // Önce eski dağıtımı temizle
+    await window.electronAPI.dbQuery(
+      `DELETE FROM ortak_sinav_dagitim WHERE sinav_id = ?`,
+      [currentSinav.id]
+    );
+
+    // Yeni dağıtımı kaydet
+    for (const kayit of sonuc.dagitim) {
+      await window.electronAPI.dbQuery(
+        `INSERT INTO ortak_sinav_dagitim 
+         (sinav_id, ogrenci_id, salon_id, sira_no, satir_index, sutun_index, sabitle) 
+         VALUES (?, ?, ?, ?, ?, ?, 0)`,
+        [
+          currentSinav.id,
+          kayit.ogrenci_id,
+          kayit.salon_id,
+          kayit.sira_no,
+          kayit.satir_index,
+          kayit.sutun_index,
+        ]
+      );
     }
 
-    salonIndex++;
-    siraNo = 1;
+    closeLoading();
+
+    // Sonuç raporu göster
+    await Swal.fire({
+      icon: "success",
+      title: "✅ Dağıtım Tamamlandı!",
+      html: `
+        <div style="text-align: left; padding: 20px; color: #333;">
+          <h4 style="color: #10b981; margin-bottom: 15px;">📊 İSTATİSTİKLER:</h4>
+          
+          <div style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(5, 150, 105, 0.1) 100%); padding: 15px; border-radius: 10px; margin-bottom: 15px; border-left: 4px solid #10b981;">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 14px;">
+              <div><strong>Yerleştirilen:</strong></div>
+              <div style="text-align: right; color: #10b981; font-weight: 700;">${
+                sonuc.dagitim.length
+              } öğrenci</div>
+              
+              <div><strong>Toplam Öğrenci:</strong></div>
+              <div style="text-align: right; font-weight: 700;">${
+                ogrenciler.length
+              }</div>
+              
+              <div><strong>Boş Koltuk:</strong></div>
+              <div style="text-align: right; color: ${
+                sonuc.bosKoltuklar.length > 0 ? "#f59e0b" : "#10b981"
+              }; font-weight: 700;">${sonuc.bosKoltuklar.length}</div>
+            </div>
+          </div>
+
+          <h4 style="color: #f59e0b; margin-bottom: 15px;">⚠️ ÇAKIŞMALAR:</h4>
+          
+          <div style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(217, 119, 6, 0.1) 100%); padding: 15px; border-radius: 10px; border-left: 4px solid #f59e0b;">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 14px;">
+              <div><strong>Aynı Şube:</strong></div>
+              <div style="text-align: right; color: ${
+                sonuc.cakismalar.ayniSube > 0 ? "#ef4444" : "#10b981"
+              }; font-weight: 700;">${sonuc.cakismalar.ayniSube}</div>
+              
+              <div><strong>Aynı Seviye:</strong></div>
+              <div style="text-align: right; color: ${
+                sonuc.cakismalar.ayniSeviye > 0 ? "#f59e0b" : "#10b981"
+              }; font-weight: 700;">${sonuc.cakismalar.ayniSeviye}</div>
+              
+              <div><strong>Aynı Cinsiyet:</strong></div>
+              <div style="text-align: right; color: ${
+                sonuc.cakismalar.ayniCinsiyet > 0 ? "#6b7280" : "#10b981"
+              }; font-weight: 700;">${sonuc.cakismalar.ayniCinsiyet}</div>
+            </div>
+          </div>
+
+          ${
+            sonuc.bosKoltuklar.length > 0
+              ? `<div style="margin-top: 15px; padding: 12px; background: rgba(239, 68, 68, 0.1); border-left: 4px solid #ef4444; border-radius: 8px; font-size: 13px; color: #ef4444;">
+                  <strong>⚠️ Uyarı:</strong> ${sonuc.bosKoltuklar.length} koltuk boş kaldı. Öğrenci sayısı salon kapasitesinden az.
+                </div>`
+              : ""
+          }
+        </div>
+      `,
+      confirmButtonText: "Tamam",
+      confirmButtonColor: "#10b981",
+      width: "600px",
+    });
+
+    // Butonları geri al
+    document.getElementById("btnBasla").disabled = false;
+    document.getElementById("btnDurdur").disabled = true;
+    document.getElementById("dagitimProgress").style.display = "none";
+  } catch (error) {
+    closeLoading();
+    console.error("❌ Dağıtım hatası:", error);
+    showNotification("error", "❌ Dağıtım başarısız: " + error.message);
+
+    document.getElementById("btnBasla").disabled = false;
+    document.getElementById("btnDurdur").disabled = true;
   }
-}
-
-function durdurDagitim() {
-  dagitimDurdur = true;
-  showNotification("warning", "⏸️ Dağıtım durduruluyor...");
-}
-
-function shuffleArray(array) {
-  for (let i = array.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [array[i], array[j]] = [array[j], array[i]];
-  }
-  return array;
-}
-
-function sleep(ms) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 // ==========================================
@@ -2344,5 +2762,566 @@ function resetFilters() {
   loadDashboard();
   showNotification("info", "Filtreler temizlendi");
 }
+
+// ==========================================
+// 🆕 AKILLI GÖZETMEN DAĞITIM SİSTEMİ
+// ==========================================
+
+async function akılliGozetmenDagit(sinavId, salonId) {
+  try {
+    console.log("🤖 Akıllı gözetmen dağıtımı başlatılıyor...");
+
+    showLoading("Uygun gözetmen aranıyor...");
+
+    const result = await window.electronAPI.akillilGozetmenDagit(
+      sinavId,
+      salonId
+    );
+
+    closeLoading();
+
+    if (result.success) {
+      // Başarılı atama
+      const mesaj = result.bransUyumu
+        ? `✅ ${result.ogretmen.ad_soyad} gözetmen olarak atandı!`
+        : `⚠️ ${result.ogretmen.ad_soyad} atandı (Branş zorunluluğu nedeniyle)`;
+
+      await Swal.fire({
+        icon: result.bransUyumu ? "success" : "warning",
+        title: result.bransUyumu ? "Başarılı!" : "Uyarı!",
+        html: `
+          <div style="text-align: left; padding: 20px;">
+            <div style="background: ${
+              result.bransUyumu
+                ? "rgba(16, 185, 129, 0.1)"
+                : "rgba(245, 158, 11, 0.1)"
+            }; padding: 15px; border-radius: 10px; border-left: 4px solid ${
+          result.bransUyumu ? "#10b981" : "#f59e0b"
+        }; margin-bottom: 15px;">
+              <p style="margin: 0; color: #555; font-size: 16px;">${mesaj}</p>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 14px; color: #666;">
+              <div><strong>Öğretmen:</strong></div>
+              <div style="text-align: right;">${result.ogretmen.ad_soyad}</div>
+              
+              <div><strong>Branş:</strong></div>
+              <div style="text-align: right;">${
+                result.ogretmen.brans || "-"
+              }</div>
+              
+              <div><strong>Görev Puanı:</strong></div>
+              <div style="text-align: right;">${
+                result.ogretmen.gorev_puani || 0
+              } dakika</div>
+            </div>
+
+            ${
+              !result.bransUyumu
+                ? `
+              <div style="margin-top: 15px; padding: 12px; background: rgba(239, 68, 68, 0.1); border-left: 3px solid #ef4444; border-radius: 8px;">
+                <p style="margin: 0; color: #ef4444; font-size: 13px;">
+                  <strong>Not:</strong> Okulda yeterli farklı branştan öğretmen bulunamadığı için bu öğretmen mecburen atandı.
+                </p>
+              </div>
+            `
+                : ""
+            }
+          </div>
+        `,
+        confirmButtonText: "Tamam",
+        confirmButtonColor: result.bransUyumu ? "#10b981" : "#f59e0b",
+      });
+
+      // Komisyon listesini yenile
+      await loadKomisyonListesi(sinavId);
+    } else {
+      showNotification("error", result.message);
+    }
+  } catch (error) {
+    closeLoading();
+    console.error("❌ Gözetmen dağıtım hatası:", error);
+    showNotification("error", "Gözetmen atanamadı: " + error.message);
+  }
+}
+
+// Komisyon listesini yükle
+async function loadKomisyonListesi(sinavId) {
+  try {
+    const result = await window.electronAPI.getSinavGozetmenler(sinavId);
+
+    const tbody = document.getElementById("komisyonListesi");
+
+    if (result.success && result.data.length > 0) {
+      tbody.innerHTML = result.data
+        .map(
+          (gorev) => `
+        <tr>
+          <td>${gorev.ogretmen_ad}</td>
+          <td>${gorev.brans || "-"}</td>
+          <td>${gorev.salon_adi}</td>
+          <td>
+            <span style="padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600; background: ${
+              gorev.brans_uyumu === 1
+                ? "rgba(16, 185, 129, 0.1); color: #10b981"
+                : "rgba(245, 158, 11, 0.1); color: #f59e0b"
+            };">
+              ${gorev.brans_uyumu === 1 ? "✅ Uygun" : "⚠️ Mecburi"}
+            </span>
+          </td>
+          <td>
+            <button class="card-action-btn danger" onclick="removeGozetmen(${
+              gorev.id
+            })" title="Sil">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                <path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" stroke="currentColor" stroke-width="2"/>
+              </svg>
+            </button>
+          </td>
+        </tr>
+      `
+        )
+        .join("");
+    } else {
+      tbody.innerHTML =
+        '<tr><td colspan="5" style="text-align: center; color: #6c757d; padding: 30px;">Henüz gözetmen atanmamış</td></tr>';
+    }
+  } catch (error) {
+    console.error("❌ Komisyon listesi yükleme hatası:", error);
+  }
+}
+
+async function removeGozetmen(gozetmenId) {
+  const result = await showConfirm(
+    "Gözetmeni Kaldır?",
+    "Bu gözetmen görevden alınacak!"
+  );
+
+  if (result.isConfirmed) {
+    try {
+      showLoading();
+      const deleteResult = await window.electronAPI.deleteSinavGozetmen(
+        gozetmenId
+      );
+      closeLoading();
+
+      if (deleteResult.success) {
+        showNotification("success", "Gözetmen kaldırıldı!");
+        // Liste yenileme işlemi buraya
+      } else {
+        showNotification("error", "Gözetmen kaldırılamadı!");
+      }
+    } catch (error) {
+      closeLoading();
+      console.error("❌ Gözetmen kaldırma hatası:", error);
+      showNotification("error", "Bir hata oluştu!");
+    }
+  }
+}
+
+// ==========================================
+// 🆕 QR KOD SİSTEMİ
+// ==========================================
+
+async function generateOgrenciQR(ogrenciId, sinavId) {
+  try {
+    showLoading("QR Kod oluşturuluyor...");
+
+    const result = await window.electronAPI.generateQrKod(
+      sinavId,
+      "OGRENCI",
+      ogrenciId
+    );
+
+    closeLoading();
+
+    if (result.success) {
+      // QR Kod göster
+      await Swal.fire({
+        title: "📱 Öğrenci QR Kodu",
+        html: `
+          <div style="text-align: center; padding: 20px;">
+            <div id="qrcode" style="display: flex; justify-content: center; margin: 20px 0;"></div>
+            <p style="color: #666; font-size: 14px; margin-top: 15px;">
+              Bu QR kodu öğrenci kapıdan okutabilir.
+            </p>
+          </div>
+        `,
+        confirmButtonText: "Tamam",
+        confirmButtonColor: "#667eea",
+        didOpen: () => {
+          // QR Code kütüphanesi ile QR oluştur
+          new QRCode(document.getElementById("qrcode"), {
+            text: result.qrHash,
+            width: 256,
+            height: 256,
+          });
+        },
+      });
+    } else {
+      showNotification("error", "QR Kod oluşturulamadı!");
+    }
+  } catch (error) {
+    closeLoading();
+    console.error("❌ QR Kod hatası:", error);
+    showNotification("error", "QR Kod oluşturulamadı: " + error.message);
+  }
+}
+
+async function generateOgretmenQR(ogretmenId, sinavId, salonId) {
+  try {
+    showLoading("Öğretmen QR Kodu oluşturuluyor...");
+
+    const result = await window.electronAPI.generateQrKod(
+      sinavId,
+      "OGRETMEN",
+      ogretmenId
+    );
+
+    closeLoading();
+
+    if (result.success) {
+      await Swal.fire({
+        title: "👨‍🏫 Öğretmen QR Kodu",
+        html: `
+          <div style="text-align: center; padding: 20px;">
+            <div id="qrcode-teacher" style="display: flex; justify-content: center; margin: 20px 0;"></div>
+            <div style="background: rgba(102, 126, 234, 0.1); padding: 15px; border-radius: 10px; margin-top: 20px;">
+              <p style="margin: 0; color: #555; font-size: 14px;">
+                <strong>Bu QR kodu okutarak:</strong><br>
+                ✅ Dijital imza atabilir<br>
+                ✅ Yoklama yapabilir<br>
+                ✅ Olay kaydı oluşturabilirsiniz
+              </p>
+            </div>
+          </div>
+        `,
+        confirmButtonText: "Tamam",
+        confirmButtonColor: "#667eea",
+        didOpen: () => {
+          new QRCode(document.getElementById("qrcode-teacher"), {
+            text: result.qrHash,
+            width: 256,
+            height: 256,
+          });
+        },
+      });
+    } else {
+      showNotification("error", "QR Kod oluşturulamadı!");
+    }
+  } catch (error) {
+    closeLoading();
+    console.error("❌ QR Kod hatası:", error);
+    showNotification("error", "QR Kod oluşturulamadı: " + error.message);
+  }
+}
+
+// ==========================================
+// 🆕 DİJİTAL YOKLAMA SİSTEMİ
+// ==========================================
+
+async function openYoklamaPanel(sinavId, salonId) {
+  try {
+    showLoading("Yoklama listesi yükleniyor...");
+
+    const result = await window.electronAPI.getSalonYoklama(sinavId, salonId);
+
+    closeLoading();
+
+    if (!result.success) {
+      showNotification("error", "Yoklama listesi yüklenemedi!");
+      return;
+    }
+
+    const ogrenciler = result.data;
+
+    await Swal.fire({
+      title: "📋 Dijital Yoklama Paneli",
+      html: `
+        <div style="max-height: 500px; overflow-y: auto; padding: 10px;">
+          ${ogrenciler
+            .map((ogr) => {
+              // ✅ FOTOĞRAF PATH DÜZELTMESİ
+              let fotoSrc = "assets/default-avatar.png";
+              if (ogr.fotograf_path) {
+                fotoSrc = "file:///" + ogr.fotograf_path.replace(/\\/g, "/");
+              }
+
+              return `
+            <div class="yoklama-item" data-id="${
+              ogr.ogrenci_id
+            }" style="display: flex; align-items: center; gap: 15px; padding: 15px; background: white; border: 2px solid #e5e7eb; border-radius: 12px; margin-bottom: 10px;">
+              <div style="width: 50px; height: 50px; border-radius: 50%; overflow: hidden; border: 2px solid #667eea; position: relative; background: rgba(102, 126, 234, 0.1);">
+                <img src="${fotoSrc}" 
+                     style="width: 100%; height: 100%; object-fit: cover;"
+                     onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                <div style="position: absolute; inset: 0; display: none; align-items: center; justify-content: center; font-size: 24px;">👤</div>
+              </div>
+              <div style="flex: 1; text-align: left;">
+                <div style="font-weight: 700; color: #111;">${
+                  ogr.ad_soyad
+                }</div>
+                <div style="font-size: 13px; color: #666;">${ogr.sinif} - No: ${
+                ogr.okul_no
+              }</div>
+              </div>
+              <div style="display: flex; gap: 8px;">
+                <button class="yoklama-btn" data-durum="Mevcut" style="padding: 8px 16px; border-radius: 8px; border: none; cursor: pointer; font-weight: 600; background: ${
+                  ogr.yoklama_durumu === "Mevcut"
+                    ? "#10b981"
+                    : "rgba(16, 185, 129, 0.2)"
+                }; color: ${
+                ogr.yoklama_durumu === "Mevcut" ? "white" : "#10b981"
+              };">✅</button>
+                <button class="yoklama-btn" data-durum="Gelmedi" style="padding: 8px 16px; border-radius: 8px; border: none; cursor: pointer; font-weight: 600; background: ${
+                  ogr.yoklama_durumu === "Gelmedi"
+                    ? "#ef4444"
+                    : "rgba(239, 68, 68, 0.2)"
+                }; color: ${
+                ogr.yoklama_durumu === "Gelmedi" ? "white" : "#ef4444"
+              };">❌</button>
+              </div>
+            </div>
+          `;
+            })
+            .join("")}
+        </div>
+      `,
+      width: "700px",
+      showConfirmButton: true,
+      confirmButtonText: "Yoklamayı Kaydet",
+      confirmButtonColor: "#667eea",
+      didOpen: () => {
+        document.querySelectorAll(".yoklama-btn").forEach((btn) => {
+          btn.onclick = async function () {
+            const durum = this.getAttribute("data-durum");
+            const ogrenciId =
+              this.closest(".yoklama-item").getAttribute("data-id");
+
+            const saveResult = await window.electronAPI.kaydetYoklama({
+              sinav_id: sinavId,
+              ogrenci_id: ogrenciId,
+              salon_id: salonId,
+              yoklama_durumu: durum,
+              gozetmen_id: null,
+            });
+
+            if (saveResult.success) {
+              const item = this.closest(".yoklama-item");
+              item.querySelectorAll(".yoklama-btn").forEach((b) => {
+                const btnDurum = b.getAttribute("data-durum");
+                if (btnDurum === durum) {
+                  b.style.background =
+                    durum === "Mevcut" ? "#10b981" : "#ef4444";
+                  b.style.color = "white";
+                } else {
+                  b.style.background =
+                    btnDurum === "Mevcut"
+                      ? "rgba(16, 185, 129, 0.2)"
+                      : "rgba(239, 68, 68, 0.2)";
+                  b.style.color = btnDurum === "Mevcut" ? "#10b981" : "#ef4444";
+                }
+              });
+              showNotification("success", "Yoklama kaydedildi!");
+            }
+          };
+        });
+      },
+    });
+  } catch (error) {
+    closeLoading();
+    console.error("❌ Yoklama paneli hatası:", error);
+    showNotification("error", "Yoklama paneli açılamadı: " + error.message);
+  }
+}
+
+// ==========================================
+// 🆕 DİSİPLİN KAYDI SİSTEMİ
+// ==========================================
+
+async function openDisiplinKaydiModal(sinavId, ogrenciId, salonId) {
+  const result = await Swal.fire({
+    title: "⚠️ Disiplin Kaydı Oluştur",
+    html: `
+      <div style="text-align: left; padding: 20px;">
+        <div style="margin-bottom: 20px;">
+          <label style="font-weight: 600; color: #555; display: block; margin-bottom: 8px;">Olay Türü *</label>
+          <select id="disiplinTuru" class="swal2-select" style="width: 100%;">
+            <option value="Kopya">📝 Kopya Çekmek</option>
+            <option value="Huzur Bozma">🔊 Huzur Bozmak</option>
+            <option value="Kurallara Uymama">⚠️ Kurallara Uymamak</option>
+            <option value="Diger">➕ Diğer</option>
+          </select>
+        </div>
+
+        <div style="margin-bottom: 20px;">
+          <label style="font-weight: 600; color: #555; display: block; margin-bottom: 8px;">Açıklama *</label>
+          <textarea id="disiplinAciklama" class="swal2-textarea" rows="4" placeholder="Olayın detaylarını yazın..." style="width: 100%;"></textarea>
+        </div>
+
+        <div style="margin-bottom: 20px;">
+          <label style="font-weight: 600; color: #555; display: block; margin-bottom: 8px;">Kanıt Fotoğrafı (Opsiyonel)</label>
+          <input type="file" id="disiplinKanit" accept="image/*" class="swal2-file" style="width: 100%;">
+          <p style="font-size: 12px; color: #999; margin-top: 5px;">Fotoğraf yükleyerek kanıt ekleyebilirsiniz.</p>
+        </div>
+      </div>
+    `,
+    width: "600px",
+    showCancelButton: true,
+    confirmButtonText: "Kaydet",
+    cancelButtonText: "İptal",
+    confirmButtonColor: "#ef4444",
+    preConfirm: () => {
+      const tur = document.getElementById("disiplinTuru").value;
+      const aciklama = document.getElementById("disiplinAciklama").value.trim();
+      const kanitFile = document.getElementById("disiplinKanit").files[0];
+
+      if (!tur || !aciklama) {
+        Swal.showValidationMessage("Lütfen tüm zorunlu alanları doldurun!");
+        return false;
+      }
+
+      return { tur, aciklama, kanitFile };
+    },
+  });
+
+  if (result.isConfirmed) {
+    try {
+      showLoading("Disiplin kaydı oluşturuluyor...");
+
+      let kanitlar = null;
+
+      // Fotoğraf varsa yükle
+      if (result.value.kanitFile) {
+        const uploadResult = await window.electronAPI.uploadDisiplinKanit({
+          file: result.value.kanitFile,
+          sinav_id: sinavId,
+          ogrenci_id: ogrenciId,
+        });
+
+        if (uploadResult.success) {
+          kanitlar = [uploadResult.filePath];
+        }
+      }
+
+      // Disiplin kaydı oluştur
+      const saveResult = await window.electronAPI.kaydetDisiplin({
+        sinav_id: sinavId,
+        ogrenci_id: ogrenciId,
+        salon_id: salonId,
+        disiplin_turu: result.value.tur,
+        aciklama: result.value.aciklama,
+        kanitlar: kanitlar,
+        gozetmen_id: null, // TODO: Oturum açmış öğretmen
+      });
+
+      closeLoading();
+
+      if (saveResult.success) {
+        await Swal.fire({
+          icon: "success",
+          title: "Başarılı!",
+          text: "Disiplin kaydı başarıyla oluşturuldu.",
+          confirmButtonText: "Tamam",
+          confirmButtonColor: "#10b981",
+        });
+      } else {
+        showNotification("error", "Disiplin kaydı oluşturulamadı!");
+      }
+    } catch (error) {
+      closeLoading();
+      console.error("❌ Disiplin kaydı hatası:", error);
+      showNotification(
+        "error",
+        "Disiplin kaydı oluşturulamadı: " + error.message
+      );
+    }
+  }
+}
+// ==========================================
+// 🆕 HTML'DE KULLANILAN EKSİK FONKSİYONLAR
+// ==========================================
+
+/**
+ * Tüm salonlar için yoklama panelini aç
+ */
+async function openYoklamaPanelForAllSalons() {
+  try {
+    const sinavId = document.getElementById("kelebekSinav")?.value;
+
+    if (!sinavId) {
+      showNotification("warning", "Lütfen önce bir sınav seçin!");
+      return;
+    }
+
+    showNotification("info", "Yoklama paneli açılıyor...");
+    // TODO: Salon seçimi ve yoklama paneli
+  } catch (error) {
+    console.error("❌ Yoklama paneli hatası:", error);
+    showNotification("error", "Yoklama paneli açılamadı!");
+  }
+}
+
+/**
+ * Tüm QR kodlarını oluştur
+ */
+async function generateAllQRCodes() {
+  showNotification("info", "QR kod sistemi hazırlanıyor...");
+  // TODO: QR kod oluşturma
+}
+
+/**
+ * Disiplin kayıtlarını göster
+ */
+async function openDisiplinKayitlari() {
+  showNotification("info", "Disiplin kayıtları yükleniyor...");
+  // TODO: Disiplin listesi
+}
+
+/**
+ * Sınav kontrol panelini yeniden çalıştır
+ */
+async function yenidenKontrolEt() {
+  showNotification("info", "Kontrol paneli çalışıyor...");
+  // TODO: Validasyon
+}
+
+/**
+ * Akıllı gözetmen dağıtımı (tüm salonlar)
+ */
+async function akılliGozetmenDagitALL() {
+  showNotification("info", "Akıllı gözetmen dağıtımı başlatılıyor...");
+  // TODO: Toplu gözetmen atama
+}
+// ==========================================
+// 🆕 HTML'DE KULLANILAN FONKSİYONLAR
+// ==========================================
+
+async function openYoklamaPanelForAllSalons() {
+  showNotification("info", "Yoklama paneli geliştirme aşamasında...");
+}
+
+async function generateAllQRCodes() {
+  showNotification("info", "QR kod sistemi geliştirme aşamasında...");
+}
+
+async function openDisiplinKayitlari() {
+  showNotification("info", "Disiplin kayıtları geliştirme aşamasında...");
+}
+
+async function yenidenKontrolEt() {
+  showNotification("info", "Kontrol paneli geliştirme aşamasında...");
+}
+
+async function akılliGozetmenDagitALL() {
+  showNotification("info", "Akıllı gözetmen dağıtımı geliştirme aşamasında...");
+}
+
+console.log("✅ HTML Fonksiyonları Yüklendi");
+console.log("✅ Ortak Sınav JS - HTML Fonksiyonları Eklendi");
+console.log("✅ Ortak Sınav JS - YENİ ÖZELLİKLER Yüklendi");
+console.log("   • Akıllı Gözetmen Dağıtım Sistemi");
+console.log("   • QR Kod Ekosistemi");
+console.log("   • Dijital Yoklama & Disiplin Modülü");
 
 console.log("✅ Ortak Sınav JS - Part 3 Yüklendi");

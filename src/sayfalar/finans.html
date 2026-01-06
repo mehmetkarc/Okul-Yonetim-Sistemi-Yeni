@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Finans Yönetimi | Okul Yönetim</title>
+    <link rel="stylesheet" href="anasayfa.css" />
+    <link rel="stylesheet" href="okullar.css" />
+    <link rel="stylesheet" href="finans.css" />
+    <link rel="stylesheet" href="../bilesenler/bildirim-sistemi.css" />
+    <style>
+      /* Geçmiş Modalı İçin Ekstra Modern Dokunuşlar */
+      .history-modal {
+        background: var(--card-bg, #1a1d21);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        max-width: 800px !important;
+        width: 90%;
+      }
+      .header-left {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+      }
+      .header-icon {
+        font-size: 24px;
+        background: rgba(0, 217, 255, 0.1);
+        padding: 10px;
+        border-radius: 12px;
+      }
+      .method-tag {
+        background: rgba(0, 217, 255, 0.1);
+        color: #00d9ff;
+        padding: 4px 10px;
+        border-radius: 6px;
+        font-size: 12px;
+        font-weight: 600;
+      }
+      .date-badge {
+        color: #aaa;
+        font-family: monospace;
+      }
+      .history-table-container {
+        max-height: 450px;
+        overflow-y: auto;
+        margin-top: 20px;
+        border-radius: 8px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="bg-animations">
+      <div class="gradient-orb orb-1"></div>
+      <div class="gradient-orb orb-2"></div>
+      <div class="gradient-orb orb-3"></div>
+    </div>
+
+    <header class="top-bar">
+      <div class="top-bar-left">
+        <div
+          class="logo-container"
+          onclick="window.location.href='anasayfa.html'"
+        >
+          <svg class="logo-icon" viewBox="0 0 24 24" fill="none">
+            <path
+              d="M12 3L4 9V21H20V9L12 3Z"
+              stroke="url(#gradient1)"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+            <path
+              d="M9 21V12H15V21"
+              stroke="url(#gradient1)"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+            <defs>
+              <linearGradient
+                id="gradient1"
+                x1="0%"
+                y1="0%"
+                x2="100%"
+                y2="100%"
+              >
+                <stop
+                  offset="0%"
+                  style="stop-color: #00d9ff; stop-opacity: 1"
+                />
+                <stop
+                  offset="100%"
+                  style="stop-color: #7b2fff; stop-opacity: 1"
+                />
+              </linearGradient>
+            </defs>
+          </svg>
+          <div class="logo-text">
+            <span class="logo-title">Okul Yönetim</span>
+            <span class="logo-subtitle">Finans Merkezi</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="top-bar-center">
+        <h2 style="color: white; font-size: 20px; font-weight: 600">
+          💰 Lisans ve Tahsilat Takibi
+        </h2>
+      </div>
+
+      <div class="top-bar-right">
+        <button
+          class="icon-btn"
+          onclick="window.location.href='anasayfa.html'"
+          title="Ana Sayfa"
+        >
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+          </svg>
+        </button>
+        <div class="user-menu">
+          <div class="user-avatar" id="userInitials"><span>SA</span></div>
+        </div>
+      </div>
+    </header>
+
+    <main class="page-container">
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon income">₺</div>
+          <div class="stat-content">
+            <div class="stat-label">Toplam Tahsilat</div>
+            <div class="stat-value" id="toplamTahsilat">0 ₺</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon warning">⌛</div>
+          <div class="stat-content">
+            <div class="stat-label">Beklenen (30 Gün)</div>
+            <div class="stat-value" id="beklenenOdemeler">0 ₺</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon danger">🚨</div>
+          <div class="stat-content">
+            <div class="stat-label">Süresi Dolanlar</div>
+            <div class="stat-value" id="suresiDolanlar">0</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon school">🏫</div>
+          <div class="stat-content">
+            <div class="stat-label">Lisanslı Okul</div>
+            <div class="stat-value" id="aktifOkulSayisi">0</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="filter-section">
+        <div class="search-box">
+          <input
+            type="text"
+            id="financeSearch"
+            placeholder="Okul adına göre ara..."
+          />
+        </div>
+        <select class="filter-select" id="filterStatus">
+          <option value="all">Tüm Durumlar</option>
+          <option value="active">Lisansı Aktif</option>
+          <option value="warning">Süresi Yaklaşan</option>
+          <option value="expired">Süresi Dolan</option>
+        </select>
+        <button
+          class="btn-primary"
+          id="btnYeniOdeme"
+          onclick="openPaymentModalDirect()"
+        >
+          <span>+ Ödeme Kaydet</span>
+        </button>
+      </div>
+
+      <div class="table-container">
+        <table class="modern-table">
+          <thead>
+            <tr>
+              <th>Okul Bilgisi</th>
+              <th>İl / İlçe</th>
+              <th>Lisans Bitiş</th>
+              <th>Kalan Süre</th>
+              <th>Yıllık Ücret</th>
+              <th>Durum</th>
+              <th>İşlemler</th>
+            </tr>
+          </thead>
+          <tbody id="finansTbody"></tbody>
+        </table>
+      </div>
+    </main>
+
+    <div class="modal-overlay" id="modalOdemeAl" style="display: none">
+      <div class="modal-container">
+        <div class="modal-header">
+          <h2>💳 Ödeme Kaydı Oluştur</h2>
+          <button class="modal-close" onclick="closeModal('modalOdemeAl')">
+            &times;
+          </button>
+        </div>
+        <div class="modal-body">
+          <form id="formOdemeAl">
+            <div class="form-group">
+              <label class="form-label">Okul Seçin</label>
+              <select
+                id="odemeOkulSecimi"
+                class="form-select"
+                required
+              ></select>
+            </div>
+            <div class="form-grid">
+              <div class="form-group">
+                <label class="form-label">Ödeme Tutarı (₺)</label>
+                <input
+                  type="number"
+                  id="odemeTutarı"
+                  class="form-input"
+                  value="5000"
+                  required
+                />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Ödeme Yöntemi</label>
+                <select id="odemeYontemi" class="form-select">
+                  <option value="EFT/Havale">EFT/Havale</option>
+                  <option value="Nakit">Nakit</option>
+                  <option value="Kredi Kartı">Kredi Kartı</option>
+                </select>
+              </div>
+            </div>
+            <div class="info-box">
+              ℹ️ Bu işlem lisansı <strong>+1 yıl</strong> uzatır.
+            </div>
+            <div class="modal-footer">
+              <button
+                type="button"
+                class="btn-secondary"
+                onclick="closeModal('modalOdemeAl')"
+              >
+                Vazgeç
+              </button>
+              <button type="submit" class="btn-primary">Ödemeyi Onayla</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <div id="modalGecmis" class="modal-overlay" style="display: none">
+      <div class="modal-container history-modal">
+        <div class="modal-header">
+          <div class="header-left">
+            <span class="header-icon">📜</span>
+            <div>
+              <h3>Ödeme Geçmişi</h3>
+              <small id="gecmisOkulAdi">Okul Adı Yükleniyor...</small>
+            </div>
+          </div>
+          <button class="modal-close" onclick="closeModal('modalGecmis')">
+            &times;
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="history-table-container">
+            <table class="modern-table">
+              <thead>
+                <tr>
+                  <th>Tarih</th>
+                  <th>Tutar</th>
+                  <th>Yöntem</th>
+                  <th>Açıklama</th>
+                  <th>İşlem</th>
+                </tr>
+              </thead>
+              <tbody id="gecmisTbody"></tbody>
+            </table>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-secondary" onclick="closeModal('modalGecmis')">
+            Kapat
+          </button>
+          <button class="btn-primary" onclick="window.print()">
+            📥 Yazdır
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script src="../bilesenler/bildirim-sistemi.js"></script>
+    <script src="finans.js"></script>
+  </body>
+</html>

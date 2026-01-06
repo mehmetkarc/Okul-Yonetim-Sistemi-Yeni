@@ -1,12 +1,13 @@
 {
   "name": "okul-yonetim-sistemi",
-  "version": "1.1.1",
+  "version": "1.2.0",
   "description": "Okul Yönetim Sistemi - Profesyonel Çözüm",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
     "build": "electron-builder build --win --x64",
-    "build:portable": "electron-builder build --win portable"
+    "build:portable": "electron-builder build --win portable",
+    "publish": "electron-builder build --win --x64 --publish always"
   },
   "keywords": [
     "okul",
@@ -20,15 +21,20 @@
     "electron-builder": "^24.9.1"
   },
   "dependencies": {
+    "bcryptjs": "^3.0.3",
     "chokidar": "^4.0.3",
+    "crypto-js": "^4.2.0",
     "electron-updater": "^6.1.7",
+    "node-cron": "^4.2.1",
     "puppeteer": "^24.26.0",
     "sql.js": "^1.10.3",
+    "systeminformation": "^5.29.0",
+    "winston": "^3.19.0",
     "xlsx": "^0.18.5"
   },
   "build": {
     "appId": "com.okulys.app",
-    "productName": "Okul Yönetim Sistemi",
+    "productName": "OkulYonetimSistemi",
     "win": {
       "target": [
         "nsis"
@@ -39,7 +45,8 @@
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "shortcutName": "Okul Yönetim Sistemi"
+      "shortcutName": "Okul Yönetim Sistemi",
+      "artifactName": "${productName}-Setup-${version}.${ext}"
     },
     "directories": {
       "output": "dist",
@@ -51,8 +58,11 @@
       "!.git"
     ],
     "publish": {
-      "provider": "generic",
-      "url": "https://your-update-server.com/updates"
+      "provider": "github",
+      "owner": "mehmetkarc",
+      "repo": "Okul-Yonetim-Sistemi-Yeni",
+      "releaseType": "release",
+      "publishAutoUpdate": true
     }
   }
 }

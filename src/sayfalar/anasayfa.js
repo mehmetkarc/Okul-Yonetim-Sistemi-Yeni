@@ -56,32 +56,39 @@ const MODULES = {
         icon: "📊",
         color: "#00F5A0",
       },
-      { id: "yedekleme", title: "Yedekleme", icon: "💾", color: "#FFD93D" },
-      { id: "loglar", title: "Sistem Logları", icon: "📝", color: "#FF6B6B" },
-      { id: "guvenlik", title: "Güvenlik", icon: "🔒", color: "#00D9FF" },
+      { id: "yedek-al", title: "Yedekleme", icon: "💾", color: "#FFD93D" },
+      {
+        id: "sistem-saglik",
+        title: "Sistem Sağlığı",
+        icon: "❤️",
+        color: "#FF6B6B",
+      },
+      { id: "veritabani", title: "Veritabanı", icon: "🗄️", color: "#7B2FFF" },
+      { id: "loglar", title: "Sistem Logları", icon: "📝", color: "#00D9FF" },
+      { id: "guvenlik", title: "Güvenlik", icon: "🔒", color: "#FF6B9D" },
       {
         id: "istatistikler",
         title: "İstatistikler",
         icon: "📈",
-        color: "#7B2FFF",
+        color: "#00F5A0",
       },
-      { id: "ayarlar", title: "Sistem Ayarları", icon: "⚙️", color: "#FF6B9D" },
+      { id: "ayarlar", title: "Sistem Ayarları", icon: "⚙️", color: "#FFD93D" },
       {
         id: "bildirimler",
         title: "Bildirim Yönetimi",
         icon: "🔔",
-        color: "#00F5A0",
+        color: "#FF6B6B",
       },
-      { id: "destek", title: "Destek", icon: "💬", color: "#FFD93D" },
+      { id: "destek", title: "Destek", icon: "💬", color: "#00D9FF" },
       {
         id: "guncellemeler",
         title: "Güncellemeler",
         icon: "🔄",
-        color: "#FF6B6B",
+        color: "#7B2FFF",
       },
-      { id: "api", title: "API Yönetimi", icon: "🔌", color: "#00D9FF" },
-      { id: "tema", title: "Tema Ayarları", icon: "🎨", color: "#7B2FFF" },
-      { id: "email", title: "E-posta Ayarları", icon: "📧", color: "#FF6B9D" },
+      { id: "api", title: "API Yönetimi", icon: "🔌", color: "#FF6B9D" },
+      { id: "tema", title: "Tema Ayarları", icon: "🎨", color: "#00F5A0" },
+      { id: "email", title: "E-posta Ayarları", icon: "📧", color: "#FFD93D" },
     ],
     main: [
       {
@@ -137,14 +144,14 @@ const MODULES = {
         id: "sistem-saglik",
         title: "Sistem Sağlığı",
         icon: "❤️",
-        desc: "Performans",
+        desc: "Performans izleme", // ✅ DESC EKLENDI
         color: "#00F5A0",
       },
       {
         id: "veritabani",
         title: "Veritabanı",
         icon: "🗄️",
-        desc: "Yönetim",
+        desc: "DB yönetimi", // ✅ DESC EKLENDI
         color: "#FFD93D",
       },
       {
@@ -261,9 +268,16 @@ const MODULES = {
       },
     ],
   },
+
   school_user: {
     okul_admin: {
       sidebar: [
+        {
+          id: "kullanici-yonetimi", // ✅ YENİ EKLENDI
+          title: "Kullanıcı Yönetimi",
+          icon: "👥",
+          color: "#7B2FFF",
+        },
         {
           id: "ogretmenler",
           title: "Öğretmenler",
@@ -302,6 +316,13 @@ const MODULES = {
           icon: "📊",
           desc: "Özet bilgiler",
           color: "#00D9FF",
+        },
+        {
+          id: "kullanici-yonetimi", // ✅ YENİ EKLENDI
+          title: "Kullanıcı Yönetimi",
+          icon: "👥",
+          desc: "Kullanıcılar ve yetkiler",
+          color: "#7B2FFF",
         },
         {
           id: "ogretmen-ekle",
@@ -619,35 +640,55 @@ window.addEventListener("DOMContentLoaded", async () => {
 });
 
 // ==========================================
-// KULLANICI BİLGİLERİ
+// KULLANICI BİLGİLERİ (SÜPER ADMİN DESTEKLİ GÜNCEL)
 // ==========================================
 
 function loadUserInfo() {
+  console.log("=".repeat(60));
+  console.log("🔍 ANASAYFA - KULLANICI BİLGİSİ YÜKLEME");
+  console.log("=".repeat(60));
+
   const currentUserStr = localStorage.getItem("currentUser");
-  const currentSchoolStr = localStorage.getItem("currentSchool");
+
+  console.log("📦 localStorage'dan okunan currentUser:");
+  console.log(currentUserStr ? currentUserStr : "❌ BOŞ / NULL!");
 
   if (!currentUserStr) {
-    console.error("❌ Kullanıcı bilgisi bulunamadı!");
+    console.error("❌ HATA: Kullanıcı bilgisi bulunamadı!");
+    alert(
+      "Kullanıcı bilgisi bulunamadı! Giriş sayfasına yönlendiriliyorsunuz."
+    );
     localStorage.clear();
     window.location.href = "giris.html";
     return;
   }
 
   try {
+    console.log("🔍 JSON parse ediliyor...");
     currentUser = JSON.parse(currentUserStr);
-    schoolInfo = currentSchoolStr ? JSON.parse(currentSchoolStr) : null;
-    userType =
-      currentUser.rol === "super_admin" ? "super_admin" : "school_user";
+    console.log("✅ currentUser parse edildi:", currentUser);
 
-    console.log("👤 Kullanıcı:", currentUser);
-    console.log("🏫 Tip:", userType);
+    // ==========================================
+    // 👑 KRİTİK: userType BELİRLEME MANTIĞI
+    // ==========================================
+    // Kurum kodu '000000' ise veya rol 'super_admin' ise modül sistemini super_admin yap
+    if (
+      currentUser.okul_kodu === "000000" ||
+      currentUser.role === "super_admin"
+    ) {
+      userType = "super_admin";
+      console.log("👑 YETKİ: Süper Admin Modu Aktif");
+    } else {
+      userType = "school_user";
+      console.log("🏢 YETKİ: Okul Kullanıcısı Modu Aktif");
+    }
 
-    // Kullanıcı bilgilerini göster
-    userName.textContent = currentUser.ad_soyad;
-    userRole.textContent = getRoleName(currentUser.rol);
+    // UI Güncellemeleri
+    const displayName = currentUser.kullanici_adi || "Kullanıcı";
+    userName.textContent = displayName;
 
-    // İnisiyaller
-    const initials = currentUser.ad_soyad
+    // Profil İnisiyalleri (Profil resmindeki harfler)
+    const initials = displayName
       .split(" ")
       .map((word) => word[0])
       .join("")
@@ -655,60 +696,162 @@ function loadUserInfo() {
       .substring(0, 2);
     userInitials.textContent = initials;
 
-    // Okul adı
-    if (schoolInfo) {
-      okulAdi.textContent = schoolInfo.okul_adi;
-      pageTitle.textContent = `Hoş Geldiniz, ${currentUser.ad_soyad}`;
+    // ==========================================
+    // 🎨 ROL VE BAŞLIK GÜNCELLEMELERİ
+    // ==========================================
+    if (userType === "super_admin") {
+      // Süper Admin arayüz ayarları
+      userRole.textContent = "Sistem Yöneticisi";
+      okulAdi.textContent = "Yönetim Merkezi";
+      pageTitle.textContent = "Sistem Kontrol Paneli";
+
+      // Süper admin için breadcrumb düzenle
+      if (breadcrumb) {
+        breadcrumb.innerHTML =
+          '<li class="breadcrumb-item active">Sistem Yönetimi</li>';
+      }
+
+      // Süper admin için lisans badge'ini gizle (İhtiyacı yok)
+      if (licenseBadge) licenseBadge.style.display = "none";
+
+      // schoolInfo'yu boş bırakma, super_admin verisiyle doldur
+      schoolInfo = {
+        okul_kodu: "000000",
+        okul_adi: "Sistem Yönetim Merkezi",
+        kullanici_adi: displayName,
+        lisans_bitis: "2099-12-31",
+        moduller: currentUser.moduller || [],
+      };
     } else {
-      okulAdi.textContent = "Super Admin";
-      pageTitle.textContent = "Sistem Yönetimi";
+      // Normal Okul Kullanıcısı ayarları
+      const displayRole = currentUser.okul_adi || "Okul Yönetimi";
+      userRole.textContent = displayRole;
+      okulAdi.textContent = currentUser.okul_adi;
+      pageTitle.textContent = `Hoş Geldiniz, ${displayName}`;
+
+      // schoolInfo nesnesini normal okul verisiyle doldur
+      schoolInfo = {
+        okul_kodu: currentUser.okul_kodu,
+        okul_adi: currentUser.okul_adi,
+        kullanici_adi: currentUser.kullanici_adi,
+        lisans_bitis: currentUser.gecerlilik || currentUser.lisans_bitis,
+        moduller: currentUser.moduller || [],
+      };
+
+      console.log("✅ schoolInfo Hazırlandı:", schoolInfo);
     }
+
+    // Global erişim için window nesnesine bağla
+    window.currentUser = currentUser;
+    window.schoolInfo = schoolInfo;
+    window.userType = userType; // Modüllerin çekilmesi için kritik
+
+    console.log("=".repeat(60));
+    console.log("✅ loadUserInfo TAMAMLANDI - AKTİF MOD: " + userType);
+    console.log("=".repeat(60));
   } catch (error) {
-    console.error("❌ Kullanıcı bilgisi parse hatası:", error);
+    console.error("❌ PARSE HATASI:", error);
+    alert("Kullanıcı bilgisi okunamadı! Tekrar giriş yapın.");
     localStorage.clear();
     window.location.href = "giris.html";
   }
 }
+// ==========================================
+// 🛡️ YETKİ KONTROLÜ (SÜPER ADMİN SINIRSIZ ERİŞİM)
+// ==========================================
 
-function getRoleName(rol) {
-  const roles = {
-    super_admin: "Sistem Yöneticisi",
-    okul_admin: "Okul Yöneticisi",
-    ogretmen: "Öğretmen",
-    ogrenci: "Öğrenci",
-    veli: "Veli",
-  };
-  return roles[rol] || rol;
+function checkModuleAccess(moduleId) {
+  // 👑 KRİTİK: Süper Admin ise sorgusuz sualsiz HER ŞEYE erişebilir
+  if (
+    userType === "super_admin" ||
+    (currentUser && currentUser.okul_kodu === "000000")
+  ) {
+    console.log(
+      `👑 SÜPER ADMİN: [${moduleId}] modülüne sınırsız erişim izni verildi.`
+    );
+    return true;
+  }
+
+  // Normal kullanıcılar için mevcut modül listesini kontrol et
+  if (schoolInfo && schoolInfo.moduller) {
+    return schoolInfo.moduller.includes(moduleId);
+  }
+
+  return false;
+}
+
+// Modül tıklama olayını yöneten fonksiyon (DÜZELTİLDİ: Obje desteği ve Yönlendirme eklendi)
+function handleModuleClick(moduleData) {
+  // Eğer parametre bir objeyse içinden ID'yi al, değilse kendisini kullan
+  const moduleId = typeof moduleData === "object" ? moduleData.id : moduleData;
+  const moduleTitle =
+    typeof moduleData === "object" ? moduleData.title : moduleId;
+
+  if (checkModuleAccess(moduleId)) {
+    console.log(`✅ Yetki Onaylandı: ${moduleTitle} açılıyor...`);
+
+    // 🚀 YÖNLENDİRME: Modül ID'si ile aynı isimli HTML dosyasına gider
+    window.location.href = `${moduleId}.html`;
+  } else {
+    console.error(`❌ YETKİ HATASI: ${moduleId} modülüne erişiminiz yok!`);
+    if (typeof showNotification === "function") {
+      showNotification("error", "Bu sayfaya erişim yetkiniz bulunmamaktadır!");
+    } else {
+      alert("Bu sayfaya erişim yetkiniz bulunmamaktadır!");
+    }
+  }
 }
 
 // ==========================================
-// MODÜL YÜKLEME
+// MODÜL YÜKLEME (FİLTRELEME KAPALI - TÜM MODÜLLER)
 // ==========================================
 
 function loadModules() {
+  console.log("=".repeat(60));
+  console.log("📦 MODÜLLER YÜKLENİYOR");
+  console.log("=".repeat(60));
+
+  // userType ve currentUser global değişkenlerinin tanımlı olduğundan emin oluyoruz
+  const currentType = window.userType || userType;
+
   let sidebarModules = [];
   let mainModules = [];
 
-  if (userType === "super_admin") {
+  if (currentType === "super_admin") {
+    console.log("👑 Super Admin modülleri yükleniyor...");
     sidebarModules = MODULES.super_admin.sidebar;
     mainModules = MODULES.super_admin.main;
-  } else if (userType === "school_user") {
-    const role = currentUser.rol;
-    if (MODULES.school_user[role]) {
-      sidebarModules = MODULES.school_user[role].sidebar;
-      mainModules = MODULES.school_user[role].main;
-    }
+  } else {
+    console.log("🏫 Okul kullanıcısı modülleri yükleniyor...");
+    sidebarModules = MODULES.school_user.okul_admin.sidebar;
+    mainModules = MODULES.school_user.okul_admin.main;
   }
 
-  // Sol menüyü doldur
+  // Menüleri çiz
   renderSidebarMenu(sidebarModules);
-
-  // Ana kartları doldur
   renderMainModules(mainModules);
+
+  console.log("✅ Tüm modüller başarıyla render edildi!");
+  console.log("=".repeat(60));
 }
 
+// ==========================================
+// SİDEBAR MENÜ RENDER
+// ==========================================
+
 function renderSidebarMenu(modules) {
+  if (!sidebarMenu) {
+    console.error("❌ sidebarMenu DOM elementi bulunamadı!");
+    return;
+  }
+
   sidebarMenu.innerHTML = "";
+
+  if (!modules || modules.length === 0) {
+    sidebarMenu.innerHTML =
+      '<div style="padding: 20px; color: #999; text-align: center;">Modül bulunamadı</div>';
+    return;
+  }
 
   modules.forEach((module, index) => {
     const menuItem = document.createElement("a");
@@ -732,8 +875,22 @@ function renderSidebarMenu(modules) {
   });
 }
 
+// ==========================================
+// ANA MODÜLLER RENDER
+// ==========================================
+
 function renderMainModules(modules) {
+  if (!moduleGrid) {
+    console.error("❌ moduleGrid DOM elementi bulunamadı!");
+    return;
+  }
+
   moduleGrid.innerHTML = "";
+
+  if (!modules || modules.length === 0) {
+    moduleGrid.innerHTML = `<div style="padding: 40px; text-align: center; grid-column: 1/-1;">Modül Bulunamadı</div>`;
+    return;
+  }
 
   modules.forEach((module, index) => {
     const card = document.createElement("div");
@@ -755,86 +912,154 @@ function renderMainModules(modules) {
     moduleGrid.appendChild(card);
   });
 }
-
 // ==========================================
-// MODÜL TIKLAMA
+// MODÜL TIKLAMA (DEBUG + TAMİR SÜRÜMÜ)
 // ==========================================
 
 function handleModuleClick(module) {
-  console.log("🎯 Modül tıklandı:", module.title);
+  // Gelen veriyi kontrol et (Obje değilse bile hata vermemesi için)
+  const moduleId = typeof module === "object" ? module.id : module;
+  const moduleTitle = typeof module === "object" ? module.title : "Modül";
 
-  // Sayfa yönlendirmeleri
+  console.log("=".repeat(60));
+  console.log("🎯 MODÜL TIKLANDI:", moduleTitle);
+  console.log("=".repeat(60));
+
+  // 1. MEVCUT VERİYİ LOCALSTORAGE'DAN ÇEK
+  const currentUserStr = localStorage.getItem("currentUser");
+
+  if (!currentUserStr) {
+    console.error("❌ HATA: localStorage'da currentUser bulunamadı!");
+    if (typeof showNotification === "function") {
+      showNotification("error", "Oturum verisi bulunamadı!");
+    }
+    setTimeout(() => {
+      window.location.href = "giris.html";
+    }, 1000);
+    return;
+  }
+
+  // 2. VERİYİ PARSE ET VE DİĞER SAYFALARIN BEKLEDİĞİ FORMATI OLUŞTUR
+  try {
+    const userObj = JSON.parse(currentUserStr);
+
+    // Diğer sayfaların (ogretmenler.js vb.) beklediği eksik alanları tamamla
+    const repairData = {
+      ...userObj,
+      ad_soyad: userObj.kullanici_adi || userObj.ad_soyad || "Yönetici",
+      rol:
+        userObj.okul_kodu && userObj.okul_kodu !== "000000"
+          ? "okul_admin"
+          : "super_admin",
+      okul_adi: userObj.okul_adi || "Belirtilmemiş Okul",
+    };
+
+    // Kritik: Diğer sayfaların aradığı "currentSchool" anahtarını doldur
+    localStorage.setItem("currentSchool", JSON.stringify(repairData));
+    // Mevcut kullanıcıyı da güncel (tamir edilmiş) haliyle sakla
+    localStorage.setItem("currentUser", JSON.stringify(repairData));
+
+    console.log("🚀 Veriler tamir edildi ve hazırlandı:", repairData);
+  } catch (e) {
+    console.error("❌ JSON Parse Hatası:", e);
+    window.location.href = "giris.html";
+    return;
+  }
+
+  // 3. SAYFA ROTALARI (GÜNCEL)
   const pageRoutes = {
-    // Super Admin Sayfaları
     okullar: "okullar.html",
     "yeni-okul": "okullar.html",
     "okul-listesi": "okullar.html",
-
-    // Okul Admin - Öğretmen Modülleri
+    lisanslar: "lisanslar.html",
+    "lisans-takip": "lisanslar.html",
+    finans: "finans.html",
+    finansal: "finans.html",
     ogretmenler: "ogretmenler.html",
     "ogretmen-ekle": "ogretmenler.html",
-
-    // Okul Admin - Öğrenci Modülleri
     ogrenciler: "ogrenciler.html",
     "ogrenci-ekle": "ogrenciler.html",
-
-    // Okul Admin - Sınıf Modülleri
     siniflar: "siniflar.html",
     "sinif-olustur": "siniflar.html",
-    "sinif-ekle": "siniflar.html",
-
-    // Okul Admin - Dersler Modülleri
     dersler: "dersler.html",
     "ders-ekle": "dersler.html",
-    "ders-tanimlama": "dersler.html",
-
-    // Okul Admin - Program Oluştur
     "program-olustur": "program-olustur.html",
-
-    // ✅ GEZİ MODÜLÜ
+    "ders-programi": "program-olustur.html",
     "gezi-planla": "gezi-planla.html",
-
-    // ✅ NÖBET MODÜLÜ
     "ogretmen-nobet": "nobet.html",
-    "nobet-planla": "nobet.html",
-
-    // ✅ ORTAK SINAV (KELEBEK) MODÜLÜ
     "ortak-sinav": "ortak-sinav.html",
-    "sinav-olustur": "ortak-sinav.html",
-    "kelebek-sistemi": "ortak-sinav.html",
-
-    // Diğer modüller için (henüz yok)
+    notlar: "notlar.html",
+    devamsizlik: "devamsizlik.html",
+    raporlar: "raporlar.html",
     dashboard: "anasayfa.html",
+    "kullanici-yonetimi": "kullanici-yonetimi.html",
+    "yedek-al": "yedek-yonetimi.html",
+    "yedek-yukle": "yedek-yonetimi.html",
+    "sistem-saglik": "sistem-saglik.html", // ✅ YENİ
+    veritabani: "veritabani.html", // ✅ YENİ (İleride yapılacak)
+    "log-goruntuleyici": "log-goruntuleyici.html", // ✅ YENİ (İleride yapılacak)
+    "guvenlik-rapor": "guvenlik-rapor.html", // ✅ YENİ (İleride yapılacak)
   };
 
-  // Eğer sayfa varsa yönlendir
-  if (pageRoutes[module.id]) {
-    showNotification("success", `${module.title} modülü açılıyor...`);
+  // 4. YÖNLENDİRME
+  if (pageRoutes[moduleId]) {
+    console.log("✅ Hedef Sayfa:", pageRoutes[moduleId]);
 
+    if (typeof showNotification === "function") {
+      showNotification("success", `${moduleTitle} açılıyor...`);
+    }
+
+    // 500ms bekle ki veriler localStorage'a tam yazılsın
     setTimeout(() => {
-      window.location.href = pageRoutes[module.id];
+      window.location.href = pageRoutes[moduleId];
     }, 500);
   } else {
-    // Henüz hazır değilse bildirim göster
-    showNotification("info", `${module.title} modülü yakında eklenecek!`);
+    console.warn("⚠️ Rota bulunamadı:", moduleId);
+    if (typeof showNotification === "function") {
+      showNotification("info", "Modül yapım aşamasında.");
+    }
   }
+  console.log("=".repeat(60));
 }
-
 // ==========================================
 // LİSANS KONTROLÜ
 // ==========================================
 
+// ==========================================
+// LİSANS KONTROLÜ (SÜPER ADMİN DESTEKLİ)
+// ==========================================
+
 async function checkLicense() {
+  // 👑 KRİTİK DÜZENLEME: Süper Admin veya 000000 kodlu girişlerde lisans kontrolünü tamamen atla
+  if (
+    userType === "super_admin" ||
+    (currentUser && currentUser.okul_kodu === "000000")
+  ) {
+    console.log(
+      "👑 SÜPER ADMİN: Lisans kontrolü bypass edildi, sınırsız erişim sağlandı."
+    );
+
+    // UI üzerindeki lisans elemanlarını gizle veya "Sınırsız" yap
+    if (licenseBadge) {
+      licenseBadge.style.display = "none";
+    }
+    if (licenseText) {
+      licenseText.textContent = "Sınırsız";
+    }
+    return; // Fonksiyondan çık, aşağıdaki kontrollere girme
+  }
+
+  // Okul kullanıcısı değilse veya bilgi yoksa kontrolü durdur
   if (userType !== "school_user" || !schoolInfo) {
-    licenseBadge.style.display = "none";
+    if (licenseBadge) licenseBadge.style.display = "none";
     return;
   }
 
   try {
-    // Lisans bilgisi yoksa gizle
+    // Lisans bitiş tarihi bilgisi yoksa gizle
     if (!schoolInfo.lisans_bitis) {
       console.warn("⚠️ Lisans bilgisi bulunamadı");
-      licenseBadge.style.display = "none";
+      if (licenseBadge) licenseBadge.style.display = "none";
       return;
     }
 
@@ -844,9 +1069,11 @@ async function checkLicense() {
     // Tarih geçerli mi kontrol et
     if (isNaN(bitisTarihi.getTime())) {
       console.error("❌ Geçersiz lisans tarihi:", schoolInfo.lisans_bitis);
-      licenseText.textContent = "Hata!";
-      licenseBadge.classList.add("danger");
-      licenseBadge.style.display = "flex";
+      if (licenseText) licenseText.textContent = "Hata!";
+      if (licenseBadge) {
+        licenseBadge.classList.add("danger");
+        licenseBadge.style.display = "flex";
+      }
       return;
     }
 
@@ -855,33 +1082,43 @@ async function checkLicense() {
     console.log(`📅 Lisans kontrolü: ${kalanGun} gün kaldı`);
 
     // Badge'i göster
-    licenseBadge.style.display = "flex";
+    if (licenseBadge) licenseBadge.style.display = "flex";
 
     if (kalanGun <= 0) {
-      licenseText.textContent = "Bitti!";
-      licenseBadge.classList.remove("warning");
-      licenseBadge.classList.add("danger");
-      showNotification(
-        "error",
-        "❌ Lisansınız sona erdi! Lütfen yöneticinizle iletişime geçin."
-      );
+      if (licenseText) licenseText.textContent = "Bitti!";
+      if (licenseBadge) {
+        licenseBadge.classList.remove("warning");
+        licenseBadge.classList.add("danger");
+      }
+      if (typeof showNotification === "function") {
+        showNotification(
+          "error",
+          "❌ Lisansınız sona erdi! Lütfen yöneticinizle iletişime geçin."
+        );
+      }
     } else if (kalanGun <= 30) {
-      licenseText.textContent = `${kalanGun} gün`;
-      licenseBadge.classList.remove("danger");
-      licenseBadge.classList.add("warning");
-      showNotification(
-        "warning",
-        `⚠️ Lisansınız ${kalanGun} gün içinde sona erecek!`
-      );
+      if (licenseText) licenseText.textContent = `${kalanGun} gün`;
+      if (licenseBadge) {
+        licenseBadge.classList.remove("danger");
+        licenseBadge.classList.add("warning");
+      }
+      if (typeof showNotification === "function") {
+        showNotification(
+          "warning",
+          `⚠️ Lisansınız ${kalanGun} gün içinde sona erecek!`
+        );
+      }
     } else {
-      licenseText.textContent = `${kalanGun} gün`;
-      licenseBadge.classList.remove("danger", "warning");
+      if (licenseText) licenseText.textContent = `${kalanGun} gün`;
+      if (licenseBadge) licenseBadge.classList.remove("danger", "warning");
     }
   } catch (error) {
     console.error("❌ Lisans kontrolü hatası:", error);
-    licenseText.textContent = "Hata!";
-    licenseBadge.classList.add("danger");
-    licenseBadge.style.display = "flex";
+    if (licenseText) licenseText.textContent = "Hata!";
+    if (licenseBadge) {
+      licenseBadge.classList.add("danger");
+      licenseBadge.style.display = "flex";
+    }
   }
 }
 
@@ -1086,9 +1323,16 @@ function setupUpdateListeners() {
 
   // Güncelleme hatası
   if (window.electronAPI.onUpdateError) {
-    window.electronAPI.onUpdateError((message) => {
-      console.error("❌ Güncelleme hatası:", message);
-      showNotification("error", "❌ Güncelleme hatası: " + message);
+    window.electronAPI.onUpdateError((error) => {
+      console.error("❌ Güncelleme hatası detayı:", {
+        message: error?.message || error,
+        code: error?.code,
+        stack: error?.stack,
+        fullError: error,
+      });
+
+      const errorMsg = error?.message || JSON.stringify(error);
+      showNotification("error", "❌ Güncelleme hatası: " + errorMsg);
     });
   }
 }
@@ -1218,12 +1462,19 @@ function handleLogout() {
   const confirmed = confirm("Çıkış yapmak istediğinize emin misiniz?");
 
   if (confirmed) {
-    sessionStorage.clear();
+    console.log("🚪 Çıkış işlemi başlatılıyor...");
+
+    // ✅ localStorage'ı temizle (sessionStorage değil!)
+    localStorage.clear();
+
     showNotification("success", "Çıkış yapılıyor...");
 
     setTimeout(() => {
+      console.log("🔄 Giriş sayfasına yönlendiriliyor...");
       window.location.href = "giris.html";
     }, 1000);
+  } else {
+    console.log("❌ Çıkış iptal edildi");
   }
 }
 

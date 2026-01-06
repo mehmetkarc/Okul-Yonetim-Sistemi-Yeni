@@ -1,0 +1,185 @@
+/* Finans Sayfasına Özel Renk Tanımlamaları */
+:root {
+  --income-color: #00f5a0;
+  --warning-color: #ffd93d;
+  --danger-color: #ff6b6b;
+  --card-bg: rgba(255, 255, 255, 0.05);
+}
+
+/* Stat Kartları İkon Renklendirmeleri */
+.stat-icon.income {
+  background: rgba(0, 245, 160, 0.15) !important;
+  color: var(--income-color) !important;
+  box-shadow: 0 0 15px rgba(0, 245, 160, 0.2);
+}
+.stat-icon.warning {
+  background: rgba(255, 217, 61, 0.15) !important;
+  color: var(--warning-color) !important;
+  box-shadow: 0 0 15px rgba(255, 217, 61, 0.2);
+}
+.stat-icon.danger {
+  background: rgba(255, 107, 107, 0.15) !important;
+  color: var(--danger-color) !important;
+  box-shadow: 0 0 15px rgba(255, 107, 107, 0.2);
+}
+.stat-icon.school {
+  background: rgba(0, 217, 255, 0.15) !important;
+  color: #00d9ff !important;
+  box-shadow: 0 0 15px rgba(0, 217, 255, 0.2);
+}
+
+/* Durum Badge'leri (Tablo İçin) */
+.status-badge {
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.badge-active {
+  background: rgba(0, 245, 160, 0.1);
+  color: var(--income-color);
+  border: 1px solid rgba(0, 245, 160, 0.2);
+}
+.badge-warning {
+  background: rgba(255, 217, 61, 0.1);
+  color: var(--warning-color);
+  border: 1px solid rgba(255, 217, 61, 0.2);
+}
+.badge-expired {
+  background: rgba(255, 107, 107, 0.1);
+  color: var(--danger-color);
+  border: 1px solid rgba(255, 107, 107, 0.2);
+  animation: pulse-danger 2s infinite;
+}
+
+/* Süresi Dolanlar İçin Hafif Parlama Efekti */
+@keyframes pulse-danger {
+  0% {
+    box-shadow: 0 0 0 0px rgba(255, 107, 107, 0.4);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(255, 107, 107, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0px rgba(255, 107, 107, 0);
+  }
+}
+
+/* Kalan Gün Sayısı Vurgusu */
+.days-left {
+  font-family: "Monaco", monospace;
+  font-weight: bold;
+  font-size: 14px;
+}
+
+/* Tablo Satırı Hover Efekti */
+.modern-table tbody tr:hover {
+  background: rgba(255, 255, 255, 0.03);
+  transform: scale(1.002);
+  transition: all 0.2s ease;
+}
+
+/* Okul Bilgisi Hücresi Modeli */
+.school-cell {
+  display: flex;
+  flex-direction: column;
+}
+
+.school-name {
+  font-weight: 600;
+  color: #fff;
+}
+
+.school-code {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+/* Bilgi Kutusu (Modal İçin) */
+.info-box {
+  background: rgba(0, 217, 255, 0.05);
+  border-left: 4px solid #00d9ff;
+  padding: 12px;
+  border-radius: 4px;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.8);
+  line-height: 1.5;
+}
+
+/* Tablo İşlem Butonları */
+.action-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: rgba(255, 255, 255, 0.05);
+  color: white;
+}
+
+.btn-icon:hover {
+  background: rgba(255, 255, 255, 0.15);
+  transform: translateY(-2px);
+}
+
+/* Geçmiş Modalı Özel Stilleri */
+.history-modal {
+  max-width: 700px !important;
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.history-table-container {
+  max-height: 400px;
+  overflow-y: auto;
+  margin-top: 15px;
+}
+
+.date-badge {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+}
+
+.method-tag {
+  background: #3498db22;
+  color: #3498db;
+  padding: 2px 10px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.btn-print-mini {
+  background: none;
+  border: 1px solid #444;
+  color: #ccc;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: 0.3s;
+}
+
+.btn-print-mini:hover {
+  background: var(--primary-color);
+  color: white;
+}
+
+/* Modal Açılış Animasyonu */
+.modal-overlay {
+  backdrop-filter: blur(5px);
+  transition: all 0.3s ease;
+}

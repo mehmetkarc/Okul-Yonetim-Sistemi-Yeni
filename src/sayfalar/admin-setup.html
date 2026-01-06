@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Superadmin Kurulumu - Okul Yönetim Sistemi</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 20px;
+      }
+
+      .setup-container {
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        max-width: 500px;
+        width: 100%;
+        padding: 40px;
+        animation: slideIn 0.5s ease-out;
+      }
+
+      @keyframes slideIn {
+        from {
+          opacity: 0;
+          transform: translateY(-30px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .logo-section {
+        text-align: center;
+        margin-bottom: 30px;
+      }
+
+      .logo-icon {
+        font-size: 64px;
+        margin-bottom: 10px;
+      }
+
+      .logo-title {
+        font-size: 24px;
+        font-weight: bold;
+        color: #667eea;
+        margin-bottom: 5px;
+      }
+
+      .logo-subtitle {
+        font-size: 14px;
+        color: #666;
+      }
+
+      .warning-box {
+        background: #fff3cd;
+        border-left: 4px solid #ffc107;
+        padding: 15px;
+        margin-bottom: 25px;
+        border-radius: 8px;
+      }
+
+      .warning-box h3 {
+        color: #856404;
+        font-size: 16px;
+        margin-bottom: 8px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .warning-box p {
+        color: #856404;
+        font-size: 14px;
+        line-height: 1.6;
+      }
+
+      .form-group {
+        margin-bottom: 20px;
+      }
+
+      .form-group label {
+        display: block;
+        font-size: 14px;
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 8px;
+      }
+
+      .form-group input {
+        width: 100%;
+        padding: 12px 16px;
+        border: 2px solid #e0e0e0;
+        border-radius: 10px;
+        font-size: 14px;
+        transition: all 0.3s;
+      }
+
+      .form-group input:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+      }
+
+      .password-strength {
+        margin-top: 8px;
+        height: 4px;
+        background: #e0e0e0;
+        border-radius: 2px;
+        overflow: hidden;
+        display: none;
+      }
+
+      .password-strength-bar {
+        height: 100%;
+        transition: all 0.3s;
+        width: 0%;
+      }
+
+      .strength-weak {
+        background: #f44336;
+        width: 33%;
+      }
+
+      .strength-medium {
+        background: #ff9800;
+        width: 66%;
+      }
+
+      .strength-strong {
+        background: #4caf50;
+        width: 100%;
+      }
+
+      .password-requirements {
+        margin-top: 10px;
+        padding: 12px;
+        background: #f5f5f5;
+        border-radius: 8px;
+        font-size: 13px;
+      }
+
+      .password-requirements h4 {
+        color: #333;
+        font-size: 13px;
+        margin-bottom: 8px;
+      }
+
+      .requirement {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 5px;
+        color: #666;
+      }
+
+      .requirement.met {
+        color: #4caf50;
+      }
+
+      .requirement-icon {
+        font-size: 16px;
+      }
+
+      .error-message {
+        background: #ffebee;
+        color: #c62828;
+        padding: 12px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        font-size: 14px;
+        display: none;
+      }
+
+      .success-message {
+        background: #e8f5e9;
+        color: #2e7d32;
+        padding: 12px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        font-size: 14px;
+        display: none;
+      }
+
+      .btn-primary {
+        width: 100%;
+        padding: 14px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        border-radius: 10px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+      }
+
+      .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+      }
+
+      .btn-primary:active {
+        transform: translateY(0);
+      }
+
+      .btn-primary:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+
+      .footer-note {
+        text-align: center;
+        margin-top: 20px;
+        font-size: 12px;
+        color: #999;
+      }
+
+      /* Loading Spinner */
+      .spinner {
+        border: 3px solid #f3f3f3;
+        border-top: 3px solid #667eea;
+        border-radius: 50%;
+        width: 20px;
+        height: 20px;
+        animation: spin 1s linear infinite;
+        display: none;
+        margin: 0 auto;
+      }
+
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="setup-container">
+      <!-- Logo Section -->
+      <div class="logo-section">
+        <div class="logo-icon">🔐</div>
+        <div class="logo-title">İlk Kurulum</div>
+        <div class="logo-subtitle">Superadmin Şifresi Oluşturun</div>
+      </div>
+
+      <!-- Warning Box -->
+      <div class="warning-box">
+        <h3>
+          <span>⚠️</span>
+          <span>Önemli Güvenlik Uyarısı</span>
+        </h3>
+        <p>
+          Bu şifre, sistemin tüm okullarını yönetebilecek tam yetkiye sahip
+          <strong>Superadmin</strong> hesabı için kullanılacaktır. Lütfen güçlü
+          ve unutmayacağınız bir şifre belirleyin.
+        </p>
+      </div>
+
+      <!-- Error Message -->
+      <div class="error-message" id="errorMessage"></div>
+
+      <!-- Success Message -->
+      <div class="success-message" id="successMessage"></div>
+
+      <!-- Form -->
+      <form id="setupForm">
+        <!-- New Password -->
+        <div class="form-group">
+          <label for="newPassword">Yeni Şifre</label>
+          <input
+            type="password"
+            id="newPassword"
+            placeholder="Güçlü bir şifre girin"
+            autocomplete="new-password"
+          />
+          <div class="password-strength" id="passwordStrength">
+            <div class="password-strength-bar" id="strengthBar"></div>
+          </div>
+        </div>
+
+        <!-- Confirm Password -->
+        <div class="form-group">
+          <label for="confirmPassword">Şifre Tekrar</label>
+          <input
+            type="password"
+            id="confirmPassword"
+            placeholder="Şifrenizi tekrar girin"
+            autocomplete="new-password"
+          />
+        </div>
+
+        <!-- Password Requirements -->
+        <div class="password-requirements">
+          <h4>Şifre Gereksinimleri:</h4>
+          <div class="requirement" id="req-length">
+            <span class="requirement-icon">○</span>
+            <span>En az 12 karakter</span>
+          </div>
+          <div class="requirement" id="req-uppercase">
+            <span class="requirement-icon">○</span>
+            <span>En az 1 büyük harf (A-Z)</span>
+          </div>
+          <div class="requirement" id="req-lowercase">
+            <span class="requirement-icon">○</span>
+            <span>En az 1 küçük harf (a-z)</span>
+          </div>
+          <div class="requirement" id="req-number">
+            <span class="requirement-icon">○</span>
+            <span>En az 1 rakam (0-9)</span>
+          </div>
+          <div class="requirement" id="req-special">
+            <span class="requirement-icon">○</span>
+            <span>En az 1 özel karakter (!@#$%^&*)</span>
+          </div>
+        </div>
+
+        <!-- Submit Button -->
+        <button type="submit" class="btn-primary" id="submitBtn">
+          Şifreyi Kaydet ve Devam Et
+        </button>
+
+        <!-- Loading Spinner -->
+        <div class="spinner" id="spinner"></div>
+      </form>
+
+      <!-- Footer Note -->
+      <div class="footer-note">
+        <p>🔒 Şifreniz güvenli bir şekilde şifrelenerek saklanacaktır.</p>
+      </div>
+    </div>
+
+    <script>
+      // ==========================================
+      // DOM ELEMENTS
+      // ==========================================
+      const form = document.getElementById("setupForm");
+      const newPasswordInput = document.getElementById("newPassword");
+      const confirmPasswordInput = document.getElementById("confirmPassword");
+      const submitBtn = document.getElementById("submitBtn");
+      const spinner = document.getElementById("spinner");
+      const errorMessage = document.getElementById("errorMessage");
+      const successMessage = document.getElementById("successMessage");
+      const passwordStrength = document.getElementById("passwordStrength");
+      const strengthBar = document.getElementById("strengthBar");
+
+      // Requirement elements
+      const reqLength = document.getElementById("req-length");
+      const reqUppercase = document.getElementById("req-uppercase");
+      const reqLowercase = document.getElementById("req-lowercase");
+      const reqNumber = document.getElementById("req-number");
+      const reqSpecial = document.getElementById("req-special");
+
+      // ==========================================
+      // PASSWORD STRENGTH CHECK
+      // ==========================================
+      newPasswordInput.addEventListener("input", () => {
+        const password = newPasswordInput.value;
+        passwordStrength.style.display = password ? "block" : "none";
+
+        // Check requirements
+        const hasLength = password.length >= 12;
+        const hasUppercase = /[A-Z]/.test(password);
+        const hasLowercase = /[a-z]/.test(password);
+        const hasNumber = /[0-9]/.test(password);
+        const hasSpecial = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(
+          password
+        );
+
+        // Update requirement icons
+        updateRequirement(reqLength, hasLength);
+        updateRequirement(reqUppercase, hasUppercase);
+        updateRequirement(reqLowercase, hasLowercase);
+        updateRequirement(reqNumber, hasNumber);
+        updateRequirement(reqSpecial, hasSpecial);
+
+        // Calculate strength
+        const metRequirements = [
+          hasLength,
+          hasUppercase,
+          hasLowercase,
+          hasNumber,
+          hasSpecial,
+        ].filter(Boolean).length;
+
+        strengthBar.className = "password-strength-bar";
+        if (metRequirements <= 2) {
+          strengthBar.classList.add("strength-weak");
+        } else if (metRequirements <= 4) {
+          strengthBar.classList.add("strength-medium");
+        } else {
+          strengthBar.classList.add("strength-strong");
+        }
+      });
+
+      function updateRequirement(element, isMet) {
+        if (isMet) {
+          element.classList.add("met");
+          element.querySelector(".requirement-icon").textContent = "✓";
+        } else {
+          element.classList.remove("met");
+          element.querySelector(".requirement-icon").textContent = "○";
+        }
+      }
+
+      // ==========================================
+      // FORM VALIDATION
+      // ==========================================
+      function validatePassword(password) {
+        const requirements = {
+          length: password.length >= 12,
+          uppercase: /[A-Z]/.test(password),
+          lowercase: /[a-z]/.test(password),
+          number: /[0-9]/.test(password),
+          special: /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password),
+        };
+
+        const allMet = Object.values(requirements).every(Boolean);
+
+        if (!allMet) {
+          const missing = [];
+          if (!requirements.length) missing.push("en az 12 karakter");
+          if (!requirements.uppercase) missing.push("büyük harf");
+          if (!requirements.lowercase) missing.push("küçük harf");
+          if (!requirements.number) missing.push("rakam");
+          if (!requirements.special) missing.push("özel karakter");
+
+          return {
+            valid: false,
+            message: `Şifre eksik: ${missing.join(", ")}`,
+          };
+        }
+
+        return { valid: true };
+      }
+
+      // ==========================================
+      // FORM SUBMIT
+      // ==========================================
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const newPassword = newPasswordInput.value.trim();
+        const confirmPassword = confirmPasswordInput.value.trim();
+
+        // Hide messages
+        errorMessage.style.display = "none";
+        successMessage.style.display = "none";
+
+        // Validation
+        if (!newPassword || !confirmPassword) {
+          showError("Lütfen tüm alanları doldurun!");
+          return;
+        }
+
+        const validation = validatePassword(newPassword);
+        if (!validation.valid) {
+          showError(validation.message);
+          return;
+        }
+
+        if (newPassword !== confirmPassword) {
+          showError("Şifreler eşleşmiyor!");
+          return;
+        }
+
+        // Show loading
+        submitBtn.disabled = true;
+        submitBtn.textContent = "Kaydediliyor...";
+        spinner.style.display = "block";
+
+        try {
+          // Call Electron API
+          const result = await window.electronAPI.setupAdminPassword(
+            newPassword
+          );
+
+          if (result.success) {
+            showSuccess("Superadmin şifresi başarıyla oluşturuldu!");
+
+            // Wait 2 seconds then redirect to login
+            setTimeout(() => {
+              window.location.href = "giris.html";
+            }, 2000);
+          } else {
+            showError(result.message || "Şifre oluşturulamadı!");
+            submitBtn.disabled = false;
+            submitBtn.textContent = "Şifreyi Kaydet ve Devam Et";
+            spinner.style.display = "none";
+          }
+        } catch (error) {
+          console.error("Setup error:", error);
+          showError("Bir hata oluştu: " + error.message);
+          submitBtn.disabled = false;
+          submitBtn.textContent = "Şifreyi Kaydet ve Devam Et";
+          spinner.style.display = "none";
+        }
+      });
+
+      // ==========================================
+      // HELPER FUNCTIONS
+      // ==========================================
+      function showError(message) {
+        errorMessage.textContent = message;
+        errorMessage.style.display = "block";
+        successMessage.style.display = "none";
+      }
+
+      function showSuccess(message) {
+        successMessage.textContent = message;
+        successMessage.style.display = "block";
+        errorMessage.style.display = "none";
+      }
+
+      // ==========================================
+      // INITIALIZE
+      // ==========================================
+      console.log("🔐 Admin Setup ekranı yüklendi");
+    </script>
+  </body>
+</html>
