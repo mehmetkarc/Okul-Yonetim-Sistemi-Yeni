@@ -5641,9 +5641,8 @@ ipcMain.handle("process-auto-excel", async (event, filePath) => {
 });
 
 console.log("✅ Auto Excel Import Handler yüklendi");
-
 // ==========================================
-// E-OKUL FOTOĞRAF SAYFASI (KORUNDU)
+// E-OKUL FOTOĞRAF SAYFASI (GÜNCELLENDİ - DETAYLI DEBUG + BUTON TÜM SAYFALARDA KALICI)
 // ==========================================
 
 ipcMain.handle("open-eokul-photo-page", async () => {
@@ -5673,15 +5672,16 @@ ipcMain.handle("open-eokul-photo-page", async () => {
     const url = eOkulWindow.webContents.getURL();
     console.log("🌐 did-finish-load:", url);
 
+    // Sadece MEBBİS ana sayfada bilgi kutusu göster
     if (url.includes("mebbis.meb.gov.tr") && !url.includes("e-okul")) {
       eOkulWindow.webContents.executeJavaScript(`
         (function() {
           if (document.getElementById('bilgi-kutusu')) return;
           var box = document.createElement('div');
           box.id = 'bilgi-kutusu';
-          box.innerHTML = '<div style="position:fixed;top:20px;right:20px;z-index:999999;background:linear-gradient(135deg,#667eea,#764ba2);color:white;padding:20px;border-radius:12px;max-width:400px;box-shadow:0 10px 40px rgba(0,0,0,0.3);font-family:system-ui"><h3 style="margin:0 0 15px">📸 E-Okul Fotoğraf</h3><ol style="margin:0;padding-left:20px;line-height:1.8;font-size:14px"><li>MEBBİS giriş yap</li><li>E-Okul linkine tıkla</li><li>Kurum İşlemleri → Fotoğraf İşlemleri</li><li>Sınıf seç</li></ol><button onclick="this.parentElement.remove()" style="margin-top:15px;padding:8px 20px;background:white;color:#667eea;border:none;border-radius:6px;cursor:pointer;width:100%">Anladım</button></div>';
+          box.innerHTML = '<div style="position:fixed;top:20px;right:20px;z-index:999999;background:linear-gradient(135deg,#667eea,#764ba2);color:white;padding:20px;border-radius:12px;max-width:400px;box-shadow:0 10px 40px rgba(0,0,0,0.3);font-family:system-ui"><h3 style="margin:0 0 15px">📸 E-Okul Fotoğraf</h3><ol style="margin:0;padding-left:20px;line-height:1.8;font-size:14px"><li>MEBBİS giriş yap</li><li>E-Okul linkine tıkla</li><li>Kurum İşlemleri → Fotoğraf İşlemleri</li><li>Sınıf seç → Hızlı Fotoğraf Ekle</li></ol><button onclick="this.parentElement.remove()" style="margin-top:15px;padding:8px 20px;background:white;color:#667eea;border:none;border-radius:6px;cursor:pointer;width:100%">Anladım</button></div>';
           document.body.appendChild(box);
-          console.log("✅ Bilgi kutusu eklendi");
+          console.log("✅ Bilgi kutusu eklendi (MEBBİS ana sayfa)");
         })();
       `);
     }
@@ -5697,17 +5697,18 @@ ipcMain.handle("open-eokul-photo-page", async () => {
       console.log("🔍 Yeni pencere URL:", url);
 
       if (url.includes("e-okul.meb.gov.tr")) {
-        console.log("✅ E-OKUL PENCERESİ BULUNDU!");
+        console.log(
+          "✅ E-OKUL PENCERESİ BULUNDU! Buton enjeksiyonu başlatılıyor..."
+        );
 
-        setTimeout(() => {
-          injectButton(newWindow, mainWindow);
-        }, 2000);
+        // İlk enjeksiyon
+        injectButton(newWindow, mainWindow);
 
         let lastUrl = url;
         const urlCheckInterval = setInterval(() => {
           if (newWindow.isDestroyed()) {
             clearInterval(urlCheckInterval);
-            console.log("🛑 E-Okul penceresi kapandı, polling durduruldu");
+            console.log("🛑 E-Okul penceresi kapandı, URL polling durduruldu");
             return;
           }
 
@@ -5717,15 +5718,12 @@ ipcMain.handle("open-eokul-photo-page", async () => {
             currentUrl !== lastUrl &&
             currentUrl.includes("e-okul.meb.gov.tr")
           ) {
-            console.log("🔄 URL DEĞİŞTİ!");
-            console.log("   Eski:", lastUrl);
-            console.log("   Yeni:", currentUrl);
-
+            console.log("🔄 URL DEĞİŞTİ! Eski:", lastUrl, "Yeni:", currentUrl);
             lastUrl = currentUrl;
 
             setTimeout(() => {
               if (!newWindow.isDestroyed()) {
-                console.log("🔄 Yeni URL'de buton enjekte ediliyor...");
+                console.log("🔄 Yeni sayfada buton enjekte ediliyor...");
                 injectButton(newWindow, mainWindow);
               }
             }, 1500);
@@ -5754,11 +5752,12 @@ ipcMain.handle("open-eokul-photo-page", async () => {
         const winId = win.id;
 
         if (!injectedWindows.has(winId)) {
-          console.log("🎯 E-Okul penceresi bulundu (ID:", winId, "):", url);
+          console.log("🎯 E-Okul penceresi bulundu (ID:", winId, ") URL:", url);
           injectedWindows.add(winId);
 
           setTimeout(() => {
             if (!win.isDestroyed()) {
+              console.log("🎯 İlk tespit sonrası buton enjekte ediliyor...");
               injectButton(win, mainWindow);
             }
           }, 1500);
@@ -5767,7 +5766,7 @@ ipcMain.handle("open-eokul-photo-page", async () => {
     });
   };
 
-  const checkInterval = setInterval(checkAllWindows, 2000);
+  const checkInterval = setInterval(checkAllWindows, 1500); // Daha sık kontrol (1.5 saniye)
 
   eOkulWindow.on("closed", () => {
     clearInterval(checkInterval);
@@ -5781,123 +5780,137 @@ ipcMain.handle("open-eokul-photo-page", async () => {
 
 function injectButton(targetWindow, mainWindow) {
   if (!targetWindow || targetWindow.isDestroyed()) {
-    console.error("❌ Hedef pencere yok!");
+    console.error("❌ Hedef pencere yok veya yok edildi!");
     return;
   }
 
   const url = targetWindow.webContents.getURL();
-  console.log("⏳ Buton enjekte ediliyor:", url);
+  console.log("⏳ BUTON ENJEKSİYONU BAŞLADI - URL:", url);
 
-  targetWindow.webContents
-    .executeJavaScript(
-      `
+  const injectionScript = `
     (function() {
-      if (document.getElementById("chatgptFotoTopla")) {
-        console.log("⚠️ Buton zaten var");
-        return "ZATEN_VAR";
-      }
-      
-      var btn = document.createElement("button");
-      btn.id = "chatgptFotoTopla";
-      btn.textContent = "📸 Fotoğrafları Topla";
-      btn.style.cssText = "position:fixed;top:20px;right:20px;z-index:9999999;padding:15px 25px;background:linear-gradient(135deg,#ff1744,#d50000);color:white;border:none;border-radius:8px;cursor:pointer;font-size:18px;font-weight:bold;box-shadow:0 4px 20px rgba(255,23,68,0.6);transition:all 0.3s";
-      
-      btn.onmouseenter = function() { btn.style.transform = "scale(1.1)"; };
-      btn.onmouseleave = function() { btn.style.transform = "scale(1)"; };
+      console.log("🔧 Enjeksiyon scripti çalışıyor - Sayfa URL:", window.location.href);
 
-      btn.onclick = function() {
-        try {
-          var imgs = document.querySelectorAll('img[src^="data:image"]');
-          console.log("🔍 Bulunan data:image sayısı:", imgs.length);
-          
-          var uniqueSrcs = new Set();
-          var fotograflar = [];
+      const createButton = () => {
+        if (document.getElementById("chatgptFotoTopla")) {
+          console.log("⚠️ Buton zaten var, tekrar eklenmiyor");
+          return false;
+        }
 
-          for (var i = 0; i < imgs.length; i++) {
-            var img = imgs[i];
-            var src = img.src;
-            
-            if (uniqueSrcs.has(src)) {
-              continue;
-            }
-            
-            var name = "";
-            
-            if (img.alt && img.alt.trim().length > 5) {
-              name = img.alt.trim();
-            }
-            
-            if (!name && img.parentElement) {
-              var parentText = img.parentElement.textContent || "";
-              var lines = parentText.split('\\n');
-              for (var j = 0; j < lines.length; j++) {
-                var line = lines[j].trim();
-                if (line.length > 5 && line.indexOf('Sınıf') === -1 && line.indexOf('Şubesi') === -1) {
-                  name = line;
-                  break;
+        console.log("🆕 Buton oluşturuluyor ve ekleniyor...");
+
+        const btn = document.createElement("button");
+        btn.id = "chatgptFotoTopla";
+        btn.textContent = "📸 Fotoğrafları Topla";
+        btn.style.cssText = "position:fixed;top:20px;right:20px;z-index:9999999;padding:15px 25px;background:linear-gradient(135deg,#ff1744,#d50000);color:white;border:none;border-radius:8px;cursor:pointer;font-size:18px;font-weight:bold;box-shadow:0 4px 20px rgba(255,23,68,0.6);transition:all 0.3s;";
+
+        btn.onmouseenter = () => btn.style.transform = "scale(1.1)";
+        btn.onmouseleave = () => btn.style.transform = "scale(1)";
+
+        btn.onclick = function() {
+          try {
+            console.log("📸 Buton tıklandı! Fotoğraflar taranıyor...");
+            const imgs = document.querySelectorAll('img[src^="data:image"]');
+            console.log("🔍 Bulunan data:image sayısı:", imgs.length);
+
+            const uniqueSrcs = new Set();
+            const fotograflar = [];
+
+            for (const img of imgs) {
+              const src = img.src;
+              if (uniqueSrcs.has(src)) continue;
+
+              let name = img.alt?.trim() || "";
+
+              if (!name && img.parentElement) {
+                const parentText = img.parentElement.textContent || "";
+                const lines = parentText.split('\\n');
+                for (const line of lines) {
+                  const trimmed = line.trim();
+                  if (trimmed.length > 5 && !trimmed.includes('Sınıf') && !trimmed.includes('Şubesi')) {
+                    name = trimmed;
+                    break;
+                  }
                 }
               }
+
+              if (!name || name.length < 5 || name.includes("Sınıf") || name.includes("Şubesi")) continue;
+
+              name = name.replace(/^\\d+-/, '').trim();
+
+              uniqueSrcs.add(src);
+              console.log("📸 Fotoğraf bulundu:", name);
+
+              fotograflar.push({ ad_soyad: name, base64: src });
             }
-            
-            if (!name || name.length < 5) {
-              continue;
+
+            console.log("📸 Toplam toplanan fotoğraf:", fotograflar.length);
+
+            if (fotograflar.length === 0) {
+              alert("❌ Fotoğraf bulunamadı! Lütfen 'Hızlı Fotoğraf Ekle' sayfasında olduğunuzdan emin olun.");
+              return;
             }
-            
-            name = name.replace(/^\\d+-/, '');
-            name = name.replace(/\\s+/g, ' ');
-            name = name.trim();
-            
-            if (name.indexOf("Sınıf") > -1 || name.indexOf("Şubesi") > -1) {
-              continue;
+
+            const chunkSize = 5;
+            for (let j = 0; j < fotograflar.length; j += chunkSize) {
+              const chunk = fotograflar.slice(j, j + chunkSize);
+              console.log("📸🔵FOTO_CHUNK🔵:" + JSON.stringify(chunk));
             }
-            
-            uniqueSrcs.add(src);
-            console.log("📸 Fotoğraf bulundu:", name);
-            
-            fotograflar.push({ 
-              ad_soyad: name, 
-              base64: src 
-            });
+
+            btn.textContent = "✅ " + fotograflar.length + " Gönderildi!";
+            btn.style.background = "#00c853";
+            setTimeout(() => {
+              btn.textContent = "📸 Fotoğrafları Topla";
+              btn.style.background = "linear-gradient(135deg,#ff1744,#d50000)";
+            }, 3000);
+
+          } catch (err) {
+            console.error("❌ Buton onclick hatası:", err);
+            alert("Hata: " + err.message);
           }
+        };
 
-          console.log("📸 Toplam fotoğraf:", fotograflar.length);
-
-          if (fotograflar.length === 0) {
-            alert("❌ Fotoğraf bulunamadı!");
-            return;
-          }
-
-          var chunkSize = 5;
-          for (var j = 0; j < fotograflar.length; j += chunkSize) {
-            var chunk = fotograflar.slice(j, j + chunkSize);
-            console.log("📸🔵FOTO_CHUNK🔵:" + JSON.stringify(chunk));
-          }
-
-          btn.textContent = "✅ " + fotograflar.length + " Gönderildi!";
-          btn.style.background = "#00c853";
-
-          setTimeout(function() {
-            btn.textContent = "📸 Fotoğrafları Topla";
-            btn.style.background = "linear-gradient(135deg,#ff1744,#d50000)";
-          }, 3000);
-
-        } catch (err) {
-          console.error("❌ Hata:", err);
-          alert("Hata: " + err.message);
-        }
+        document.body.appendChild(btn);
+        console.log("✅ BUTON BAŞARIYLA EKLENDİ - Sayfa:", window.location.href);
+        return true;
       };
 
-      document.body.appendChild(btn);
-      console.log("✅ Buton eklendi");
-      return "BASARILI";
+      // İlk buton ekleme denemesi
+      const added = createButton();
+
+      // MutationObserver: DOM değişirse buton kaybolursa yeniden ekle
+      const observer = new MutationObserver((mutations) => {
+        console.log("🔄 MutationObserver tetiklendi - Mutation sayısı:", mutations.length);
+        if (!document.getElementById("chatgptFotoTopla")) {
+          console.log("🔄 Buton kayboldu, yeniden ekleniyor...");
+          createButton();
+        }
+      });
+      observer.observe(document.body, { childList: true, subtree: true, attributes: true });
+      console.log("👀 MutationObserver başlatıldı");
+
+      // Periyodik kontrol: Her 2 saniyede buton var mı kontrol et
+      const periodicCheck = setInterval(() => {
+        if (!document.getElementById("chatgptFotoTopla")) {
+          console.log("🔄 Periyodik kontrolde buton yok, yeniden ekleniyor...");
+          createButton();
+        }
+      }, 2000);
+      console.log("🔄 Periyodik kontrol başlatıldı (her 2 saniye)");
+
+      return "ENJEKSİYON TAMAMLANDI";
     })();
-  `
-    )
+  `;
+
+  targetWindow.webContents
+    .executeJavaScript(injectionScript)
     .then((result) => {
-      console.log("✅ Enjeksiyon sonucu:", result);
+      console.log("✅ Enjeksiyon tamamlandı - Sonuç:", result);
+      console.log("✅ Sayfa URL'si (enjeksiyon sonrası):", url);
     })
     .catch((err) => {
-      console.error("❌ Enjeksiyon hatası:", err);
+      console.error("❌ Enjeksiyon script hatası:", err);
+      console.error("❌ Hata detayları:", err.message);
     });
 
   console.log("🎧 Console handler bağlanıyor, Window ID:", targetWindow.id);
@@ -5905,27 +5918,24 @@ function injectButton(targetWindow, mainWindow) {
   targetWindow.webContents.removeAllListeners("console-message");
 
   targetWindow.webContents.on("console-message", (event, level, message) => {
-    if (message.indexOf("📸") > -1) {
-      console.log("📢 E-Okul Console:", message.substring(0, 100));
-    }
+    console.log("📢 E-Okul Console Log (Level:", level, "):", message);
 
     if (message.indexOf("📸🔵FOTO_CHUNK🔵:") > -1) {
-      console.log("🔵 CHUNK TESPİT EDİLDİ!");
+      console.log("🔵 FOTOĞRAF CHUNK TESPİT EDİLDİ!");
 
       try {
-        var jsonStr = message.replace("📸🔵FOTO_CHUNK🔵:", "");
-        var chunk = JSON.parse(jsonStr);
-        console.log("📦", chunk.length, "fotoğraf parse edildi");
+        const jsonStr = message.replace("📸🔵FOTO_CHUNK🔵:", "");
+        const chunk = JSON.parse(jsonStr);
+        console.log("📦 Chunk parse edildi -", chunk.length, "fotoğraf");
 
-        var allWindows = BrowserWindow.getAllWindows();
+        const allWindows = BrowserWindow.getAllWindows();
 
-        var mainWin = null;
-        var minId = 999;
+        let mainWin = null;
+        let minId = 999;
 
-        for (var i = 0; i < allWindows.length; i++) {
-          var win = allWindows[i];
+        for (const win of allWindows) {
           if (!win.isDestroyed() && win.id < minId) {
-            var title = win.title.toLowerCase();
+            const title = win.title.toLowerCase();
 
             if (
               title.indexOf("e-okul") === -1 &&
@@ -5939,21 +5949,27 @@ function injectButton(targetWindow, mainWindow) {
         }
 
         if (mainWin) {
-          console.log("✅ Ana pencere bulundu, gönderiliyor...");
+          console.log("✅ Ana pencere bulundu, chunk gönderiliyor...");
           mainWin.webContents.send("mebbis-photos-parsed", chunk);
         } else {
-          console.error("❌ Ana pencere yok!");
+          console.error("❌ Ana pencere bulunamadı!");
         }
       } catch (err) {
-        console.error("❌ Parse hatası:", err.message);
+        console.error("❌ Chunk parse hatası:", err.message);
       }
     }
   });
 
-  console.log("✅ Listener aktif (Window ID:", targetWindow.id, ")");
+  console.log(
+    "✅ Tüm listener'lar ve debug mekanizmaları aktif (Window ID:",
+    targetWindow.id,
+    ")"
+  );
 }
 
-console.log("✅ E-Okul Fotoğraf Sistemi yüklendi");
+console.log(
+  "✅ E-Okul Fotoğraf Sistemi yüklendi (YENİ: Detaylı debug log'ları + agresif buton koruma - her sayfada buton garantili)"
+);
 
 // ==========================================
 // ✈️ GEZİ PLANLAMA SİSTEMİ - IPC HANDLERS

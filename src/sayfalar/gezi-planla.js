@@ -80,7 +80,7 @@ window.addEventListener("DOMContentLoaded", async () => {
 });
 
 // ==========================================
-// KULLANICI BİLGİLERİ
+// KULLANICI BİLGİLERİ (DÜZELTME: currentSchool currentUser'dan türetiliyor)
 // ==========================================
 
 function loadUserInfo() {
@@ -94,7 +94,41 @@ function loadUserInfo() {
   }
 
   currentUser = JSON.parse(currentUserStr);
-  currentSchool = currentSchoolStr ? JSON.parse(currentSchoolStr) : null;
+
+  // currentSchool varsa yükle, yoksa currentUser.okul_kodu'dan türet
+  if (currentSchoolStr) {
+    try {
+      currentSchool = JSON.parse(currentSchoolStr);
+    } catch (e) {
+      currentSchool = null;
+    }
+  } else {
+    currentSchool = null;
+  }
+
+  // currentSchool.id yoksa currentUser'dan türet
+  if (!currentSchool || !currentSchool.id) {
+    if (currentUser && currentUser.okul_kodu) {
+      currentSchool = {
+        id: parseInt(currentUser.okul_kodu),
+        adi: currentUser.okul_adi || "Bilinmeyen Okul",
+      };
+      console.log(
+        "🔄 currentSchool currentUser.okul_kodu'dan türetildi:",
+        currentSchool
+      );
+    } else {
+      console.error(
+        "❌ Okul bilgisi bulunamadı! Giriş sayfasına yönlendiriliyor..."
+      );
+      Bildirim.goster(
+        "error",
+        "Okul bilgisi yüklenemedi. Lütfen tekrar giriş yapın."
+      );
+      window.location.href = "giris.html";
+      return;
+    }
+  }
 
   console.log("👤 Kullanıcı:", currentUser);
   console.log("🏫 Okul:", currentSchool);
@@ -113,7 +147,7 @@ function anasayfayaDon() {
 }
 
 // ==========================================
-// GEZİLERİ YÜKLE
+// GEZİLERİ YÜKLE (DÜZELTME: currentSchool.id zorunlu)
 // ==========================================
 
 async function loadGeziler() {
@@ -121,10 +155,14 @@ async function loadGeziler() {
     console.log("📥 Geziler yükleniyor...");
 
     if (!currentSchool || !currentSchool.id) {
-      console.warn("⚠️ Okul bilgisi bulunamadı");
+      console.warn("⚠️ Okul bilgisi bulunamadı – liste boş gösteriliyor");
       allGeziler = [];
       filteredGeziler = [];
       renderGeziler();
+      Bildirim.goster(
+        "warning",
+        "Okul bilgisi yüklenemedi. Lütfen sayfayı yenileyin."
+      );
       return;
     }
 
@@ -153,7 +191,7 @@ async function loadGeziler() {
     } else {
       allGeziler = [];
       filteredGeziler = [];
-      console.warn("⚠️ Gezi bulunamadı");
+      console.warn("⚠️ Gezi bulunamadı veya sorgu hatası");
     }
 
     renderGeziler();
@@ -167,6 +205,7 @@ async function loadGeziler() {
     renderGeziler();
   }
 }
+
 // ==========================================
 // GEZİLERİ RENDER ET (ÜNVAN ÖNCELİKLİ)
 // ==========================================
@@ -344,6 +383,7 @@ function renderGeziler() {
   // Pagination güncelle
   updatePagination();
 }
+
 // ==========================================
 // YENİ GEZİ MODAL (DÜZELTİLMİŞ)
 // ==========================================
@@ -399,8 +439,9 @@ function clearGeziForm() {
   document.getElementById("ogrenciCount").textContent = "0";
   document.getElementById("misafirCount").textContent = "0";
 }
+
 // ==========================================
-// GEZİ KAYDET (GÜNCELLENMİŞ VERSİYON)
+// GEZİ KAYDET (DÜZELTME: okulId currentSchool.id'den alınıyor, zorunlu)
 // ==========================================
 
 async function geziKaydet() {
@@ -494,6 +535,15 @@ async function geziKaydet() {
       return;
     }
 
+    if (!currentSchool || !currentSchool.id) {
+      console.error("❌ Okul ID eksik – işlem durduruldu");
+      Bildirim.goster(
+        "error",
+        "Okul bilgisi bulunamadı! Lütfen sayfayı yenileyin veya tekrar giriş yapın."
+      );
+      return;
+    }
+
     console.log("✅ ADIM 1 TAMAMLANDI: Validasyon başarılı");
     console.log("🔵 ADIM 2: Gezi verisi hazırlanıyor...");
 
@@ -563,9 +613,8 @@ async function geziKaydet() {
     } else {
       console.log("🔵 ADIM 3: YENİ KAYIT MODU");
 
-      // ✅ OKUL ID KONTROLÜ
-      const okulId =
-        currentSchool?.id || localStorage.getItem("currentSchoolId") || 1;
+      // OKUL ID currentSchool.id'den alınıyor (zorunlu)
+      const okulId = currentSchool.id;
       console.log("📊 Kullanılacak Okul ID:", okulId);
 
       // Yeni kayıt
