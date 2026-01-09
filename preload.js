@@ -862,7 +862,6 @@ window.electronAPI = {
     console.log("🗑️ Preload: firmaSil çağrıldı, Firma ID:", firmaId);
     return ipcRenderer.invoke("firma-sil", firmaId);
   },
-
   // ==========================================
   // 📝 ORTAK SINAV (KELEBEK) SİSTEMİ API
   // ==========================================
@@ -933,6 +932,17 @@ window.electronAPI = {
   toggleSinavLock: (sinavId) => {
     console.log("🔒 Preload: toggleSinavLock çağrıldı, ID:", sinavId);
     return ipcRenderer.invoke("toggle-sinav-lock", sinavId);
+  },
+
+  // ========== KELEBEK İÇİN EKSİK API'LER EKLENDİ (HATA ÇÖZÜLDÜ) ==========
+  getKelebekOgrenciler: () => {
+    console.log("📋 Preload: getKelebekOgrenciler çağrıldı");
+    return ipcRenderer.invoke("get-kelebek-ogrenciler");
+  },
+
+  getKelebekSalonlar: () => {
+    console.log("📋 Preload: getKelebekSalonlar çağrıldı");
+    return ipcRenderer.invoke("get-kelebek-salonlar");
   },
 
   // ========== DAĞITIM (KELEBEK) ==========

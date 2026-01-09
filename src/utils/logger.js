@@ -20,9 +20,27 @@ if (!fs.existsSync(logDir)) {
   fs.mkdirSync(logDir, { recursive: true });
 }
 
+// ✅ CUSTOM LEVELS (SUCCESS EKLENDI)
+const customLevels = {
+  levels: {
+    error: 0,
+    warn: 1,
+    success: 2,
+    info: 3,
+  },
+  colors: {
+    error: "red",
+    warn: "yellow",
+    success: "green",
+    info: "blue",
+  },
+};
+
+winston.addColors(customLevels.colors);
+
 // Winston logger
 const logger = winston.createLogger({
-  level: "info",
+  levels: customLevels.levels,
   format: winston.format.combine(
     winston.format.timestamp({ format: "YYYY-MM-DD HH:mm:ss" }),
     winston.format.errors({ stack: true }),
@@ -56,5 +74,16 @@ if (process.env.NODE_ENV !== "production") {
     })
   );
 }
+
+// ✅ TEST LOGLARI (İLK AÇILIŞTA)
+logger.info("Logger başlatıldı", {
+  logDir: logDir,
+  module: "logger-init",
+});
+
+logger.success("Logger sistemi aktif", {
+  timestamp: new Date().toISOString(),
+  module: "logger-init",
+});
 
 module.exports = logger;

@@ -176,6 +176,7 @@ const ModernBildirim = {
     return this.show("info", title, message, duration);
   },
 };
+
 document.addEventListener("DOMContentLoaded", async function () {
   console.log("📄 ============================================");
   console.log("📄 PROGRAM OLUŞTUR SAYFASI YÜKLENİYOR");
@@ -195,102 +196,65 @@ document.addEventListener("DOMContentLoaded", async function () {
   console.log("✅ Tüm modaller kapatıldı (otomatik açılma engellendi)");
 
   try {
-    // 🔥 1. Program ID'yi kontrol et
+    // 🔥 1. Program ID'yi kontrol et (OTOMATİK OLUŞTURMA KALDIRILDI)
     currentProgramId = parseInt(localStorage.getItem("currentProgramId"));
-
     console.log("🔍 localStorage'dan okunan program_id:", currentProgramId);
 
     if (!currentProgramId || isNaN(currentProgramId)) {
       console.warn("⚠️ currentProgramId bulunamadı veya geçersiz!");
-      console.log("🔍 Veritabanından son program aranıyor...");
+      console.log("🔍 Veritabanından aktif program aranıyor...");
 
-      // Son programı bul
       try {
+        // Sadece aktif (durum = 1) programları ara
         const result = await window.electronAPI.dbQuery(
-          "SELECT id, program_adi FROM ders_programlari ORDER BY olusturma_tarihi DESC LIMIT 1",
+          "SELECT id, program_adi FROM ders_programlari WHERE durum = 1 ORDER BY olusturma_tarihi DESC LIMIT 1",
           []
         );
 
-        if (result.success && result.data.length > 0) {
+        if (result.success && result.data && result.data.length > 0) {
           currentProgramId = result.data[0].id;
           localStorage.setItem("currentProgramId", currentProgramId);
-          console.log("✅ Son program bulundu:", {
+          console.log("✅ Son aktif program bulundu ve yüklendi:", {
             id: currentProgramId,
             ad: result.data[0].program_adi,
           });
         } else {
-          console.error("❌ Veritabanında hiç program yok!");
-          console.log("📝 Yeni program oluşturulacak...");
-
-          // Yeni program oluştur
-          const yeniProgram = await window.electronAPI.dbQuery(
-            `INSERT INTO ders_programlari (program_adi, ogretim_yili, donem, durum, olusturma_tarihi) 
-             VALUES (?, ?, ?, ?, datetime('now'))`,
-            ["Yeni Program", "2024-2025", "Güz", 1]
+          console.log("❌ Aktif program bulunamadı!");
+          // OTOMATİK PROGRAM OLUŞTURMA YOK – KULLANICIYA BİLDİRİM
+          ModernBildirim.info(
+            "Hoş Geldiniz! 🎉",
+            "Henüz ders programı oluşturulmamış. Yukarıdaki menüden önce okulunuza ait verileri girerek 'Tablo Oluştur' butonuna tıklayarak yeni program oluşturun."
           );
-
-          if (yeniProgram.success) {
-            currentProgramId = yeniProgram.lastID;
-            localStorage.setItem("currentProgramId", currentProgramId);
-            console.log("✅ Yeni program oluşturuldu, ID:", currentProgramId);
-
-            if (typeof Bildirim !== "undefined") {
-              Bildirim.goster(
-                "success",
-                "Yeni program oluşturuldu: Program " + currentProgramId
-              );
-            }
-          } else {
-            console.error("❌ Yeni program oluşturulamadı!");
-            if (typeof Bildirim !== "undefined") {
-              Bildirim.goster(
-                "error",
-                "Program oluşturulamadı! Lütfen manuel oluşturun."
-              );
-            }
-            return;
-          }
+          currentProgramId = null;
         }
       } catch (error) {
-        console.error("❌ Program ID sorgu hatası:", error);
-        if (typeof Bildirim !== "undefined") {
-          Bildirim.goster("error", "Veritabanı bağlantı hatası!");
-        }
-        return;
+        console.error("❌ Program arama hatası:", error);
+        ModernBildirim.error(
+          "Bağlantı Hatası",
+          "Veritabanı bağlantısında sorun var!"
+        );
+        currentProgramId = null;
       }
     } else {
       console.log("✅ Program ID localStorage'da mevcut:", currentProgramId);
 
-      // 🔥 Program ID'nin veritabanında olduğunu doğrula
+      // Programın veritabanında olduğunu doğrula (güvenlik)
       try {
-        const checkResult = await window.electronAPI.dbQuery(
-          "SELECT id, program_adi FROM ders_programlari WHERE id = ?",
+        const check = await window.electronAPI.dbQuery(
+          "SELECT id FROM ders_programlari WHERE id = ? AND durum = 1",
           [currentProgramId]
         );
-
-        if (checkResult.success && checkResult.data.length > 0) {
-          console.log("✅ Program veritabanında doğrulandı:", {
-            id: currentProgramId,
-            ad: checkResult.data[0].program_adi,
-          });
-        } else {
-          console.warn(
-            "⚠️ Program ID veritabanında bulunamadı, son program alınıyor..."
+        if (!check.success || check.data.length === 0) {
+          console.warn("⚠️ Program veritabanında bulunamadı, sıfırlanıyor...");
+          localStorage.removeItem("currentProgramId");
+          currentProgramId = null;
+          ModernBildirim.warning(
+            "Uyarı",
+            "Önceki program bulunamadı, yeni bir program oluşturun."
           );
-
-          const lastProgram = await window.electronAPI.dbQuery(
-            "SELECT id FROM ders_programlari ORDER BY olusturma_tarihi DESC LIMIT 1",
-            []
-          );
-
-          if (lastProgram.success && lastProgram.data.length > 0) {
-            currentProgramId = lastProgram.data[0].id;
-            localStorage.setItem("currentProgramId", currentProgramId);
-            console.log("✅ Son program ID alındı:", currentProgramId);
-          }
         }
       } catch (error) {
-        console.warn("⚠️ Program doğrulama hatası:", error);
+        console.warn("⚠️ Doğrulama hatası:", error);
       }
     }
 
@@ -316,9 +280,11 @@ document.addEventListener("DOMContentLoaded", async function () {
     // Kullanıcı bilgilerini göster
     loadUserInfo();
 
-    // 🔥 3. Atamaları yükle (program_id ile)
-    console.log("📦 Atamalar yükleniyor (program_id:", currentProgramId, ")");
-    await atanalariYukle();
+    // 🔥 3. Atamaları yükle (program_id ile) - Sadece mevcut program varsa
+    if (currentProgramId) {
+      console.log("📦 Atamalar yükleniyor (program_id:", currentProgramId, ")");
+      await atanalariYukle();
+    }
 
     // 🔥 4. Verileri yükle
     console.log("📊 Program verileri yükleniyor...");
@@ -330,7 +296,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     // Accordion sistemini başlat
     initAccordion();
 
-    // Kayıtlı program config var mı kontrol et
+    // Kayıtlı program config var mı kontrol et (tabloyu otomatik oluşturur, modal açmaz)
     checkSavedConfig();
 
     // Sürükle-bırak sistemini başlat
@@ -356,9 +322,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     console.log("Sistem hazır");
   } catch (error) {
     console.error("❌ Sayfa yükleme hatası:", error);
-    if (typeof Bildirim !== "undefined") {
-      Bildirim.goster("error", "Sayfa yüklenirken hata oluştu!");
-    }
+    ModernBildirim.error("Hata", "Sayfa yüklenirken bir sorun oluştu!");
   }
 });
 

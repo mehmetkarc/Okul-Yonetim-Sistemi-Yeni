@@ -1,266 +1,465 @@
-/**
- * LOG GÖRÜNTÜLEYİCİ - FRONTEND MANTIĞI
- * Backend'deki IPC Handler'lar ile tam uyumlu çalışır.
- */
+// ==========================================
+// LOG GÖRÜNTÜLEYİCİ - JAVASCRIPT
+// ==========================================
 
+const { ipcRenderer } = require("electron");
+
+// Global değişkenler
 let allLogs = [];
+let filteredLogs = [];
 let autoRefreshInterval = null;
 
-// Sayfa yüklendiğinde başlat
-document.addEventListener("DOMContentLoaded", () => {
-  loadLogs();
-  setupEventListeners();
+// ==========================================
+// SAYFA YÜKLENDİĞİNDE
+// ==========================================
 
-  // Kullanıcı baş harflerini ayarla
-  const userName = "Sistem Admin";
-  const initials = userName
-    .split(" ")
-    .map((n) => n[0])
-    .join("")
-    .toUpperCase();
-  const avatarEl = document.getElementById("userInitials");
-  if (avatarEl) avatarEl.innerHTML = `<span>${initials}</span>`;
+window.addEventListener("DOMContentLoaded", () => {
+  console.log("✅ Log Görüntüleyici sayfası yüklendi");
+
+  // Kullanıcı bilgilerini yükle
+  loadUserInfo();
+
+  // Logları yükle
+  loadLogs();
+
+  // Event listener'ları ekle
+  initEventListeners();
 });
 
-// Event Listener'ları kur
-function setupEventListeners() {
-  // Arama kutusu (Canlı filtreleme)
-  document.getElementById("searchInput").addEventListener("input", filterLogs);
+// ==========================================
+// SAYFA KAPATILINCA DURDUR
+// ==========================================
+
+window.addEventListener("beforeunload", () => {
+  stopAutoRefresh();
+});
+
+// ==========================================
+// KULLANICI BİLGİLERİ
+// ==========================================
+
+function loadUserInfo() {
+  const currentUser = JSON.parse(localStorage.getItem("currentUser") || "{}");
+
+  if (currentUser.kullanici_adi) {
+    const initials = currentUser.kullanici_adi
+      .split(" ")
+      .map((word) => word[0])
+      .join("")
+      .toUpperCase()
+      .substring(0, 2);
+
+    document.getElementById("userInitials").textContent = initials;
+  }
+}
+
+// ==========================================
+// EVENT LISTENER'LAR
+// ==========================================
+
+function initEventListeners() {
+  // Arama
+  document.getElementById("searchInput").addEventListener("input", (e) => {
+    filterLogs();
+  });
 
   // Seviye filtresi
   document.getElementById("levelFilter").addEventListener("change", () => {
-    loadLogs(); // Seviye filtresi backend'de olduğu için yeniden yükleme yapıyoruz
+    filterLogs();
   });
 
   // Tarih filtresi
-  document.getElementById("dateFilter").addEventListener("change", filterLogs);
+  document.getElementById("dateFilter").addEventListener("change", () => {
+    filterLogs();
+  });
 
-  // Otomatik yenileme toggle
-  const autoRefreshCheck = document.getElementById("autoRefreshCheckbox");
-  if (autoRefreshCheck) {
-    autoRefreshCheck.addEventListener("change", (e) => {
+  // Otomatik yenileme
+  document
+    .getElementById("autoRefreshCheckbox")
+    .addEventListener("change", (e) => {
       if (e.target.checked) {
-        autoRefreshInterval = setInterval(loadLogs, 5000);
-        if (typeof showNotification === "function") {
-          showNotification("Otomatik yenileme aktif", "info");
-        }
+        startAutoRefresh();
       } else {
-        clearInterval(autoRefreshInterval);
-        autoRefreshInterval = null;
+        stopAutoRefresh();
       }
     });
-  }
 }
 
-// Logları Yükle (Main process 'get-all-logs' handler'ını çağırır)
+// ==========================================
+// LOGLARI YÜKLE
+// ==========================================
+
 async function loadLogs() {
   try {
-    const levelFilter = document.getElementById("levelFilter").value;
+    console.log("📜 Loglar yükleniyor...");
 
-    // Backend'deki ipcMain.handle("get-all-logs", ...) fonksiyonuna gider
-    const response = await window.electronAPI.ipcRenderer.invoke(
-      "get-all-logs",
-      {
-        level: levelFilter,
-        limit: 200, // Maksimum 200 log getir
-      }
-    );
+    const result = await ipcRenderer.invoke("get-all-logs", {
+      limit: 500,
+    });
 
-    if (response.success) {
-      allLogs = response.data;
+    if (result.success) {
+      allLogs = result.data;
+
+      console.log(`✅ ${allLogs.length} log yüklendi`);
+
+      // İstatistikleri güncelle
       updateStats();
-      filterLogs(); // Arama kutusundaki değere göre son filtreyi yap
+
+      // Filtreleme uygula
+      filterLogs();
     } else {
-      console.error("Loglar yüklenemedi:", response.message);
+      Bildirim.error(result.message || "Loglar yüklenemedi!");
+      renderEmptyState("Loglar yüklenemedi!");
     }
-  } catch (err) {
-    console.error("Log yükleme hatası:", err);
+  } catch (error) {
+    console.error("❌ Log yükleme hatası:", error);
+    Bildirim.error("Loglar yüklenirken hata oluştu!");
+    renderEmptyState("Loglar yüklenirken hata oluştu!");
   }
 }
 
-// İstatistikleri Güncelle (Mini kartlar)
-function updateStats() {
-  const stats = {
-    info: allLogs.filter((l) => l.level === "info").length,
-    success: allLogs.filter((l) => l.level === "success").length,
-    warn: allLogs.filter((l) => l.level === "warn" || l.level === "warning")
-      .length,
-    error: allLogs.filter((l) => l.level === "error").length,
-    total: allLogs.length,
-  };
+// ==========================================
+// İSTATİSTİKLERİ GÜNCELLE
+// ==========================================
 
-  if (document.getElementById("infoCount"))
-    document.getElementById("infoCount").innerText = stats.info;
-  if (document.getElementById("successCount"))
-    document.getElementById("successCount").innerText = stats.success;
-  if (document.getElementById("warningCount"))
-    document.getElementById("warningCount").innerText = stats.warn;
-  if (document.getElementById("errorCount"))
-    document.getElementById("errorCount").innerText = stats.error;
-  if (document.getElementById("totalCount"))
-    document.getElementById("totalCount").innerText = stats.total;
+function updateStats() {
+  const infoCount = allLogs.filter((l) => l.level === "info").length;
+  const successCount = allLogs.filter((l) => l.level === "success").length;
+  const warningCount = allLogs.filter((l) => l.level === "warn").length;
+  const errorCount = allLogs.filter((l) => l.level === "error").length;
+
+  document.getElementById("infoCount").textContent = infoCount;
+  document.getElementById("successCount").textContent = successCount;
+  document.getElementById("warningCount").textContent = warningCount;
+  document.getElementById("errorCount").textContent = errorCount;
+  document.getElementById("totalCount").textContent = allLogs.length;
 }
 
-// Filtreleme Uygula ve Tabloyu Çiz
+// ==========================================
+// FİLTRELEME
+// ==========================================
+
 function filterLogs() {
   const searchTerm = document.getElementById("searchInput").value.toLowerCase();
+  const levelFilter = document.getElementById("levelFilter").value;
   const dateFilter = document.getElementById("dateFilter").value;
 
-  const filtered = allLogs.filter((log) => {
-    // Arama kontrolü (mesaj veya meta içinde)
-    const matchesSearch =
+  filteredLogs = allLogs.filter((log) => {
+    // Arama filtresi
+    const matchSearch =
+      !searchTerm ||
       log.message.toLowerCase().includes(searchTerm) ||
       (log.meta && JSON.stringify(log.meta).toLowerCase().includes(searchTerm));
 
-    // Tarih kontrolü (Basit günlük filtreleme)
-    let matchesDate = true;
-    if (dateFilter !== "all") {
-      const logDate = new Date(log.timestamp).toLocaleDateString();
-      const today = new Date().toLocaleDateString();
-      const yesterday = new Date();
-      yesterday.setDate(yesterday.getDate() - 1);
-      const yesterdayStr = yesterday.toLocaleDateString();
+    // Seviye filtresi
+    const matchLevel = levelFilter === "all" || log.level === levelFilter;
 
-      if (dateFilter === "today") matchesDate = logDate === today;
-      if (dateFilter === "yesterday") matchesDate = logDate === yesterdayStr;
+    // Tarih filtresi
+    let matchDate = true;
+    if (dateFilter !== "all") {
+      const logDate = new Date(log.timestamp);
+      const now = new Date();
+
+      switch (dateFilter) {
+        case "today":
+          matchDate = logDate.toDateString() === now.toDateString();
+          break;
+        case "yesterday":
+          const yesterday = new Date(now);
+          yesterday.setDate(yesterday.getDate() - 1);
+          matchDate = logDate.toDateString() === yesterday.toDateString();
+          break;
+        case "week":
+          const weekAgo = new Date(now);
+          weekAgo.setDate(weekAgo.getDate() - 7);
+          matchDate = logDate >= weekAgo;
+          break;
+        case "month":
+          const monthAgo = new Date(now);
+          monthAgo.setMonth(monthAgo.getMonth() - 1);
+          matchDate = logDate >= monthAgo;
+          break;
+      }
     }
 
-    return matchesSearch && matchesDate;
+    return matchSearch && matchLevel && matchDate;
   });
 
-  renderTable(filtered);
+  renderTable();
 }
 
-// Tabloyu DOM'a Yaz
-function renderTable(logs) {
-  const tbody = document.getElementById("logTableBody");
-  if (document.getElementById("showingInfo")) {
-    document.getElementById(
-      "showingInfo"
-    ).innerText = `Gösteriliyor: ${logs.length} log`;
-  }
+// ==========================================
+// TABLO RENDER
+// ==========================================
 
-  if (!logs || logs.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding:60px; color:#888;">Log kaydı bulunamadı.</td></tr>`;
+function renderTable() {
+  const tbody = document.getElementById("logTableBody");
+
+  if (filteredLogs.length === 0) {
+    renderEmptyState("Gösterilecek log bulunamadı");
     return;
   }
 
-  tbody.innerHTML = logs
-    .map((log) => {
-      const logDataStr = encodeURIComponent(JSON.stringify(log));
+  tbody.innerHTML = filteredLogs
+    .map((log, index) => {
+      const levelBadge = getLevelBadge(log.level);
+      const timestamp = new Date(log.timestamp).toLocaleString("tr-TR", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+      });
+
+      const message =
+        log.message.length > 100
+          ? log.message.substring(0, 100) + "..."
+          : log.message;
+
       return `
-            <tr onclick="showLogDetail('${logDataStr}')" style="cursor:pointer">
-                <td><span class="log-level-${
-                  log.level
-                }">${log.level.toUpperCase()}</span></td>
-                <td style="color: #aaa; font-family: 'Consolas', monospace; font-size: 12px;">
-                    ${
-                      log.timestamp
-                        ? log.timestamp.replace("T", " ").split(".")[0]
-                        : "-"
-                    }
-                </td>
-                <td style="max-width: 500px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                    ${log.message}
-                </td>
-                <td>
-                    <button class="btn-action" style="padding: 4px 10px; font-size: 12px;">İncele</button>
-                </td>
-            </tr>
-        `;
+        <tr>
+          <td>${levelBadge}</td>
+          <td style="color: #888; font-size: 12px; font-family: monospace;">${timestamp}</td>
+          <td style="color: #ddd;">${escapeHtml(message)}</td>
+          <td>
+            <button 
+              class="btn-icon" 
+              onclick="showLogDetail(${index})" 
+              title="Detay"
+              style="width: 32px; height: 32px; border: none; background: rgba(0, 217, 255, 0.1); 
+                     color: #00d9ff; border-radius: 6px; cursor: pointer; font-size: 14px;
+                     transition: all 0.2s;"
+              onmouseover="this.style.background='rgba(0, 217, 255, 0.2)'"
+              onmouseout="this.style.background='rgba(0, 217, 255, 0.1)'"
+            >
+              🔍
+            </button>
+          </td>
+        </tr>
+      `;
     })
     .join("");
+
+  // Bilgi güncelle
+  document.getElementById(
+    "showingInfo"
+  ).textContent = `Gösteriliyor: ${filteredLogs.length} / ${allLogs.length} log`;
 }
 
-// Log Detay Modalını Aç
-function showLogDetail(encodedLog) {
-  try {
-    const log = JSON.parse(decodeURIComponent(encodedLog));
-    const modal = document.getElementById("modalLogDetail");
+// ==========================================
+// BOŞ DURUM
+// ==========================================
 
-    document.getElementById("detailTimestamp").innerText = log.timestamp || "-";
-    document.getElementById(
-      "detailLevel"
-    ).innerHTML = `<span class="log-level-${
-      log.level
-    }">${log.level.toUpperCase()}</span>`;
-    document.getElementById("detailMessage").innerText = log.message;
+function renderEmptyState(message) {
+  const tbody = document.getElementById("logTableBody");
+  tbody.innerHTML = `
+    <tr>
+      <td colspan="4" style="text-align: center; padding: 60px 20px; color: #888;">
+        ${escapeHtml(message)}
+      </td>
+    </tr>
+  `;
 
-    // Meta bilgileri
-    const metaSection = document.getElementById("detailMetaSection");
-    const metaPre = document.getElementById("detailMeta");
-
-    if (log.meta && Object.keys(log.meta).length > 0) {
-      metaSection.style.display = "block";
-      metaPre.innerText = JSON.stringify(log.meta, null, 2);
-    } else {
-      metaSection.style.display = "none";
-    }
-
-    // Stack Trace (Hata logları için)
-    const stackSection = document.getElementById("detailStackSection");
-    if (log.stack) {
-      stackSection.style.display = "block";
-      document.getElementById("detailStack").innerText = log.stack;
-    } else {
-      stackSection.style.display = "none";
-    }
-
-    modal.style.display = "flex";
-  } catch (e) {
-    console.error("Detay açma hatası:", e);
-  }
+  document.getElementById("showingInfo").textContent = "Gösteriliyor: 0 log";
 }
 
-// Modalı Kapat
-function closeModal(id) {
-  document.getElementById(id).style.display = "none";
+// ==========================================
+// SEVİYE BADGE
+// ==========================================
+
+function getLevelBadge(level) {
+  const badges = {
+    info: { icon: "ℹ️", text: "Info", class: "level-info" },
+    success: { icon: "✅", text: "Success", class: "level-success" },
+    warn: { icon: "⚠️", text: "Warning", class: "level-warn" },
+    error: { icon: "❌", text: "Error", class: "level-error" },
+  };
+
+  const badge = badges[level] || badges.info;
+
+  return `<span class="level-badge ${badge.class}">${badge.icon} ${badge.text}</span>`;
 }
 
-// Logları Temizle (Backend 'clear-logs' çağrısı)
-async function clearLogs() {
-  // SweetAlert2 kullanımı (HTML dosyasında scripti olmalı)
-  const result = await Swal.fire({
-    title: "Emin misiniz?",
-    text: "Tüm sistem logları kalıcı olarak temizlenecek!",
-    icon: "warning",
-    showCancelButton: true,
-    confirmButtonColor: "#7b2fff",
-    cancelButtonColor: "#ff6b6b",
-    confirmButtonText: "Evet, Temizle",
-    cancelButtonText: "Vazgeç",
+// ==========================================
+// LOG DETAY GÖSTER
+// ==========================================
+
+function showLogDetail(index) {
+  const log = filteredLogs[index];
+
+  if (!log) return;
+
+  // Icon'u güncelle
+  const iconMap = {
+    info: "ℹ️",
+    success: "✅",
+    warn: "⚠️",
+    error: "❌",
+  };
+
+  document.getElementById("detailIcon").textContent =
+    iconMap[log.level] || "📜";
+
+  // Timestamp
+  const timestamp = new Date(log.timestamp).toLocaleString("tr-TR", {
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
   });
 
-  if (result.isConfirmed) {
-    const res = await window.electronAPI.ipcRenderer.invoke(
-      "clear-logs",
-      "all"
+  document.getElementById("detailTimestamp").textContent = timestamp;
+
+  // Seviye
+  document.getElementById("detailLevel").innerHTML = getLevelBadge(log.level);
+
+  // Mesaj
+  document.getElementById("detailMessage").textContent = log.message;
+
+  // Meta
+  if (log.meta && Object.keys(log.meta).length > 0) {
+    document.getElementById("detailMetaSection").style.display = "block";
+    document.getElementById("detailMeta").textContent = JSON.stringify(
+      log.meta,
+      null,
+      2
     );
-    if (res.success) {
-      Swal.fire("Başarılı!", res.message, "success");
-      loadLogs();
-    }
-  }
-}
-
-// Dışa Aktar (Backend 'export-logs' çağrısı)
-async function exportLogs(format) {
-  const res = await window.electronAPI.ipcRenderer.invoke(
-    "export-logs",
-    format
-  );
-  if (res.success) {
-    Swal.fire({
-      title: "Dışa Aktarıldı",
-      text: `Dosya oluşturuldu: ${res.path}`,
-      icon: "success",
-    });
   } else {
-    Swal.fire("Hata", res.message, "error");
+    document.getElementById("detailMetaSection").style.display = "none";
+  }
+
+  // Stack trace
+  if (log.stack) {
+    document.getElementById("detailStackSection").style.display = "block";
+    document.getElementById("detailStack").textContent = log.stack;
+  } else {
+    document.getElementById("detailStackSection").style.display = "none";
+  }
+
+  // Modal'ı aç
+  document.getElementById("modalLogDetail").style.display = "flex";
+}
+
+// ==========================================
+// EXPORT
+// ==========================================
+
+async function exportLogs(format) {
+  try {
+    Bildirim.info(
+      `Loglar ${format.toUpperCase()} formatında export ediliyor...`
+    );
+
+    const result = await ipcRenderer.invoke("export-logs", format);
+
+    if (result.success) {
+      Bildirim.success("Loglar başarıyla export edildi!");
+    } else {
+      Bildirim.error(result.message);
+    }
+  } catch (error) {
+    console.error("❌ Export hatası:", error);
+    Bildirim.error("Export sırasında hata oluştu!");
   }
 }
 
-// Klasörü Aç (Backend 'open-log-folder' çağrısı)
-function openLogFolder() {
-  window.electronAPI.ipcRenderer.invoke("open-log-folder");
+// ==========================================
+// KLASÖR AÇ
+// ==========================================
+
+async function openLogFolder() {
+  try {
+    await ipcRenderer.invoke("open-log-folder");
+  } catch (error) {
+    console.error("❌ Klasör açma hatası:", error);
+  }
 }
+
+// ==========================================
+// LOGLARI TEMİZLE
+// ==========================================
+
+async function clearLogs() {
+  const confirm = await Bildirim.confirm(
+    "**⚠️ DİKKAT!**\n\n" +
+      "Tüm loglar kalıcı olarak silinecek. Bu işlem geri alınamaz!\n\n" +
+      "Devam etmek istiyor musunuz?",
+    "Logları Temizle",
+    {
+      icon: "🗑️",
+      confirmText: "Evet, Temizle",
+      cancelText: "Hayır",
+      type: "danger",
+    }
+  );
+
+  if (confirm !== true) return;
+
+  try {
+    Bildirim.info("Loglar temizleniyor...");
+
+    const result = await ipcRenderer.invoke("clear-logs", "all");
+
+    if (result.success) {
+      Bildirim.success("Loglar başarıyla temizlendi!");
+      allLogs = [];
+      filteredLogs = [];
+      updateStats();
+      renderEmptyState("Loglar temizlendi");
+    } else {
+      Bildirim.error(result.message);
+    }
+  } catch (error) {
+    console.error("❌ Log temizleme hatası:", error);
+    Bildirim.error("Loglar temizlenirken hata oluştu!");
+  }
+}
+
+// ==========================================
+// OTOMATİK YENİLEME
+// ==========================================
+
+function startAutoRefresh() {
+  // Önceki interval'i temizle
+  if (autoRefreshInterval) {
+    clearInterval(autoRefreshInterval);
+  }
+
+  // 5 saniyede bir yenile
+  autoRefreshInterval = setInterval(() => {
+    loadLogs();
+  }, 5000);
+
+  console.log("🔄 Otomatik yenileme başlatıldı (5 saniye)");
+}
+
+function stopAutoRefresh() {
+  if (autoRefreshInterval) {
+    clearInterval(autoRefreshInterval);
+    autoRefreshInterval = null;
+    console.log("⏸️ Otomatik yenileme durduruldu");
+  }
+}
+
+// ==========================================
+// MODAL KAPAT
+// ==========================================
+
+function closeModal(modalId) {
+  document.getElementById(modalId).style.display = "none";
+}
+
+// ==========================================
+// YARDIMCI FONKSİYONLAR
+// ==========================================
+
+function escapeHtml(text) {
+  const div = document.createElement("div");
+  div.textContent = text;
+  return div.innerHTML;
+}
+
+console.log("✅ Log Görüntüleyici scripti yüklendi");

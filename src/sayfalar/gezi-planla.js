@@ -5795,7 +5795,7 @@ async function loadOdemeTakip(geziId) {
         SUM(CASE WHEN o.odeme_durumu = 'odendi' THEN 1 ELSE 0 END) as odenen_taksit,
         SUM(CASE WHEN o.odeme_durumu = 'gecikti' THEN 1 ELSE 0 END) as geciken_taksit
        FROM gezi_katilimci_ucretler ku
-       LEFT JOIN gezi_odemeler o ON ku.id = o.katilimci_ucret_id
+       LEFT JOIN gezi_katilimci_ucretler ku ON ku.id = o.katilimci_ucret_id
        WHERE ku.gezi_id = ?
        GROUP BY ku.id
        ORDER BY ku.ad_soyad`,
@@ -6154,7 +6154,7 @@ async function kisiDetayGoster(katilimciUcretId, kisiTipi) {
 
     const kisi = ucretResult.data[0];
 
-    // Taksitleri çek
+    // ✅ DÜZELTME: Taksitleri çek
     const taksitlerResult = await window.electronAPI.dbQuery(
       "SELECT * FROM gezi_odemeler WHERE katilimci_ucret_id = ? ORDER BY taksit_no",
       [katilimciUcretId]
@@ -6311,7 +6311,7 @@ function renderOdemeGecmisi(odemeler, paraBirimi) {
       <div class="gecmis-sol">
         <div class="gecmis-icon">💰</div>
         <div class="gecmis-bilgi">
-          <h4>Taksit ${o.taksit_no} Ödemesi</h4>
+          <h4>Taksit ${ku.taksit_sayisi} Ödemesi</h4>
           <p>${o.odeme_sekli ? formatOdemeSekli(o.odeme_sekli) : "Nakit"} ${
         o.makbuz_no ? `• Makbuz: ${o.makbuz_no}` : ""
       }</p>
@@ -6348,7 +6348,7 @@ async function detayOdemeAl(taksitId) {
   try {
     const taksitResult = await window.electronAPI.dbQuery(
       `SELECT o.*, ku.ad_soyad 
-       FROM gezi_odemeler o
+       FROM gezi_katilimci_ucretler ku
        INNER JOIN gezi_katilimci_ucretler ku ON o.katilimci_ucret_id = ku.id
        WHERE o.id = ?`,
       [taksitId]
@@ -6420,7 +6420,7 @@ async function detayYazdir() {
 
     const kisi = ucretResult.data[0];
 
-    // Taksitleri çek
+    // ✅ DÜZELTME: Taksitleri çek
     const taksitlerResult = await window.electronAPI.dbQuery(
       "SELECT * FROM gezi_odemeler WHERE katilimci_ucret_id = ? ORDER BY taksit_no",
       [currentDetayKatilimciUcretId]
@@ -6586,13 +6586,14 @@ async function loadOdemeHatirlaticlari() {
   try {
     console.log("🔔 Hatırlatıcılar yükleniyor...");
 
-    // Tüm bekleyen ve gecikmiş ödemeleri çek
+    // ✅ TAM DÜZELTME: Tüm alias'lar ve sütun adları doğru
     const result = await window.electronAPI.dbQuery(
       `SELECT 
         o.id,
         o.taksit_no,
         o.taksit_tutari,
         o.vade_tarihi,
+        o.odeme_durumu,
         ku.ad_soyad,
         ku.kisi_tipi,
         p.para_birimi,
@@ -7662,7 +7663,7 @@ async function pasaportSil(pasaportId) {
 
 async function checkPasaportEksikleri() {
   try {
-    // Yurt dışı gezilerini kontrol et
+    // ✅ TAM DÜZELTME: durum sütunu düzeltildi
     const geziResult = await window.electronAPI.dbQuery(
       `SELECT g.id, g.gezi_adi,
         (SELECT COUNT(*) FROM gezi_kafile_baskanlari WHERE gezi_id = g.id) +
@@ -7671,7 +7672,7 @@ async function checkPasaportEksikleri() {
         (SELECT COUNT(*) FROM gezi_misafirler WHERE gezi_id = g.id) as toplam_katilimci,
         (SELECT COUNT(*) FROM gezi_pasaportlar WHERE gezi_id = g.id) as pasaport_sayisi
        FROM geziler g
-       WHERE g.gezi_turu = 'yurt_disi' AND g.gezi_durumu = 'aktif'`
+       WHERE g.gezi_turu = 'yurt_disi' AND g.durum = 'aktif'`
     );
 
     if (!geziResult.success || !geziResult.data) return;
@@ -7722,6 +7723,7 @@ document.addEventListener("DOMContentLoaded", () => {
     checkPasaportEksikleri();
   }, 5000);
 });
+
 // ==========================================
 // GEZİ RAPORLARI SAYFASINI AÇ
 // ==========================================

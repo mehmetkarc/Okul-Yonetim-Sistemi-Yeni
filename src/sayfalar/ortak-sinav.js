@@ -1728,12 +1728,12 @@ async function executeKelebekAlgorithm() {
   try {
     // ADIM 1: Öğrencileri al
     console.log("📥 Öğrenciler çekiliyor...");
-    const ogrenciler = await getKelebekOgrenciler();
+    const ogrenciler = await window.electronAPI.getKelebekOgrenciler();
     console.log(`✅ ${ogrenciler.length} öğrenci alındı`);
 
     // ADIM 2: Salonları al
     console.log("🏢 Salonlar çekiliyor...");
-    const salonlar = await getKelebekSalonlar();
+    const salonlar = await window.electronAPI.getKelebekSalonlar();
     console.log(`✅ ${salonlar.length} salon alındı`);
 
     // Validasyon
@@ -1764,9 +1764,8 @@ async function executeKelebekAlgorithm() {
 
     // Progress callback ekle
     algorithm.sleep = async function (ms) {
-      const progress = Math.round(
-        (algorithm.dagitimSonucu.length / ogrenciler.length) * 100
-      );
+      const yerlesenSayisi = algorithm.dagitim ? algorithm.dagitim.length : 0;
+      const progress = Math.round((yerlesenSayisi / ogrenciler.length) * 100);
 
       document.getElementById(
         "dagitimProgressFill"
@@ -1776,7 +1775,7 @@ async function executeKelebekAlgorithm() {
       ).textContent = `${progress}%`;
       document.getElementById(
         "yerlestirilenSayi"
-      ).textContent = `${algorithm.dagitimSonucu.length} / ${ogrenciler.length}`;
+      ).textContent = `${yerlesenSayisi} / ${ogrenciler.length}`;
 
       // Durduruldu mu kontrol et
       if (dagitimDurdur) {
@@ -1800,22 +1799,39 @@ async function executeKelebekAlgorithm() {
       [currentSinav.id]
     );
 
-    // Yeni dağıtımı kaydet
-    for (const kayit of sonuc.dagitim) {
-      await window.electronAPI.dbQuery(
-        `INSERT INTO ortak_sinav_dagitim 
-         (sinav_id, ogrenci_id, salon_id, sira_no, satir_index, sutun_index, sabitle) 
-         VALUES (?, ?, ?, ?, ?, ?, 0)`,
-        [
-          currentSinav.id,
-          kayit.ogrenci_id,
-          kayit.salon_id,
-          kayit.sira_no,
-          kayit.satir_index,
-          kayit.sutun_index,
-        ]
-      );
+    const kayitlar = sonuc.dagitim || [];
+
+    // Hata takibi için sayaç
+    let basariliKayit = 0;
+
+    for (const kayit of kayitlar) {
+      try {
+        await window.electronAPI.dbQuery(
+          `INSERT INTO ortak_sinav_dagitim 
+            (sinav_id, ogrenci_id, salon_id, sira_no, satir_index, sutun_index, sabitle) 
+            VALUES (?, ?, ?, ?, ?, ?, 0)`,
+          [
+            currentSinav.id,
+            kayit.ogrenci_id,
+            kayit.salon_id,
+            kayit.sira_no,
+            kayit.satir_index || 0,
+            kayit.sutun_index || 0,
+          ]
+        );
+        basariliKayit++;
+      } catch (dbErr) {
+        console.error(
+          `❌ Kayıt hatası (Öğrenci ID: ${kayit.ogrenci_id}):`,
+          dbErr
+        );
+        // Kritik hata değilse devam et, kritikse throw et
+      }
     }
+
+    console.log(
+      `✅ Kayıt işlemi tamamlandı. Toplam: ${basariliKayit}/${kayitlar.length}`
+    );
 
     closeLoading();
 
@@ -1830,9 +1846,7 @@ async function executeKelebekAlgorithm() {
           <div style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(5, 150, 105, 0.1) 100%); padding: 15px; border-radius: 10px; margin-bottom: 15px; border-left: 4px solid #10b981;">
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 14px;">
               <div><strong>Yerleştirilen:</strong></div>
-              <div style="text-align: right; color: #10b981; font-weight: 700;">${
-                sonuc.dagitim.length
-              } öğrenci</div>
+              <div style="text-align: right; color: #10b981; font-weight: 700;">${basariliKayit} öğrenci</div>
               
               <div><strong>Toplam Öğrenci:</strong></div>
               <div style="text-align: right; font-weight: 700;">${
@@ -1859,21 +1873,8 @@ async function executeKelebekAlgorithm() {
               <div style="text-align: right; color: ${
                 sonuc.cakismalar.ayniSeviye > 0 ? "#f59e0b" : "#10b981"
               }; font-weight: 700;">${sonuc.cakismalar.ayniSeviye}</div>
-              
-              <div><strong>Aynı Cinsiyet:</strong></div>
-              <div style="text-align: right; color: ${
-                sonuc.cakismalar.ayniCinsiyet > 0 ? "#6b7280" : "#10b981"
-              }; font-weight: 700;">${sonuc.cakismalar.ayniCinsiyet}</div>
             </div>
           </div>
-
-          ${
-            sonuc.bosKoltuklar.length > 0
-              ? `<div style="margin-top: 15px; padding: 12px; background: rgba(239, 68, 68, 0.1); border-left: 4px solid #ef4444; border-radius: 8px; font-size: 13px; color: #ef4444;">
-                  <strong>⚠️ Uyarı:</strong> ${sonuc.bosKoltuklar.length} koltuk boş kaldı. Öğrenci sayısı salon kapasitesinden az.
-                </div>`
-              : ""
-          }
         </div>
       `,
       confirmButtonText: "Tamam",
@@ -1885,10 +1886,15 @@ async function executeKelebekAlgorithm() {
     document.getElementById("btnBasla").disabled = false;
     document.getElementById("btnDurdur").disabled = true;
     document.getElementById("dagitimProgress").style.display = "none";
+
+    // Listeyi yenile
+    if (typeof loadDagitimListesi === "function") loadDagitimListesi();
   } catch (error) {
     closeLoading();
-    console.error("❌ Dağıtım hatası:", error);
-    showNotification("error", "❌ Dağıtım başarısız: " + error.message);
+    console.error("❌ Dağıtım ana hatası:", error);
+    if (error.message !== "Dağıtım durduruldu") {
+      showNotification("error", "❌ Dağıtım başarısız: " + error.message);
+    }
 
     document.getElementById("btnBasla").disabled = false;
     document.getElementById("btnDurdur").disabled = true;
