@@ -1,7 +1,8 @@
 {
   "name": "okul-yonetim-sistemi",
-  "version": "1.2.2",
-  "description": "Okul Yönetim Sistemi - Profesyonel Çözüm",
+  "version": "1.3.0",
+  "dbSchemaVersion": "14.1",
+  "description": "Okul Yönetim Sistemi - Profesyonel Çözüm (Schema Kontrolü ile Güçlendirilmiş)",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
@@ -12,9 +13,11 @@
   "keywords": [
     "okul",
     "yönetim",
-    "eğitim"
+    "eğitim",
+    "schema-kontrol",
+    "migration"
   ],
-  "author": "Okul Yönetim Sistemi",
+  "author": "Okul Yönetim Sistemi - SİMRE/MK",
   "license": "MIT",
   "devDependencies": {
     "electron": "^28.0.0",
@@ -64,5 +67,18 @@
       "releaseType": "release",
       "publishAutoUpdate": true
     }
+  },
+  "migrationSystem": {
+    "enabled": true,
+    "version": "2.0",
+    "schemaControl": true,
+    "autoFix": true,
+    "features": [
+      "Schema Definitions",
+      "Auto Column Detection",
+      "Critical Table Protection",
+      "Login Schema Check",
+      "Zero Data Loss Migration"
+    ]
   }
 }

@@ -960,6 +960,7 @@ window.electronAPI = {
     );
   },
 
+  // ✅ EKLENDİ: getSinavDagitim
   getSinavDagitim: (sinavId) => {
     console.log("📋 Preload: getSinavDagitim çağrıldı, ID:", sinavId);
     return ipcRenderer.invoke("get-sinav-dagitim", sinavId);
@@ -1097,6 +1098,20 @@ window.electronAPI = {
   uploadDisiplinKanit: (fileData) => {
     console.log("📷 Preload: uploadDisiplinKanit çağrıldı");
     return ipcRenderer.invoke("upload-disiplin-kanit", fileData);
+  },
+
+  // ==========================================
+  // 🔧 DEBUG FONKSİYONLARI
+  // ==========================================
+
+  debugCheckTable: () => {
+    console.log("🔧 Preload: debugCheckTable çağrıldı");
+    return ipcRenderer.invoke("debug-check-table");
+  },
+
+  debugCheckDagitimData: (sinavId) => {
+    console.log("🔧 Preload: debugCheckDagitimData çağrıldı, ID:", sinavId);
+    return ipcRenderer.invoke("debug-check-dagitim-data", sinavId);
   },
 
   // ==========================================
